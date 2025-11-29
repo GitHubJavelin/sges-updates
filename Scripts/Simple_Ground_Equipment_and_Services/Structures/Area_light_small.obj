@@ -1,0 +1,16 @@
+I
+800
+OBJ
+
+
+
+
+# Reduce the emmiters in X-Plane 12
+ANIM_begin
+ANIM_hide 120000 200000 sim/version/xplane_internal_version
+	LIGHT_NAMED area_lt_sml_sp 0 5	-8
+ANIM_hide 100000 116000 sim/version/xplane_internal_version
+	LIGHT_NAMED flood_dn_wide 		 0 4	-8
+ANIM_end
+
+

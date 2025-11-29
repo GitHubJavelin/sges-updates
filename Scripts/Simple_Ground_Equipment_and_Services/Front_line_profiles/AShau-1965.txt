@@ -1,0 +1,38 @@
+@A Shau Valley, Vietnam 1965
+# South AShau SF Camp
+# Camp Ashau (A Sau) was one of the early Special Forces camps established in the country. As U.S. command through intelligence saw how important the Ashau Valley was for the PAVN, it was decided that a number of Special Forces camps should be established in order to deny PAVN free access to the valley. Thus, in 1963, the camps of Aluoi and Ta Bat was established together with Camp Ashau. Aluoi was the most northern outpost, just a couple of kilometers north of where the road from Hue reaches the valley, Ta Bat a few kilometers south of that and Camp Ashau being the most southern one, the three camps effectively blocked the whole southern part of the valley.
+16,117420833931785;107,33202056744433
+16,12217582282951;107,3311620592198
+16,12495763944062;107,32838333825217
+16,124292297898897;107,32436749862211
+16,128103199300764;107,31912591134898
+16,13078591982961;107,31873923687462
+16,13112985572833;107,32183979329085
+# Transition between the A Shau camp and the Aluoi Camp through the mountain towards Laos
+16,126468408955763;107,2973686277717
+16,11898325658204;107,28423421050934
+16,11684458970545;107,27299203980175
+16,125719906439073;107,26609090530798
+16,136840224173305;107,26286295530284
+16,137054070319056;107,25362433977084
+16,14646307207184;107,24561011906839
+16,159086066986756;107,25114729296895
+16,172901190637138;107,24465330705522
+16,178088899011257;107,25575984371143
+16,189668215445796;107,25872919166383
+16,20155793067748;107,2728096097198
+16,213097263287604;107,265223177607
+16,205988284347885;107,2243923816539
+16,20742745133098;107,18651551804184
+16,21854793274929;107,16853082021164
+16,227051406732937;107,17234575611502
+16,242487543864847;107,17398072864505
+16,252559624292083;107,1738444809342
+16,267209001650556;107,18501679322266
+16,268778512992245;107,20545394984788
+16,280549448052817;107,21594502358215
+16,284158611678727;107,22042722061963
+# Aluoi SF Airfield 1965 :
+16,28330835886372;107,22216810817552
+# Established as early as 1962 as a Special Forces camp in the heart of the Ashau Valley, the Aluoi Special Forces Camp, also known as LZ Stallion, was used as a fixed installation to overlook the North Vietnamese infiltration in to the valley. In 1966 US forces were forced to abandon the base due to the increasing pressure from PAVN units.
+

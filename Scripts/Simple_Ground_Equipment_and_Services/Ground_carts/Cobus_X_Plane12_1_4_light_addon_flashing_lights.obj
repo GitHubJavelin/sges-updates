@@ -1,0 +1,53 @@
+I
+800
+OBJ
+
+# By XPJavelin 2025
+
+LIGHT_NAMED	HGV_worklight	-1.17	1.05	-6.18
+LIGHT_NAMED	HGV_worklight	 1.17	1.05	-6.18
+
+LIGHT_NAMED	headlight2		-1.16	0.95	-6.19
+LIGHT_NAMED	headlight2		 1.16	0.95	-6.19
+
+LIGHT_NAMED	HGV_worklight	-1.145	0.85	-6.20
+LIGHT_NAMED	HGV_worklight	 1.145	0.85	-6.20
+
+LIGHT_NAMED	taillight	-1.35	0.87	7.40
+LIGHT_NAMED	taillight	 1.35	0.87	7.40
+
+
+ANIM_begin
+	ANIM_hide 0	0 sim/weather/aircraft/precipitation_on_aircraft_ratio
+	# FOG
+	LIGHT_NAMED	headlight2	-1.14	0.37	-6.18
+	LIGHT_NAMED	headlight2	 1.14	0.37	-6.18
+	LIGHT_NAMED	taillight2	-1.35	0.87	7.40
+ANIM_end
+
+ANIM_begin
+	ANIM_hide -99 4 sim/graphics/scenery/sun_pitch_degrees
+		LIGHT_NAMED	PD_ltbar_3a 0 3.0 -4.9
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	0 3.0 -4.9	0 3.0 -4.9
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	195
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 		0  5  0 	 1 10 0.2  1
+ANIM_end
+
+#In theory the XYZ vector of light direction (yours 0.41 -1 1.0) should be expressed so that the sum of the three is 1, without considering +/- signs, otherwise you could end up with unpredicted results
+#XYZBTSS in the name = what those those LAST 7 parameters are (different light types can have different parameters available).
+
+#X vector the light is pointed at
+#Y vector the light is pointed at
+#Z vector the light is pointed at
+
+#Brightness (1 = max)
+#Throw - how far it reaches in meters
+#Spread - how wide it is (cosine of 1/2 the light angle)
+#Size - how big the halo is

@@ -1,0 +1,14 @@
+A
+1000
+ACF_SOUNDS
+# SGES Engine sound
+# The PureTech three-cylinder is a turbo petrol engine. After the launch of the 1.0 litre and 1.2 litre naturally aspirated engines, the PureTech family of three-cylinder engines was expanded with the 1.2 litre e-THP 110 and 1.2 litre e-THP 130 turbocharged versions.
+# Downsizing can deliver performance. With high pressure direct injection and a new high-efficiency turbocharger (running at 240, 000 rpm), it offers  driveability from the lowest engine speeds. As the maximum torque of 230 Nm is obtained at 1750 rpm, it delivers the best low speed torque/maximum power compromise in the market. In addition, 95 % of the torque is available between 1500 and 3500 rpm, promising optimum operation in all circumstances.
+
+BEGIN_SOUND_ATTACHMENT
+	EVENT_NAME /Puretech 1.2 engine
+	VEH_XYZ 0 0 0
+	EVENT_START_COND sim/operation/sound/inside_ratio[*] 0
+	EVENT_END_COND sim/operation/sound/inside_ratio[*] 1
+END_SOUND_ATTACHMENT
+

@@ -1,0 +1,12 @@
+License:
+
+You may modify and redistribute assets from this library under the following conditions:
+
+You adapted the asset to be used in your X-Plane scenery. Usage in other simulators is not allowed
+Your scenery is not a paid product (this includes add-ons to paid products, like static aircraft packages). Donationware is fine as long as donations are purely optional
+You give appropriate credit (e.g. in the description)
+
+
+https://forums.x-plane.org/index.php?/files/file/28167-misterx-library-and-static-aircraft-extension/
+
+By MisterX6

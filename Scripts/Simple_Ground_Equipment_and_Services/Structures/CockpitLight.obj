@@ -1,0 +1,29 @@
+I
+800
+OBJ
+
+# Build with AC3D by XPJavelin. Last version created on August, 2023.
+
+ANIM_begin
+	ANIM_hide 1 1 sim/graphics/view/view_is_external
+	LIGHT_NAMED	taxi_r 0 -1.2 0.5
+	LIGHT_NAMED	SW_sp 0 0 0.1
+ANIM_end
+
+ANIM_begin
+	ANIM_hide 1 1 sim/graphics/view/view_is_external
+	ANIM_hide -999 -6 sim/graphics/scenery/sun_pitch_degrees
+	LIGHT_NAMED	SW_sp -0.3 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0.3 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0 -0.3 0
+	ANIM_hide -999 0 sim/graphics/scenery/sun_pitch_degrees
+	LIGHT_NAMED	SW_sp -0.3 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0.3 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0 -0.3 0
+	LIGHT_NAMED	SW_sp -0.3 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0.3 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0 -0.4 -0.3
+	LIGHT_NAMED	SW_sp 0 -0.3 0
+ANIM_end

@@ -1,0 +1,322 @@
+I
+800
+OBJ
+
+POINT_COUNTS	0 0 0 0
+PARTICLE_SYSTEM ../../../../../effects/weapon_system.pss
+
+ANIM_begin
+	# <Flame>
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   1.6807   -0.0625    0.4138
+		ANIM_trans_key		0.2	   1.6331   -0.0625    0.4138
+		ANIM_trans_key		0.4	   1.7331   -0.0625    0.4138
+		ANIM_trans_key		0.6	   1.6807   -0.0625    0.4138
+		ANIM_keyframe_loop	0.6
+	ANIM_trans_end
+	ANIM_rotate		1 0 0	  -0.00   -0.00	0 0	none
+	ANIM_rotate		0 0 -1	   0.00    0.00	0 0	none
+	ANIM_rotate		0 1 0	  -0.00   -0.00	0 0	none
+	smoke_black	   3.2818   -0.1090    0.5170	1.0
+	smoke_black	   4.1410   -0.1090    0.5170	1.0
+	smoke_black	   2.4560   -0.1090    0.5170	2.0
+	smoke_black	   2.4560   -0.1090    0.5170	3.0
+	smoke_black	   2.4560   -0.1090    0.5170	5.0
+	smoke_black	   2.4560   -0.1090    0.5170	7.0
+	smoke_black	   2.4560   -0.1090    0.5170	9.0
+ANIM_end
+
+
+ANIM_begin
+	# MOVING
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   1.6807   -0.0625    0.4138
+		ANIM_trans_key		0.2	   1.6331   -0.0625    0.4138
+		ANIM_trans_key		0.4	   1.7331   -0.0625    0.4138
+		ANIM_trans_key		0.6	   1.6807   -0.0625    0.4138
+		ANIM_keyframe_loop	1.6
+	ANIM_trans_end
+	ANIM_rotate		1 0 0	  -0.00   -0.00	0 0	none
+	ANIM_rotate		0 0 -1	   0.00    0.00	0 0	none
+	ANIM_rotate		0 1 0	  -0.00   -0.00	0 0	none
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   -3.0625    0
+				ANIM_trans_key		0.2	   0   1.0625    0
+				ANIM_trans_key		0.4	   1   2.0625    0.2
+				ANIM_trans_key		0.6	   2   3.0625    0.55
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	0.7
+			ANIM_trans_end
+		ANIM_end
+
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   0.0625    0.22
+				ANIM_trans_key		0.2	   0   1.0625    0.2
+				ANIM_trans_key		0.4	   -1   2.0625    0.2
+				ANIM_trans_key		0.6	   -1   3.0625    0.5
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	1.2
+			ANIM_trans_end
+		ANIM_end
+
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   -0.0625    0.5
+				ANIM_trans_key		0.2	   0   1.0625    0.5
+				ANIM_trans_key		0.4	   -1   2.0625    0.3
+				ANIM_trans_key		0.6	   1   3.0625    0.2
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	0.9
+			ANIM_trans_end
+		ANIM_end
+
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   -0.0625   -1
+				ANIM_trans_key		0.2	   0   1.0625    0
+				ANIM_trans_key		0.4	   -1   2.0625    1
+				ANIM_trans_key		0.6	   -2   3.0625    2
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	1.5
+			ANIM_trans_end
+		ANIM_end
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	3.2818   1.1090    0.5170
+	ANIM_rotate	1	90	90	0	0
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	39.99998884
+	ANIM_rotate_end
+		LIGHT_NAMED area_lt_sml_sp 2.4560   -0.1090    0.5170
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	0	2	0
+	ANIM_rotate	1	0	0	90	90
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	9.99998884
+	ANIM_rotate_end
+		LIGHT_NAMED area_lt_sml_sp 2.4560   10.1090    0.5170
+ANIM_end
+
+
+LIGHT_NAMED area_lt_sml_sp 10.4560   20.1090    0.5170
+
+ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -1   -2.0625    1
+		ANIM_trans_key		0.2	   -1   1.0625    0
+		ANIM_trans_key		0.4	   1   2.0625    0.2
+		ANIM_trans_key		0.6	   2   3.0625    0.55
+		LIGHT_NAMED area_lt_sml_sp 0 0 0
+		LIGHT_NAMED	town_tiny_light_omni 0 0 0
+		ANIM_keyframe_loop	0.7
+	ANIM_trans_end
+ANIM_end
+
+ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   1   0.0625    1.22
+		ANIM_trans_key		0.2	   1   1.0625    1.2
+		ANIM_trans_key		0.4	   0   2.0625    1.2
+		ANIM_trans_key		0.6	   0   3.0625    1.5
+		LIGHT_NAMED area_lt_sml_sp 0 0 0
+		LIGHT_NAMED	town_tiny_light_omni 0 0 0
+		ANIM_keyframe_loop	1.2
+	ANIM_trans_end
+ANIM_end
+
+ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -0.5   0.0625    0.1
+		ANIM_trans_key		0.2	   -0.5   1.6625    0.2
+		ANIM_trans_key		0.4	   -1   2.6625    0.3
+		ANIM_trans_key		0.6	   -1.5   3.0625    0.4
+		LIGHT_NAMED area_lt_sml_sp 0 0 0
+		LIGHT_NAMED	town_tiny_light_omni 0 0 0
+		ANIM_keyframe_loop	0.9
+	ANIM_trans_end
+ANIM_end
+
+ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -1   -0.0625   -1
+		ANIM_trans_key		0.2	   0   1.0625    0
+		ANIM_trans_key		0.4	   -1   2.0625    1
+		ANIM_trans_key		0.9	   -3   3.0625    2
+		LIGHT_NAMED area_lt_sml_sp 0 0 0
+		EMITTER		Flare		0.0 0.0 0		0.0 0.0 0.0
+		ANIM_keyframe_loop	2
+	ANIM_trans_end
+ANIM_end
+
+
+ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -1   -0.0625   0
+		ANIM_trans_key		0.02	   0   0.0625    0.2
+		ANIM_trans_key		0.04	   -1   0.9625    1.4
+		ANIM_trans_key		0.6	   -3   1.0625    2.8
+		EMITTER		Flare		0.0 0.0 0		0.0 0.0 0.0
+		ANIM_keyframe_loop	1
+	ANIM_trans_end
+ANIM_end
+
+
+
+
+ANIM_begin
+	# MOVING 2
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -1.6807   -0.0625    0.4138
+		ANIM_trans_key		0.02	   -1.6331   0.0625    -0.4138
+		ANIM_trans_key		0.04	   -1.7331   0.0625    -0.4138
+		ANIM_trans_key		0.06   -1.6807   -0.0625    0.4138
+		ANIM_keyframe_loop	0.06
+	ANIM_trans_end
+	ANIM_rotate		1 0 0	  -0.00   -0.00	0 0	none
+	ANIM_rotate		0 0 -1	   0.00    0.00	0 0	none
+	ANIM_rotate		0 1 0	  -0.00   -0.00	0 0	none
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   -3.0625    0
+				ANIM_trans_key		0.2	   0   1.0625    0
+				ANIM_trans_key		0.4	   1   2.0625    0.2
+				ANIM_trans_key		0.6	   2   3.0625    0.55
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	0.7
+			ANIM_trans_end
+		ANIM_end
+
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   0.0625    0.22
+				ANIM_trans_key		0.2	   0   1.0625    0.2
+				ANIM_trans_key		0.4	   -1   2.0625    0.2
+				ANIM_trans_key		0.6	   -1   3.0625    0.5
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	1.2
+			ANIM_trans_end
+		ANIM_end
+
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   -0.0625    0.5
+				ANIM_trans_key		0.2	   0   1.0625    0.5
+				ANIM_trans_key		0.4	   -1   2.0625    0.3
+				ANIM_trans_key		0.6	   1   3.0625    0.2
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	0.9
+			ANIM_trans_end
+		ANIM_end
+
+		ANIM_begin
+			ANIM_trans_begin	sim/time/total_running_time_sec
+				ANIM_trans_key		0.0	   0   -0.0625   -1
+				ANIM_trans_key		0.2	   0   1.0625    0
+				ANIM_trans_key		0.4	   -1   2.0625    1
+				ANIM_trans_key		0.6	   -2   3.0625    2
+				LIGHT_NAMED area_lt_sml_sp 0 0 0
+				LIGHT_NAMED	town_tiny_light_omni 0 0 0
+				ANIM_keyframe_loop	1.5
+			ANIM_trans_end
+		ANIM_end
+
+			ANIM_begin
+		ANIM_trans	3.2818   1.1090    0.5170
+		ANIM_rotate	1	90	90	0	0
+		ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+		ANIM_rotate_key	0	0
+		ANIM_rotate_key	0.25	39.99998884
+		ANIM_rotate_end
+			LIGHT_NAMED area_lt_sml_sp 2.4560   -0.1090    0.5170
+	ANIM_end
+
+	ANIM_begin
+		ANIM_trans	0	2	0
+		ANIM_rotate	1	0	0	90	90
+		ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+		ANIM_rotate_key	0	0
+		ANIM_rotate_key	0.25	9.99998884
+		ANIM_rotate_end
+			LIGHT_NAMED area_lt_sml_sp 2.4560   10.1090    0.5170
+	ANIM_end
+
+
+	LIGHT_NAMED area_lt_sml_sp 10.4560   20.1090    0.5170
+
+	ANIM_begin
+		ANIM_trans_begin	sim/time/total_running_time_sec
+			ANIM_trans_key		0.0	   -1   -2.0625    1
+			ANIM_trans_key		0.2	   -1   1.0625    0
+			ANIM_trans_key		0.4	   1   2.0625    0.2
+			ANIM_trans_key		0.6	   2   3.0625    0.55
+			LIGHT_NAMED area_lt_sml_sp 0 0 0
+			LIGHT_NAMED	town_tiny_light_omni 0 0 0
+			ANIM_keyframe_loop	0.7
+		ANIM_trans_end
+	ANIM_end
+
+	ANIM_begin
+		ANIM_trans_begin	sim/time/total_running_time_sec
+			ANIM_trans_key		0.0	   1   0.0625    1.22
+			ANIM_trans_key		0.2	   1   1.0625    1.2
+			ANIM_trans_key		0.4	   0   2.0625    1.2
+			ANIM_trans_key		0.6	   0   3.0625    1.5
+			LIGHT_NAMED area_lt_sml_sp 0 0 0
+			LIGHT_NAMED	town_tiny_light_omni 0 0 0
+			ANIM_keyframe_loop	1.2
+		ANIM_trans_end
+	ANIM_end
+
+	ANIM_begin
+		ANIM_trans_begin	sim/time/total_running_time_sec
+			ANIM_trans_key		0.0	   -0.5   0.0625    0.1
+			ANIM_trans_key		0.2	   -0.5   1.6625    0.2
+			ANIM_trans_key		0.4	   -1   2.6625    0.3
+			ANIM_trans_key		0.6	   -1.5   3.0625    0.4
+			LIGHT_NAMED area_lt_sml_sp 0 0 0
+			LIGHT_NAMED	town_tiny_light_omni 0 0 0
+			ANIM_keyframe_loop	0.9
+		ANIM_trans_end
+	ANIM_end
+
+	ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -1   0.0625   -1
+		ANIM_trans_key		0.1	   0   1.0625    0
+		ANIM_trans_key		0.2	   -1   2.0625    1
+		ANIM_trans_key		0.3	   0   1.0625    1
+		LIGHT_NAMED area_lt_sml_sp 0 0 0
+		EMITTER		Flare		0.0 0.0 0		0.0 0.0 0.0
+		ANIM_keyframe_loop	4
+	ANIM_trans_end
+	ANIM_end
+
+
+	ANIM_begin
+	ANIM_trans_begin	sim/time/total_running_time_sec
+		ANIM_trans_key		0.0	   -1   -0.0625   0
+		ANIM_trans_key		0.2	   0   0.0625    0.2
+		ANIM_trans_key		0.4	   -1   0.9625    1.4
+		ANIM_trans_key		0.9	   -3   1.0625    2.8
+		EMITTER		Flare		0.0 0.0 0		0.0 0.0 0.0
+		ANIM_keyframe_loop	1
+	ANIM_trans_end
+	ANIM_end
+
+ANIM_end
+
+

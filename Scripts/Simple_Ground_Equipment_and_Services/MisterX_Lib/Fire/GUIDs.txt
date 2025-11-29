@@ -1,0 +1,18 @@
+{b5776b3a-be2f-4f4e-9256-c18fac4edc64} bank:/Master Bank
+{2d6a4bee-cf54-030c-141f-4b715dbddafc} bank:/Master Bank.strings
+{9f08114d-36ec-44cc-b8bf-b2babda09f9e} bus:/
+{7f7c05a4-e05a-4d44-94fe-d4691147a9b7} bus:/Master
+{e3492bec-f854-4fbb-b2bc-23586269032e} bus:/Master/Copilot
+{a5a85a81-afd5-4425-9dc2-6e50f7776e6a} bus:/Master/Exterior Processed
+{06db5351-0b2f-4648-b97a-a33b40a00e11} bus:/Master/Exterior Processed/Aircraft
+{b6c156f1-9861-405c-a622-92b2ab8010a7} bus:/Master/Exterior Processed/Environment
+{8dbbc9d7-a954-4ed0-b1f1-f8111b03cbd1} bus:/Master/Exterior Unprocessed
+{751f5066-4651-4afb-a410-4cb9db0894c9} bus:/Master/Interior
+{d8526059-b27c-4eae-9b14-a1ee1cb3dfa1} bus:/Master/Radios
+{77575f3b-b9cd-4bff-9056-637cff744a14} bus:/Master/UI
+{f850479d-b89a-410d-a3fb-e7576c47b603} event:/HighPitch
+{5b6a5a12-e2bb-4076-8425-4d8ed5247afc} event:/Puretech 1.2 engine
+{a1d54c88-b0fd-4a34-b9af-e3de7d7fa22c} event:/Tractor engine
+{f45d093e-cd8f-4a85-970c-30ec0514ce42} parameter:/Distance
+{813a743c-531f-4368-9ba8-03160c784080} parameter:/sim.flightmodel2.misc.door_open_ratio[#]
+{d6006f3c-d902-49ff-9fb9-d19e9cbfdd9a} parameter:/sim.operation.sound.inside_ratio[#]

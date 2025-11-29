@@ -1,0 +1,11 @@
+A
+1000
+ACF_SOUNDS
+
+BEGIN_SOUND_ATTACHMENT
+	EVENT_NAME /Puretech 1.2 engine
+	VEH_XYZ 0 0 0
+	EVENT_START_COND sim/operation/sound/inside_ratio[*] 0
+	EVENT_END_COND sim/operation/sound/inside_ratio[*] 1
+END_SOUND_ATTACHMENT
+

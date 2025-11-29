@@ -1,0 +1,1 @@
+float_wnd_saved_position_x = 100

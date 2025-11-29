@@ -1,0 +1,21 @@
+https://forums.x-plane.org/index.php?/files/file/82460-norwegian-emergency-vehicles-library/&tab=comments
+
+
+Home Downloads Scenery Libraries for Scenery Norwegian emergency vehicles library 
+
+Norwegian emergency vehicles library 1.0 
+
+
+About This File
+
+A little library with Norwegian emergency vehicles that works in xp11 as well as in xp12. An ambulance is currently missing because i cannot find any good enough images to model of off. But this might be added in the future if i can find any source images of it.
+
+ 
+
+The purpose of this library is to be used in so-called emergency scenarios for use with helicopters or similar. But it can also be used in airport sceneries. Although the models are not of the highest quality as they were made with a focus on performance. 
+
+Feel free to use this in any scenery, freeware or payware. But contact me first so I'm aware if you will be publishing payware with models from here. 
+Using these models outside of X-Plane is not permitted!
+
+
+ Submitted 2022-08-14 at 02:06 PM 

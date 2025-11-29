@@ -1,0 +1,69 @@
+I
+800
+OBJ
+
+# By XPJavelin 2025
+
+# RED STOP LIGHTS
+LIGHT_NAMED	taillight2 -0.70 0.99 0.6
+LIGHT_NAMED	taillight2  0.70 0.99 0.6
+LIGHT_NAMED	taillight2 -0.60 0.99 0.6
+LIGHT_NAMED	taillight2  0.60 0.99 0.6
+
+
+# FRONT LIGHTS
+LIGHT_NAMED	headlight   0.6 0.8 -3.15
+LIGHT_NAMED	headlight  -0.6 0.8 -3.15
+LIGHT_NAMED	headlight3   0.69 0.8 -3.1
+LIGHT_NAMED	headlight3  -0.69 0.8 -3.1
+
+
+LIGHT_NAMED	headlight2   0.36    1.75   -1.19
+LIGHT_NAMED	headlight2  -0.36    1.75   -1.19
+LIGHT_NAMED	headlight2   0.44    1.75   -1.19
+LIGHT_NAMED	headlight2  -0.44    1.75   -1.19
+
+#LIGHT_PARAM - LAST 7 digits
+#X vector the light is pointed at
+#Y vector the light is pointed at
+#Z vector the light is pointed at
+#Brightness (1 = max)
+#Throw - how far it reaches in meters
+#Spread - how wide it is (cosine of 1/2 the light angle)
+#Size - how big the halo is
+
+# Orange signaling lights
+ANIM_begin
+#ANIM_hide 0.00000 0.010000 sim/flightmodel/position/groundspeed
+
+    ANIM_begin
+		ANIM_hide 0.0 0.2 sim/graphics/animation/lights/pulse[0]
+		ANIM_hide 0.4 0.6 sim/graphics/animation/lights/pulse[0]
+		ANIM_hide 0.8 1.0 sim/graphics/animation/lights/pulse[0]
+		ANIM_begin
+			ANIM_trans	-0.4    1.75   -0.73	-0.4    1.75   -0.73
+			ANIM_rotate	1	0	0	90.0000025	90.0000025
+			ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+			ANIM_rotate_key	0	0
+			ANIM_rotate_key	0.25	48
+			ANIM_rotate_end
+				LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0.75  0.05  0  1 6 1 1
+		ANIM_end
+	ANIM_end
+
+    ANIM_begin
+		ANIM_hide 0.0 0.2 sim/graphics/animation/lights/pulse[0]
+		ANIM_hide 0.4 0.6 sim/graphics/animation/lights/pulse[0]
+		ANIM_hide 0.8 1.0 sim/graphics/animation/lights/pulse[0]
+		ANIM_begin
+			ANIM_trans	0.4    1.75   -0.73 	0.4    1.75   -0.73
+			ANIM_rotate	1	0	0	90.0000025	90.0000025
+			ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+			ANIM_rotate_key	0	0
+			ANIM_rotate_key	0.25	51
+			ANIM_rotate_end
+				LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0.75  0.05  0  1 6 1 1
+		ANIM_end
+	ANIM_end
+
+ANIM_end

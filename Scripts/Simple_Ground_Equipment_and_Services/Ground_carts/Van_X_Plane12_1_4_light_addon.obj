@@ -1,0 +1,17 @@
+I
+800
+OBJ
+
+# By XPJavelin 2025
+
+
+# RED STOP LIGHTS
+LIGHT_NAMED	taillight2 -0.80 0.95 0.87
+LIGHT_NAMED	taillight2  0.80 0.95 0.87
+LIGHT_NAMED	taillight  -0.1 1.91 0.79
+LIGHT_NAMED	taillight   0.0 1.91 0.79
+LIGHT_NAMED	taillight   0.1 1.91 0.79
+
+# FRONT LIGHTS
+LIGHT_NAMED	headlight   0.65 0.95 -4
+LIGHT_NAMED	headlight  -0.65 0.95 -4

@@ -1,0 +1,112 @@
+I
+800
+OBJ
+
+POINT_COUNTS	0	0	0	0
+PARTICLE_SYSTEM particles/firetruck_effects.pss
+ATTR_LOD 0 3000
+
+
+LIGHT_NAMED	taillight 1.28931546 1.0912807 5.40840025
+LIGHT_NAMED	taillight -1.28931999 1.0912807 5.40840025
+
+LIGHT_NAMED	headlight -1.1 1.1221199 -5.35896921
+LIGHT_NAMED	headlight 1.1 1.1221199 -5.35896921
+
+ANIM_begin
+ANIM_hide -90000 -6.00000 sim/graphics/scenery/sun_pitch_degrees
+	ANIM_begin
+		ANIM_hide -0.50000 0.00000 sim/graphics/animation/ping_pong_2
+		ANIM_hide 0.50000 1.00000 sim/graphics/animation/ping_pong_2
+		LIGHT_NAMED	PD_ltbar_2r 1.4 2.1 -4.26
+		LIGHT_NAMED	PD_ltbar_2r 1.5 2.0 3.8
+	ANIM_end
+	ANIM_begin
+		ANIM_hide -1.00000 -0.50000 sim/graphics/animation/ping_pong_2
+		ANIM_hide 0.00000 0.50000 sim/graphics/animation/ping_pong_2
+		LIGHT_NAMED	PD_ltbar_2r -1.4 2.1 -4.26
+		LIGHT_NAMED	PD_ltbar_2r -1.5 2.0 3.8
+	ANIM_end
+
+	#LIGHT_NAMED	PD_ltbar_3a 0 3.15 1.45
+	#LIGHT_NAMED	PD_ltbar_3a 0 3.15 3.15
+ANIM_end
+
+
+ANIM_begin
+	ANIM_trans	1.4 3.1 -4.26	1.4 3.1 -4.26
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	208
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.1  0  1 20 0.2  1
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	1.5 3.0 3.8	1.5 3.0 3.8
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	212
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.1  0  1 20 0.2  1
+ANIM_end
+
+
+ANIM_begin
+	ANIM_trans	-1.5 3.0 3.8	-1.5 3.0 3.8
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	208
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.1  0  1 20 0.2  1
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	-1.4 3.1 -4.26	-1.4 3.1 -4.26
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	212
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.1  0  1 20 0.2  1
+ANIM_end
+
+
+
+
+ANIM_begin
+	ANIM_trans	0 3.15 3.15	0 3.15 3.15
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	179.99998884
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.05  0  1 8 0.2  1
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	0 3.15 1.45	0 3.15 1.45
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	169.99998884
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.05  0  1 8 0.2  1
+ANIM_end
+
+ANIM_begin
+	ANIM_hide 1 999 sim/flightmodel/position/groundspeed
+	ANIM_hide 0 0 sim/flightmodel2/engines/is_on_fire[0]
+	EMITTER Gun 0.014034 3 -4.6 0 3 0.00000001
+ANIM_end
+
+ANIM_begin
+	ANIM_hide 1 999 sim/flightmodel/position/groundspeed
+	ANIM_hide 0 0 sim/flightmodel2/engines/is_on_fire[1]
+	EMITTER Gun 0.014034 3 -4.6 11 1 0.00000001
+ANIM_end
+
+# Build with Blender 2.76 (sub 0) (build b'f337fea') Exported with XPlane2Blender 3.3.8

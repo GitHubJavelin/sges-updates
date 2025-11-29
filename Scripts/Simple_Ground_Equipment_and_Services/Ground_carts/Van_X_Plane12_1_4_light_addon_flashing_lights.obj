@@ -1,0 +1,111 @@
+I
+800
+OBJ
+
+# By XPJavelin 2025
+
+
+# RED STOP LIGHTS
+LIGHT_NAMED	taillight2 -0.80 0.95 0.87
+LIGHT_NAMED	taillight2  0.80 0.95 0.87
+
+# FRONT LIGHTS
+LIGHT_NAMED	headlight   0.65 0.95 -4
+LIGHT_NAMED	headlight  -0.65 0.95 -4
+
+
+# 4 BLINKING TURNING LIGHTS
+ANIM_begin
+	ANIM_hide -1.000000 -0.500000 sim/graphics/animation/ping_pong_2
+	ANIM_hide 0.5000000 -1.00000 sim/graphics/animation/ping_pong_2
+	ANIM_hide 0.5000000 1.00000 sim/graphics/animation/ping_pong_2
+	ANIM_begin
+		ANIM_trans	-0.80 1.05 0.87	-0.80 1.05 0.87
+		#LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  -0.15  0.9  7 4 1  1
+	ANIM_end
+
+	ANIM_begin
+		ANIM_trans	0.80 1.05 0.87	0.80 1.05 0.87
+		#LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  -0.15  0.9  7 4 1  1
+	ANIM_end
+
+	ANIM_begin
+		ANIM_trans	0.69 0.95 -4.05	0.69 0.95 -4.05
+		#LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 		0.95 0.05  0  7 4 1  0.5
+	ANIM_end
+
+	ANIM_begin
+		ANIM_trans	-0.69 0.95 -4.05	-0.69 0.95 -4.05
+		#LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0		 -0.95 0.05  0  7 4 1  0.5
+	ANIM_end
+
+ANIM_end
+
+#In theory the XYZ vector of light direction (yours 0.41 -1 1.0) should be expressed so that the sum of the three is 1, without considering +/- signs, otherwise you could end up with unpredicted results
+#XYZBTSS in the name = what those those LAST 7 parameters are (different light types can have different parameters available).
+#X vector the light is pointed at
+#Y vector the light is pointed at
+#Z vector the light is pointed at
+#Brightness (1 = max)
+#Throw - how far it reaches in meters
+#Spread - how wide it is (cosine of 1/2 the light angle)
+#Size - how big the halo is
+
+# Orange signaling lights
+ANIM_begin
+#ANIM_hide 0.00000 0.010000 sim/flightmodel/position/groundspeed
+
+    ANIM_begin
+		ANIM_hide -99 4 sim/graphics/scenery/sun_pitch_degrees
+		#    LIGHT_NAMED appch_w -0.53    2.15   -1.95
+		#    LIGHT_NAMED appch_w -0.3    2.15   -1.95
+		LIGHT_NAMED	airplane_beacon 	  -0.53    2.15   -1.95
+		LIGHT_NAMED	airplane_beacon	  -0.4    2.15   -1.95
+    ANIM_end
+    ANIM_begin
+	    ANIM_trans	-0.4    2.15   -1.95    -0.4    2.15   -1.95
+	    ANIM_rotate	1	0	0	90.0000025	90.0000025
+	    ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	    ANIM_rotate_key	0	0
+	    ANIM_rotate_key	0.25	98
+	    ANIM_rotate_end
+		    LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0.75  0.05  0  1 8 0.2  1
+    ANIM_end
+    ANIM_begin
+	    ANIM_trans	-0.53    2.15   -1.95   -0.53    2.15   -1.95
+	    ANIM_rotate	1	0	0	90.0000025	90.0000025
+	    ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	    ANIM_rotate_key	0	0
+	    ANIM_rotate_key	0.25	99
+	    ANIM_rotate_end
+		    LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0.75  0.05  0  1 8 0.2  1
+    ANIM_end
+
+
+    ANIM_begin
+		ANIM_hide -99 4 sim/graphics/scenery/sun_pitch_degrees
+		#    LIGHT_NAMED appch_w 0.53    2.15   -1.95
+		#    LIGHT_NAMED appch_w 0.3    2.15   -1.95
+		LIGHT_NAMED	airplane_beacon 	  0.53    2.15   -1.95
+		LIGHT_NAMED	airplane_beacon 	  0.4    2.15   -1.95
+    ANIM_end
+    ANIM_begin
+	    ANIM_trans	0.4    2.15   -1.95     0.4    2.15   -1.95
+	    ANIM_rotate	1	0	0	90.0000025	90.0000025
+	    ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	    ANIM_rotate_key	0	0
+	    ANIM_rotate_key	0.25	101
+	    ANIM_rotate_end
+		    LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0.75  0.05  0  1 8 0.2  1
+    ANIM_end
+    ANIM_begin
+	    ANIM_trans	0.53    2.15   -1.95    0.53    2.15   -1.95
+	    ANIM_rotate	1	0	0	90.0000025	90.0000025
+	    ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	    ANIM_rotate_key	0	0
+	    ANIM_rotate_key	0.25	102
+	    ANIM_rotate_end
+		    LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0.75  0.05  0  1 8 0.2  1
+    ANIM_end
+
+ANIM_end

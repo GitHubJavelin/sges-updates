@@ -1,0 +1,12 @@
+A
+1000
+ACF_SOUNDS
+# SGES GPU sound
+
+BEGIN_SOUND_ATTACHMENT
+	EVENT_NAME /HighPitch
+	VEH_XYZ 0 0 0
+	EVENT_START_COND sim/cockpit2/electrical/battery_on[*] 1
+	EVENT_END_COND sim/cockpit2/electrical/battery_on[*] 0
+END_SOUND_ATTACHMENT
+

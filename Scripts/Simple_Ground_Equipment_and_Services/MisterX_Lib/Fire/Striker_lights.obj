@@ -1,0 +1,75 @@
+I
+800
+OBJ
+
+POINT_COUNTS	0	0	0	0
+PARTICLE_SYSTEM particles/firetruck_effects.pss
+ATTR_LOD 0 3000
+
+
+LIGHT_NAMED	taillight  1.14 1.0912807 5.28
+LIGHT_NAMED	taillight -1.14 1.0912807 5.28
+LIGHT_NAMED	taillight2  1.14 1.07 5.28
+LIGHT_NAMED	taillight2 -1.14 1.07 5.28
+
+LIGHT_NAMED	headlight -1.07 1.1221199 -5.15
+LIGHT_NAMED	headlight 1.07 1.1221199 -5.15
+
+ANIM_begin
+ANIM_hide -90000 -3.00000 sim/graphics/scenery/sun_pitch_degrees
+		LIGHT_NAMED	PD_ltbar_2r 1.1 3.4 -2.85
+		LIGHT_NAMED	PD_ltbar_2r 1.11 3.15 5.45
+		LIGHT_NAMED	PD_ltbar_2r -1.1 3.4 -2.85
+		LIGHT_NAMED	PD_ltbar_2r -1.11 3.15 5.45
+ANIM_end
+
+ANIM_begin
+ANIM_hide -3 10000 sim/graphics/scenery/sun_pitch_degrees
+		LIGHT_NAMED	airplane_beacon 1.1 3.4 -2.85
+		LIGHT_NAMED	airplane_beacon 1.11 3.15 5.45
+		LIGHT_NAMED	airplane_beacon -1.1 3.4 -2.85
+		LIGHT_NAMED	airplane_beacon -1.11 3.15 5.45
+		LIGHT_NAMED	headlight 0 3.75 -4.7
+ANIM_end
+
+
+ANIM_begin
+ANIM_hide -90000 -3.00000 sim/graphics/scenery/sun_pitch_degrees
+		LIGHT_NAMED	PD_ltbar_3a -1.37 3.25 0.75
+		LIGHT_NAMED	PD_ltbar_3a  1.37 3.25 0.75
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	1.37 3.25 0.75	1.37 3.25 0.75
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	208
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.1  0  1 20 0.2  1
+ANIM_end
+
+ANIM_begin
+	ANIM_trans	-1.37 3.25 0.75	-1.37 3.25 0.75
+	ANIM_rotate	1	0	0	90.0000025	90.0000025
+	ANIM_rotate_begin	0	0	1.00000012	sim/time/total_running_time_sec
+	ANIM_rotate_key	0	0
+	ANIM_rotate_key	0.25	212
+	ANIM_rotate_end
+		LIGHT_PARAM	sodium_flood_XYZBTSS 0 0 0 0  0.1  0  1 20 0.2  1
+ANIM_end
+
+
+ANIM_begin
+	ANIM_hide 1 999 sim/flightmodel/position/groundspeed
+	ANIM_hide 0 0 sim/flightmodel2/engines/is_on_fire[0]
+	EMITTER Gun 0.014034 3.6 -4.0 0 3 0.00000001
+ANIM_end
+
+ANIM_begin
+	ANIM_hide 1 999 sim/flightmodel/position/groundspeed
+	ANIM_hide 0 0 sim/flightmodel2/engines/is_on_fire[1]
+	EMITTER Gun 0.014034 3.6 -4.0 11 1 0.00000001
+ANIM_end
+
+# Build with Blender 2.76 (sub 0) (build b'f337fea') Exported with XPlane2Blender 3.3.8

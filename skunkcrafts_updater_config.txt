@@ -1,0 +1,5 @@
+zone|custom
+module|https://raw.githubusercontent.com/GitHubJavelin/SGES-updates/refs/heads/release/release/​
+name|Simple Ground Equipment (FlyWithLua)
+version|77.2
+locked|false
