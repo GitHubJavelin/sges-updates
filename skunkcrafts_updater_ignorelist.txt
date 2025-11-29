@@ -1,6 +1,6 @@
 skuncraft_updater_blacklist.txt
 skuncraft_updater_whitelist.txt
-skuncraft_updater_ignorelist.txt$
+skuncraft_updater_ignorelist.txt
 skuncraft_updater_config.txt
 skuncraft_updater_oncelist.txt
 skuncraft_updater_sizeslist.txt
