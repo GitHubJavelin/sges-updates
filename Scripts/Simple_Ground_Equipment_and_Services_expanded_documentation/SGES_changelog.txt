@@ -1,17 +1,21 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
+Version 78.1, 1st of December, 2025
 
-Version 78, 30th of november, 2025
+	Copilot and Flight Engineer actions for the Felis B747-200 (ie Speedy Copilot "light edition" for Felis B747-200) integrated. The before start procedure, before takeoff procedure, climb procedure, descent and approach procedure, after-landing procedure scripted flows are now available directly in SGES. An option allows to disable the feature.
+	Added direct access to Melbo's UH-60M setup panel, and UH-60M support
+
+Version 78, 30th of November, 2025
     === For version 78 : Please make a full delete of previous versions before v78 and download again the full archive. ===
     Structural rearrangement of the files and folders.
     Enables incremental updates through the SkunkCrafts Updater. The updater is found at https://forums.x-plane.org/forums/forum/406-skunkcrafts-updater/
     Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual.
 
-Version 77.1, 24th of november, 2025
+Version 77.1, 24th of November, 2025
 	Enhanced support for the Boeing 747-200 was made in v77.0 with the Felis B742 freighter version, but the passenger version blocked FlyWithLua as an user reported. This is solved, now both B742P and B742F receive the same treatment.
 
-Version 77, 23th of november, 2025
+Version 77, 23th of November, 2025
 	Enhanced support for the geometry of the type Boeing 747-200
 	Added buttons for the Felis B747-200 : GPU / ACU / Chocks / EFB / Automatic before take off procedure / Automatic after landing procedure
 	New support specific of the Boeing 747-200F (cargo variant with nose loading)
@@ -26,4 +30,4 @@ Updates from May 2025 to November 2025 :
 	The SAM site is now a ground target and be destroyed part by part by X-Plane bombs [SAM site must be displayed via SGES].
 	RFFS : added the pelicandrome refill station for ground-based fire-fighting airplanes. (Tick "EMS" then "Pel.")
 
-Olver versions : see the several SGES history manuals in the "expanded documentation" folder.
+Older versions : see the several SGES history manuals in the "expanded documentation" folder.
