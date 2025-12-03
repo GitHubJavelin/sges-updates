@@ -512,8 +512,9 @@ end
 if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
 
 	--~ if B742ProcNumber == nil then	B742ProcNumber = -1 end
-
-	set("B742/anim/jit_off",1)
+	if LuaJITForFelis then
+		set("B742/anim/jit_off",1)
+	end
 	if SpeedyCopilotForFelis == nil then SpeedyCopilotForFelis = true end
 
 	local crew_accent_used = ""

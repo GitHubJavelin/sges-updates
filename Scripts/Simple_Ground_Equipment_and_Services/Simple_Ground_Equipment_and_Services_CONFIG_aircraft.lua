@@ -90,6 +90,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "RJ70" then BeltLoaderFwdPosition = -5 		custom_fuel_pump_finalX = -11 custom_fuel_pump_finalY = 1 -- AVRO RJ variants
     elseif PLANE_ICAO == "RJ85" then BeltLoaderFwdPosition = -4.9		custom_fuel_pump_finalX = -11 custom_fuel_pump_finalY = 1
     elseif PLANE_ICAO == "RJ1H" then BeltLoaderFwdPosition = -5.5		custom_fuel_pump_finalX = -11 custom_fuel_pump_finalY = 1
+    elseif AIRCRAFT_FILENAME == "YAK42.acf" or PLANE_ICAO == "YK42"  then BeltLoaderFwdPosition = 9.7 airstart_unit_factor = 3.6 SecondStairsFwdPosition = 14.4 custom_fuel_finalX = -20 custom_fuel_finalY = -5
     elseif PLANE_ICAO == "CONC" then BeltLoaderFwdPosition = 12  	BeltLoaderRearPosition = -12.5 --SecondStairsFwdPosition = 24S
     elseif PLANE_ICAO == "DC4" then  BeltLoaderFwdPosition = -4.5
     elseif PLANE_ICAO == "DC3" then  BeltLoaderFwdPosition = -4.9  targetDoorX_alternate = 0.1	targetDoorZ_alternate = -2.5	targetDoorH_alternate = 0.22
@@ -296,6 +297,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "B773" then vertical_door_position = -3.0 deltaDoorX = 8.6
     elseif PLANE_ICAO == "B779" then vertical_door_position = -3.0 deltaDoorX = 8.6
     elseif PLANE_ICAO == "IL96" then vertical_door_position = -0.1 deltaDoorX = 8.3
+    elseif AIRCRAFT_FILENAME == "YAK42.acf" or PLANE_ICAO == "YK42"  then vertical_door_position = -2.5 deltaDoorX = 7.6
     elseif PLANE_ICAO == "CONC" then vertical_door_position = -2.4 deltaDoorX = 5.9
     elseif PLANE_ICAO == "DH8D" then vertical_door_position = -3.8 deltaDoorX = 5.9
     elseif PLANE_ICAO == "CRJ7" then vertical_door_position = -2.1 deltaDoorX = 9	targetDoorX_alternate = 0.09 targetDoorZ_alternate = -0.419 targetDoorH_alternate = 0
@@ -363,6 +365,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
 	elseif PLANE_ICAO == "A346" then vertical_door_position2 = -3.5 deltaDoorX2 = 8.2		longitudinal_factor3 = -23.3 height_factor3 = 1.2
 	elseif string.match(AIRCRAFT_PATH, "A318") then vertical_door_position2 = -1.85 deltaDoorX2 = 6.5
     elseif PLANE_ICAO == "IL96" then vertical_door_position2 = -0.1 deltaDoorX2 = 9.7 sges_gs_plane_head_correction2 = -0.2
+    elseif AIRCRAFT_FILENAME == "YAK42.acf" or PLANE_ICAO == "YK42"  then vertical_door_position2 = -2.2 deltaDoorX2 = 4.75 sges_gs_plane_head_correction2 = 0 longitudinal_factor3 = 0 height_factor3 = 0 lateral_factor3 = 0
 	elseif PLANE_ICAO == "B461" then SecondStairsFwdPosition = -6.40  vertical_door_position2 = -3.3 deltaDoorX2 = 6.45 sges_gs_plane_head_correction2 = -1.1
 	elseif PLANE_ICAO == "B462" then SecondStairsFwdPosition = -7.70  vertical_door_position2 = -3.3 deltaDoorX2 = 6.45 sges_gs_plane_head_correction2 = -0.9
 	elseif PLANE_ICAO == "B463" then SecondStairsFwdPosition = -8.70  vertical_door_position2 = -3.3 deltaDoorX2 = 6.45 sges_gs_plane_head_correction2 = -0.9
@@ -419,7 +422,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif string.match(AIRCRAFT_PATH,"146") and string.find(SGES_Author,"Thranda") then  dataref_to_open_the_door = "sim/cockpit2/switches/door_open" 			index_to_open_the_door = 1 target_to_open_the_door = 1 -- Just Flight BAe 146
     elseif PLANE_ICAO == "A359" then											dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- not controlled by writable dataref (Flight Factor A350)
     elseif PLANE_ICAO == "B733" then 											dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- No door at all (IXEG for X-Plane 11)
-    elseif PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" then 		dataref_to_open_the_door = "B742/anim/pax_door_1_left"  index_to_open_the_door = 0 target_to_open_the_door = 1 SpeedyCopilotForFelis = true -- Felis 742
+    elseif PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" then 		dataref_to_open_the_door = "B742/anim/pax_door_1_left"  index_to_open_the_door = 0 target_to_open_the_door = 1 -- Felis 742
     --elseif PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" then 		dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- No door implemented yet (Felis 742)
     elseif PLANE_ICAO == "B721" and SGES_Author == "" then 						dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- No door at all (FlyJSim)
     elseif PLANE_ICAO == "B722" and SGES_Author == "" then 						dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- No door at all (FlyJSim)

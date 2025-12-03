@@ -121,6 +121,10 @@ function WriteToDisk_SGES_USER_CONFIG()
 	if show_auto_stairs ~= nil and show_auto_stairs then file:write("\nshow_auto_stairs = true")  end
 	if User_prefers_containerized_freight ~= nil and User_prefers_containerized_freight~= false then file:write("\nUser_prefers_containerized_freight = true") end
 	if reduce_even_more_the_number_of_passengers ~= nil and reduce_even_more_the_number_of_passengers~= false then file:write("\nreduce_even_more_the_number_of_passengers = true") end
+	if SpeedyCopilotForFelis ~= nil and SpeedyCopilotForFelis~= true then file:write("\nSpeedyCopilotForFelis = false") end
+	if LuaJITForFelis ~= nil and LuaJITForFelis~= true then file:write("\nLuaJITForFelis = false") end
+
+
 	if SGES_sound ~= nil and not SGES_sound then file:write("\nSGES_sound = false")  end -- only need to save it when false, because default is true
 	if show_Cones_initially ~= nil and not show_Cones_initially then file:write("\nshow_Cones_initially = false")  end -- only need to save it when false, because default is true
 	if scan_third_party_initially ~= nil and not scan_third_party_initially then file:write("\nscan_third_party_initially = false")  end
