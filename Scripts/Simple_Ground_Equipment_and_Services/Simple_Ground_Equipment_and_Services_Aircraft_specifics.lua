@@ -1406,7 +1406,7 @@ if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
 		end,
 
 		function()
-			if math.abs(sges_gs_gnd_spd[0]) < 40 then
+			if math.abs(sges_gs_gnd_spd[0]) < 40 and math.abs(sges_nosewheel[0]) >= 0.2 then
 				SGES_B742_sound = load_WAV_file(AircraftPath .. "../../" .. "Custom Sounds/crew/" .. crew_accent_used .. "/COP/bodyGearSteering.wav")
 				print("[Ground Equipment " .. version_text_SGES .. "] body gear steering armed")
 				set("B742/OVHD/body_gear_steer_cap",1)
@@ -1418,9 +1418,25 @@ if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
 
 
 		function()
-			if math.abs(sges_gs_gnd_spd[0]) <= 15 then
+			if math.abs(sges_gs_gnd_spd[0]) < 15 then
+				if not SpeedyCopilotForFelis_wait4spoilers then
+					print("[Ground Equipment " .. version_text_SGES .. "] Option : we are NOT waiting for the Captain to retract the spoilers.")
+				elseif SpeedyCopilotForFelis_wait4spoilers and get("B742/controls/spd_brake_lever") == 0 then
+					SGES_B742_sound = load_WAV_file(AircraftPath .. "../../" .. "Custom Sounds/crew/" .. crew_accent_used .. "/FE/speedbrakes.wav")
+					print("[Ground Equipment " .. version_text_SGES .. "] Speed brake handle moved by the Captain")
+				elseif SpeedyCopilotForFelis_wait4spoilers then
+					step_proc_742 = step_proc_742 - 1
+				end
+			end
+		end,
+
+
+		function()
+			if SpeedyCopilotForFelis_wait4spoilers and get("B742/controls/spd_brake_lever") == 0 then
+				print("[Ground Equipment " .. version_text_SGES .. "] Option : we waited for the Captain to retract the spoilers.")
+			elseif not SpeedyCopilotForFelis_wait4spoilers and math.abs(sges_gs_gnd_spd[0]) <= 15 and math.abs(sges_nosewheel[0]) <= 0.3 then
 				SGES_B742_sound = load_WAV_file(AircraftPath .. "../../" .. "Custom Sounds/crew/" .. crew_accent_used .. "/FE/speedbrakes.wav")
-				print("[Ground Equipment " .. version_text_SGES .. "] speed brake handle")
+				print("[Ground Equipment " .. version_text_SGES .. "] Speed brake handle checked by the FO")
 				set("B742/controls/spd_brake_lever",0)
 			else
 				step_proc_742 = step_proc_742 - 1
@@ -1635,7 +1651,7 @@ if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
 		end,
 
 		function()
-			if math.abs(sges_gs_gnd_spd[0]) <= 7 and math.abs(SGES_Throttle[2]) < 0.03 and math.abs(sges_nosewheel[0]) < 0.5 then
+			if math.abs(sges_gs_gnd_spd[0]) <= 7 and math.abs(SGES_Throttle[2]) < 0.03 and math.abs(sges_nosewheel[0]) <= 0.3 then
 				SGES_B742_sound = load_WAV_file(AircraftPath .. "../../" .. "Custom Sounds/crew/" .. crew_accent_used .. "/CPT/cutoff.wav")
 			else
 				step_proc_742 = step_proc_742 - 1
@@ -1647,7 +1663,7 @@ if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
 		end,
 
 		function()
-			if sges_EngineState[2] < 40 and math.abs(SGES_Throttle[2]) < 0.03 and math.abs(sges_gs_gnd_spd[0]) <= 5 and math.abs(sges_nosewheel[0]) < 0.5 then
+			if sges_EngineState[2] < 40 and math.abs(SGES_Throttle[2]) < 0.03 and math.abs(sges_gs_gnd_spd[0]) <= 5 and math.abs(sges_nosewheel[0]) <= 0.3 then
 				SGES_B742_sound = load_WAV_file(AircraftPath .. "../../" .. "Custom Sounds/crew/" .. crew_accent_used .. "/FE/shutdown.wav")
 				if XPLMFindDataRef("B742/OVHD/auto_brake_takeoff_sw") == nil then
 					SGES_B742_sound = load_WAV_file(AircraftPath .. "../../" .. "Custom Sounds/crew/" .. crew_accent_used .. "/FE/off.wav")

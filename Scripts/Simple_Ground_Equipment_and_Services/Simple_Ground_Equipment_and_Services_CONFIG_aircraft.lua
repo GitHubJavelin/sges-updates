@@ -56,7 +56,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "A321" then BeltLoaderFwdPosition = 12 	SecondStairsFwdPosition = -15.8 	airstart_unit_factor = 16.4		BeltLoaderRearPosition = -10	custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -2.5
     elseif PLANE_ICAO == "A21N" then BeltLoaderFwdPosition = 12 	SecondStairsFwdPosition = -15.8 	airstart_unit_factor = 16.4 	BeltLoaderRearPosition = -10	custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -2.5
     elseif PLANE_ICAO == "A332" then BeltLoaderFwdPosition = 20		SecondStairsFwdPosition = -21.0		airstart_unit_factor = 21		custom_fuel_pump_finalX = -12.25  custom_fuel_pump_finalY = 0
-    elseif PLANE_ICAO == "A333" then BeltLoaderFwdPosition = 19.5	SecondStairsFwdPosition = -22.3		airstart_unit_factor = 21		BeltLoaderRearPosition = -15.5		custom_fuel_pump_finalX = 15  custom_fuel_pump_finalY = -2
+    elseif PLANE_ICAO == "A333" then BeltLoaderFwdPosition = 19.5	SecondStairsFwdPosition = -21.4		airstart_unit_factor = 21		BeltLoaderRearPosition = -15.5		custom_fuel_pump_finalX = 15  custom_fuel_pump_finalY = -2
     elseif PLANE_ICAO == "A339" then BeltLoaderFwdPosition = 20.3 BeltLoaderRearPosition = -14.5 airstart_unit_factor = 22 SecondStairsFwdPosition = -20.5  custom_fuel_finalX = -28 custom_fuel_finalY = -8 custom_fuel_pump_finalX = 15 custom_fuel_pump_finalY = -0.5
     elseif PLANE_ICAO == "A359" then BeltLoaderFwdPosition = 19		SecondStairsFwdPosition = -21.4		custom_fuel_pump_finalX = -11.50  custom_fuel_pump_finalY = -2
     elseif PLANE_ICAO == "A345" then BeltLoaderFwdPosition = 20.6   SecondStairsFwdPosition = 11.5      airstart_unit_factor = 19		custom_fuel_pump_finalX = -10.5  custom_fuel_pump_finalY = -0.5
@@ -336,7 +336,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "A20N" then vertical_door_position2 = -2.1 deltaDoorX2 = 6.55
 	elseif PLANE_ICAO == "A318" then vertical_door_position2 = -1.85 deltaDoorX2 = 6.5
     elseif PLANE_ICAO == "A332" then vertical_door_position2 = -1.0 deltaDoorX2 = 7.4
-    elseif PLANE_ICAO == "A333" then vertical_door_position2 = -1.4 deltaDoorX2 = 8.0 longitudinal_factor3 = 11.2 -- Changed to XP12 A333
+    elseif PLANE_ICAO == "A333" then vertical_door_position2 = -1.5 deltaDoorX2 = 8.0 longitudinal_factor3 = 11.8 height_factor3 = 0.2 -- Changed to XP12 A333
     elseif PLANE_ICAO == "A359" then vertical_door_position2 = -1.7 deltaDoorX2 = 9.25 sges_gs_plane_head_correction2 = -0.2 longitudinal_factor3 = 12.5	height_factor3 = -0.1	lateral_factor3 = 0.3 -- Changed to XP12 A333
     elseif PLANE_ICAO == "A339" then vertical_door_position2 = -2.6 deltaDoorX2 = 7.8 sges_gs_plane_head_correction2 = -0.2 longitudinal_factor3 = 12.3 height_factor3 = 0.1 lateral_factor3 = 0.45
     elseif PLANE_ICAO == "B703" then vertical_door_position2 = -2.6 deltaDoorX2 = 7.7 sges_gs_plane_head_correction2 = -1

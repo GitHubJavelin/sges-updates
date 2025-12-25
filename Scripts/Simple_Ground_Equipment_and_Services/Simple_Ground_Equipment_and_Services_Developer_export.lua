@@ -122,6 +122,7 @@ function WriteToDisk_SGES_USER_CONFIG()
 	if User_prefers_containerized_freight ~= nil and User_prefers_containerized_freight~= false then file:write("\nUser_prefers_containerized_freight = true") end
 	if reduce_even_more_the_number_of_passengers ~= nil and reduce_even_more_the_number_of_passengers~= false then file:write("\nreduce_even_more_the_number_of_passengers = true") end
 	if SpeedyCopilotForFelis ~= nil and SpeedyCopilotForFelis~= true then file:write("\nSpeedyCopilotForFelis = false") end
+	if SpeedyCopilotForFelis_wait4spoilers ~= nil and SpeedyCopilotForFelis_wait4spoilers~= true then file:write("\nSpeedyCopilotForFelis_wait4spoilers = false") end
 	if LuaJITForFelis ~= nil and LuaJITForFelis~= true then file:write("\nLuaJITForFelis = false") end
 
 
@@ -139,6 +140,9 @@ function WriteToDisk_SGES_USER_CONFIG()
 	if XTrident_NaveCavour_Directory ~= nil then 	file:write("\nXTrident_NaveCavour_Directory = \"" .. XTrident_NaveCavour_Directory .. "\"") end
 	if FFSTS_777v2_Directory ~= nil then 	file:write("\nFFSTS_777v2_Directory = \"" .. FFSTS_777v2_Directory .. "\"") end
 	if Cami_de_Bellis_Directory ~= nil then 	file:write("\nCami_de_Bellis_Directory = \"" .. Cami_de_Bellis_Directory .. "\"") end
+
+	if Airstairs_with_lights ~= nil and Airstairs_with_lights~= true then file:write("\nAirstairs_with_lights = false") end
+
 	file:close()
 end
 
@@ -163,5 +167,8 @@ function Wipe_SGES_USER_CONFIG()
 	XTrident_NaveCavour_Directory = nil
 	FFSTS_777v2_Directory = nil
 	Cami_de_Bellis_Directory = nil
+	Airstairs_with_lights = nil
+	LuaJITForFelis = nil
+	SpeedyCopilotForFelis_wait4spoilers = nil
 	WriteToDisk_SGES_USER_CONFIG()
 end

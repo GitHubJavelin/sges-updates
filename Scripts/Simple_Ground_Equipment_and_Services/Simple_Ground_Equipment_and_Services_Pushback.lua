@@ -252,19 +252,21 @@ end
 
 
 function service_object_physicsTargetSelfPushback(SPB_distance,SPB_orientation) -- The Aiming Plane model
+	--~ _,TargetSelfPushback_instance[0],rampservicerefTargetSelfPushback = common_unload("TargetSelfPushback",TargetSelfPushback_instance[0],rampservicerefTargetSelfPushback)
 	if TargetSelfPushback_chg == true then
 	  if show_TargetSelfPushback then
-		 load_TargetSelfPushback()
+		 if TargetSelfPushback_instance[0] == nil then load_TargetSelfPushback() end
 		 SelfPushback_requested = true
 	  else
 		TargetSelfPushback_chg,TargetSelfPushback_instance[0],rampservicerefTargetSelfPushback = common_unload("TargetSelfPushback",TargetSelfPushback_instance[0],rampservicerefTargetSelfPushback)
 		SelfPushback_requested = false
+		--~ TargetSelfPushback_chg = false -- enforced
 		--~ TargetSelfPushbackH = sges_gs_plane_head[0]
 		--~ TargetSelfPushbackY = sges_gs_plane_y[0]
 		--~ TargetSelfPushbackX_stored = sges_gs_plane_x[0] + 10
 		--~ TargetSelfPushbackZ_stored = sges_gs_plane_z[0] + 10
 	  end
-	  if TargetSelfPushback_instance[0] ~= nil then
+	  if show_TargetSelfPushback and TargetSelfPushback_instance[0] ~= nil then
 			-- POSITIVE LEFT < x > NEGATIVE RIGHT
 			-- POSITIVE FWD < z > NEGATIVE AFT()
 			local h = 0
@@ -282,7 +284,11 @@ function service_object_physicsTargetSelfPushback(SPB_distance,SPB_orientation) 
 
 
 			--print("Sending the pushback truck backward : " .. z)
-			TargetSelfPushback_chg = draw_static_object(x,z,h,TargetSelfPushback_instance[0],"TargetSelfPushback") -- Nop !
+			--~ TargetSelfPushback_chg = draw_static_object(x,z,h,TargetSelfPushback_instance[0],"TargetSelfPushback") -- Nop !
+			SPB_x = x
+			SPB_z = z
+			SPB_h = h
+			SPB_pending_update = true
 			-- save marker position
 			-- POSITIVE LEFT < x > NEGATIVE RIGHT
 			-- POSITIVE FWD < z > NEGATIVE AFT()
@@ -305,10 +311,32 @@ function service_object_physicsTargetSelfPushback(SPB_distance,SPB_orientation) 
 end
 
 
+SPB_x = 0
+SPB_z = 0
+SPB_h = 0
+SPB_pending_update = false
+
+function service_object_applySelfPushback()
+    if SPB_pending_update
+       and TargetSelfPushback_instance[0] ~= nil then
+
+        draw_static_object(
+            SPB_x,
+            SPB_z,
+            SPB_h,
+            TargetSelfPushback_instance[0],
+            "TargetSelfPushback"
+        )
+
+        SPB_pending_update = false
+    end
+end
+--~ do_every_frame("if SGES_XPlaneIsPaused == 0 then service_object_applySelfPushback() end")
 
 
 
 function service_object_physics_Push_back()
+  service_object_applySelfPushback()
   if PB_chg == true then
 	  if show_PB then
 		load_PB()
@@ -378,6 +406,21 @@ function service_object_physics_Push_back()
   end
 
   load_WingWalkers()
+end
+
+function load_TargetSelfPushback()
+	if TargetSelfPushback_show_only_once then
+		if TargetSelfPushback_instance[0] == nil then
+			   print("[Ground Equipment " .. version_text_SGES .. "] load Prefilled_TargetSelfPushback Object " .. Prefilled_TargetSelfPushbackObject)
+			   XPLM.XPLMLoadObjectAsync(Prefilled_TargetSelfPushbackObject,
+						function(inObject, inRefcon)
+							TargetSelfPushback_instance[0] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+							rampservicerefTargetSelfPushback = inObject
+						end,
+						inRefcon )
+		end
+		TargetSelfPushback_show_only_once = false
+	end
 end
 
 function load_WingWalkers()
