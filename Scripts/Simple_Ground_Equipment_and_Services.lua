@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "78.7"
+version_text_SGES = "78.8"
 --------------------------------------------------------------------------------
 --[[
 
@@ -161,6 +161,12 @@ function SGES_script()
 			xpversionobjects = "12.3.0"
 		else
 			IsXPlane1230 = false
+		end
+		if SGES_xplane_internal_version >= 124000 then
+			IsXPlane1240 = true
+			xpversionobjects = "12.4.0"
+		else
+			IsXPlane1240 = false
 		end
 		if xpversionobjects ~= 11 then
 			print("[Ground Equipment " .. version_text_SGES .. "] Utilizing 3D objects introduced in X-Plane " .. xpversionobjects)
@@ -637,6 +643,7 @@ function SGES_script()
 	User_prefers_containerized_freight = false
 	reduce_even_more_the_number_of_passengers = false
 	SpeedyCopilotForFelis = true
+	SpeedyCopilotForFelis_wait4spoilers = true
 	walking_direction_changed_armed = false
 	get_hospital_ambulance = false
 	BeltLoaderFwdPosition = 10 -- do not change here
@@ -1435,6 +1442,15 @@ function SGES_script()
 
 	print("[Ground Equipment " .. version_text_SGES .. "] Ground Equipment script " .. version_text_SGES .. " is loading datarefs. ==0==.")
 
+	----------------------------------------------------------------------------
+-- SGES own datarefs :
+	define_shared_DataRef("sges/airstairs/light", "Float")
+	set("sges/airstairs/light",1)
+	define_shared_DataRef("sges/airstairs/hood", "Float")
+	set("sges/airstairs/hood",1)
+
+	----------------------------------------------------------------------------
+
 	if XPLMFindDataRef("sim/graphics/scenery/sun_pitch_degrees") ~= nil then
 		sges_sun_pitch 		= dataref_table("sim/graphics/scenery/sun_pitch_degrees")
 		--~ print("Sun is " .. sges_sun_pitch[0] .. " degrees above the horizon.")
@@ -1746,6 +1762,7 @@ function SGES_script()
 	Cami_de_Bellis_authorized = true
 	scan_third_party_initially = false
 	show_Cones_initially = true
+	Airstairs_with_lights = true
 	show_Cones =  false
 	show_ASU =  false
 	show_ACU =  false
@@ -2055,6 +2072,13 @@ function SGES_script()
 				show_Cones = false
 				Cones_chg =  true
 			end
+
+			if Airstairs_with_lights ~= nil and not Airstairs_with_lights then
+				set("sges/airstairs/light",0)
+			else
+				set("sges/airstairs/light",1)
+			end
+
 		end
 
 		if sges_ahr ~= nil then print("[Ground Equipment " .. version_text_SGES .. "] Aircraft has in-flight refueling capabilities. 	sges_ahr = " .. sges_ahr) end
@@ -5278,8 +5302,10 @@ function SGES_script()
 					------------------ VEHICLE REPLACEMENT AFTER X-PLANE 12.1.4 ----------------
 				end
 			elseif sges_military == 1 and XTrident_Chinook_Directory ~= nil then Prefilled_CleaningTruckObject = SCRIPT_DIRECTORY .. XTrident_Chinook_Directory   .. "/plugins/CH47/mission/loads/humvee.obj"
+			elseif SGES_BushMode and IsXPlane1240 and outsideAirTemp < 14 and sges_big_airport ~= nil and not sges_big_airport then
+				Prefilled_CleaningTruckObject = XPlane_objects_directory .. "../../airport scenery/Common_Elements/camping/tent_04_orange_open.obj" -- Tent XP 12.4
 			elseif SGES_BushMode and IsXPlane12 then
-				Prefilled_CleaningTruckObject = XPlane12_BushObjects_directory   .. "DkGrpMed1.obj"
+				Prefilled_CleaningTruckObject = XPlane12_BushObjects_directory   .. "DkGrpMed1.obj" -- table and chairs X-Plane 11
 			else
 				Prefilled_CleaningTruckObject = Original_CleaningTruckObject
 				------------------ VEHICLE REPLACEMENT AFTER X-PLANE 12.1.4 ----------------
@@ -6989,21 +7015,6 @@ function SGES_script()
 					end,
 					inRefcon )
 			StairsXPJ3_1_show_only_once = false
-		end
-	end
-
-	function load_TargetSelfPushback()
-		if TargetSelfPushback_show_only_once then
-			if TargetSelfPushback_instance[0] == nil then
-				   --print("[Ground Equipment " .. version_text_SGES .. "] load Prefilled_TargetSelfPushback Object " .. Prefilled_TargetSelfPushbackObject)
-				   XPLM.XPLMLoadObjectAsync(Prefilled_TargetSelfPushbackObject,
-							function(inObject, inRefcon)
-								TargetSelfPushback_instance[0] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
-								rampservicerefTargetSelfPushback = inObject
-							end,
-							inRefcon )
-			end
-			TargetSelfPushback_show_only_once = false
 		end
 	end
 
@@ -13637,6 +13648,8 @@ function SGES_script()
 
 		if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
 			l_changed, l_newval = imgui.Checkbox(" Car", show_Cleaning)
+		elseif SGES_BushMode and IsXPlane1240 and outsideAirTemp < 14 and sges_big_airport ~= nil and not sges_big_airport then
+			l_changed, l_newval = imgui.Checkbox(" Tent", show_Cleaning)
 		elseif SGES_BushMode and IsXPlane12 then
 			l_changed, l_newval = imgui.Checkbox(" Table & sunshade", show_Cleaning)
 		else
@@ -14325,6 +14338,15 @@ function SGES_script()
 				Pax_chg = true
 				if show_Pax then 	initial_pax_start = true		 end
 			end
+
+
+			--~ if XPLMFindDataRef("sges/airstairs/light") ~= nil and (show_StairsXPJ or show_StairsXPJ2) and not show_Pax then
+				--~ imgui.SameLine()
+				--~ if  imgui.SmallButton("Lights")  then
+					--~ set("sges/airstairs/light",math.abs(get("sges/airstairs/light")-1))
+				--~ end
+			--~ end
+
 		end
 
 
@@ -16869,7 +16891,7 @@ function SGES_script()
 
 				if XPLMFindDataRef("bp/connected") ~= nil then -- when the plugin is here, offer a button to it.
 				--~ imgui.SameLine()
-				if  imgui.Button("BPB",40,20)  then
+				if  imgui.Button("BPB",38,20)  then
 					command_once("BetterPushback/start")
 
 					show_Chocks = false
@@ -16919,7 +16941,7 @@ function SGES_script()
 
 
 			if XPLMFindDataRef("bp/connected") ~= nil then imgui.SameLine() end
-			if  imgui.Button("Jetway",56,20)  then
+			if  imgui.Button("Jetway",54,20)  then
 				command_once("sim/ground_ops/jetway")
 				show_StairsXPJ = false
 				StairsXPJ_chg = true
@@ -17052,7 +17074,7 @@ function SGES_script()
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-				if  imgui.Button("EFB",50,20)  then -- Felis 742 command menu
+				if  imgui.Button("EFB",40,20)  then -- Felis 742 command menu
 					command_once("B742/menu/showHide2D_EFB")
 				end
 				imgui.PopStyleColor(2)
@@ -17069,7 +17091,28 @@ function SGES_script()
 					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
-
+				if (SGES_parkbrake > 0.8 or show_Chocks) and sges_EngineState[0] < 5 then
+					imgui.SameLine()
+					if  imgui.Button("Jit",12,20)  then -- Felis 742 command menu
+						if get("B742/anim/jit_off") == 0 then
+							set("B742/anim/jit_off",1)
+						else
+							set("B742/anim/jit_off",0)
+						end
+					end
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Toggles Lua JIT ON and OFF in the Felis EFB. Toggling it off increases the FPS for some people.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+				end
 			end
 			if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") and SpeedyCopilotForFelis ~= nil and SpeedyCopilotForFelis and not show_ArrestorSystem then
 				--~ 0xAABBGGRR
@@ -18564,6 +18607,14 @@ function SGES_script()
 						imgui.PopTextWrapPos()
 						imgui.EndTooltip()
 					end
+					if SpeedyCopilotForFelis then
+					if SpeedyCopilotForFelis_wait4spoilers == nil then SpeedyCopilotForFelis_wait4spoilers = true end
+						l_changed, l_newval = imgui.Checkbox(" The 742 copilot waits for\n spoiler down to start\n the after landing procedure.", SpeedyCopilotForFelis_wait4spoilers)
+						if l_changed then
+							SpeedyCopilotForFelis_wait4spoilers = l_newval
+							Buttonstring = "Save the changes"
+						end
+					end
 					l_changed, l_newval = imgui.Checkbox(" Disable Lua JIT at startup\n (Felis 742F fails to do it)", LuaJITForFelis)
 					if l_changed then
 						LuaJITForFelis = l_newval
@@ -18752,6 +18803,33 @@ function SGES_script()
 					imgui.EndTooltip()
 				end
 
+				l_changed, _ = imgui.Checkbox(" Airstairs cast light", Airstairs_with_lights)
+				if l_changed then
+					Buttonstring = "Save the changes"
+					set("sges/airstairs/light",math.abs(get("sges/airstairs/light")-1))
+					if math.abs(get("sges/airstairs/light")) == 0 then
+						Airstairs_with_lights = false
+					else
+						Airstairs_with_lights = true
+					end
+				end
+				if imgui.IsItemActive() then
+					imgui.BeginTooltip()
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("At night SGES stairs cast light if true. Casting light is the normal setting.")
+					imgui.PopStyleColor()
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+
+
+				--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+				--~ l_changed, _ = imgui.Checkbox(" Airstairs has hood", true)
+				--~ if l_changed then
+					--~ set("sges/airstairs/hood",math.abs(get("sges/airstairs/hood")-1))
+				--~ end
+				--~ imgui.PopStyleColor()
 
 				imgui.PushStyleColor(imgui.constant.Col.CheckMark,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
 				imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 12)
