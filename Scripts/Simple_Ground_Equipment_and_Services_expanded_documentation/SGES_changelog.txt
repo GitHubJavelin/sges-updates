@@ -1,7 +1,7 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
-Version 78.7, 25th of December, 2025
+Version 78.8, 25th of December, 2025
 	Available on the rolling beta channel via SkunkCraft Updater (Beta enabled), as of 25th of December, 2025
     Pushback module updated for X-Plane 12.4
     Airbus A330-300 ground handling set (stairs positions) adjusted to Laminar Research A330-300.
