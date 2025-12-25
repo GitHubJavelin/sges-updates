@@ -6651,6 +6651,7 @@ IDX 5125
 
 # Reduce the emmiters in X-Plane 12
 ANIM_begin
+ANIM_hide 0 0 sges/airstairs/light
 ANIM_hide 120000 130000 sim/version/xplane_internal_version
 	LIGHT_NAMED headlight2 -1.047270 5.475340 -6.451890
 	LIGHT_NAMED headlight2 1.119750 5.472910 -6.451890
@@ -6662,6 +6663,7 @@ ANIM_hide 120000 130000 sim/version/xplane_internal_version
 	LIGHT_NAMED taillight2 1.119750 6.565320 -3.700000
 ANIM_end
 ANIM_begin
+ANIM_hide 0 0 sges/airstairs/light
 ANIM_hide 100000 116000 sim/version/xplane_internal_version
 	#LIGHT_NAMED HGV_worklight -1.047270 5.475340 -6.451890
 	#LIGHT_NAMED HGV_worklight 1.119750 5.472910 -6.451890
@@ -6677,6 +6679,7 @@ ANIM_end
 
 # Reduce the emmiters in X-Plane 12
 ANIM_begin
+ANIM_hide 0 0 sges/airstairs/light
 ANIM_hide 120000 130000 sim/version/xplane_internal_version
 	LIGHT_NAMED area_lt_sml_sp -0.049746 7.475340 -3.499410
 ANIM_hide 100000 116000 sim/version/xplane_internal_version
