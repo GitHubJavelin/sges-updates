@@ -214,7 +214,7 @@ function load_Front_Line()
 		--~ print("[Ground Equipment " .. version_text_SGES .. "] Checking Front Line... ...point " .. i)
 		if FrontLine_instance[i] == nil then
 			local object = Prefilled_FireAndSmokeObject -- X-Plane 11
-			if IsXPlane12 then object = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/FlameGround_XP12_battle.obj" end
+			if IsXPlane12 then object = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/FlameGround_XP12_battle.obj" end
 			XPLM.XPLMLoadObjectAsync(object,
 					function(inObject, inRefcon)
 					FrontLine_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
