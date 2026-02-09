@@ -91,6 +91,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "RJ70" then BeltLoaderFwdPosition = -5 		custom_fuel_pump_finalX = -11 custom_fuel_pump_finalY = 1 -- AVRO RJ variants
     elseif PLANE_ICAO == "RJ85" then BeltLoaderFwdPosition = -4.9		custom_fuel_pump_finalX = -11 custom_fuel_pump_finalY = 1
     elseif PLANE_ICAO == "RJ1H" then BeltLoaderFwdPosition = -5.5		custom_fuel_pump_finalX = -11 custom_fuel_pump_finalY = 1
+    elseif PLANE_ICAO == "VF14" then BeltLoaderFwdPosition = 5 targetDoorX_alternate = 0.1	targetDoorZ_alternate = -3.7	targetDoorH_alternate = 0.4 reduce_even_more_the_number_of_passengers = true -- Peter Hager VFW 614
     elseif AIRCRAFT_FILENAME == "YAK42.acf" or PLANE_ICAO == "YK42"  then BeltLoaderFwdPosition = 9.7 airstart_unit_factor = 3.6 SecondStairsFwdPosition = 14.4 custom_fuel_finalX = -20 custom_fuel_finalY = -5
     elseif PLANE_ICAO == "CONC" then BeltLoaderFwdPosition = 12  	BeltLoaderRearPosition = -12.5 --SecondStairsFwdPosition = 24S
     elseif PLANE_ICAO == "DC4" then  BeltLoaderFwdPosition = -4.5

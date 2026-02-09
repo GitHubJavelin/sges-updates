@@ -138,7 +138,8 @@ Prefilled_AAR_object =  SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Servi
 
 -- part below not for user modification
 
-
+DeerF = SCRIPT_DIRECTORY .. "../../../default scenery/sim objects/dynamic/" .. "deer_doe.obj"
+DeerM = SCRIPT_DIRECTORY .. "../../../default scenery/sim objects/dynamic/" .. "deer_buck.obj"
 
 -- X-Plane objects light enhancements ------------------------------------------
 -- not intended for user modification
