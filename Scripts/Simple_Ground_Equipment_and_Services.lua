@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "78.8"
+version_text_SGES = "78.9"
 --------------------------------------------------------------------------------
 --[[
 
@@ -1216,6 +1216,8 @@ function SGES_script()
 	-- 14th July 2023 cones with strips :
 	Linked_cones = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/XPJ_conus.obj"
 
+
+
 	if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cargo_loader_ch70w") then
 		CargoDeck_ULDLoaderPlateObject = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/MisterX_Lib/ULDLoader/ULD_plate.obj"
 	end
@@ -1473,6 +1475,8 @@ function SGES_script()
 
 	if SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1 then
 		SGES_Throttle = dataref_table("sim/flightmodel2/engines/propwash_mtr_sec") --Caution, SGES_Throttle is PROP WASH for an HELICOPTER !
+
+		create_command("Simple_Ground_Equipment_and_Services/Services/Release_slung_load", "Hook or release the slung load (if avail.)", "if get('sim/aircraft/overflow/acf_jett_is_slung') == 1 then set('sim/aircraft/overflow/acf_jett_is_slung',0) else set('sim/aircraft/overflow/acf_jett_is_slung',1) end", "", "")
 	else
 		SGES_Throttle = dataref_table("sim/cockpit2/engine/actuators/throttle_ratio")
 	end
@@ -1641,6 +1645,8 @@ function SGES_script()
 	or PLANE_ICAO == "E55P"
 	or PLANE_ICAO == "C525"
 	or PLANE_ICAO == "E19L"
+	or PLANE_ICAO == "E19L"
+	or PLANE_ICAO == "VF14"
 	or string.match(PLANE_ICAO,"K35")
 	or string.match(PLANE_ICAO,"AT4")
 	or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)")
@@ -2672,7 +2678,7 @@ function SGES_script()
 	function service_object_physics_Fuel()
 
 	  if FUEL_chg == true then
-		  if active_fueling_is_possible then active_fueling_is_possible = false end  			-- in every case as soon as the fuel is touched, active fueling will be stoped.
+		  if active_fueling_is_possible then active_fueling_is_possible = false end  			-- in every case as soon as the fuel is touched, active fueling will be stopped.
 		  if show_FUEL then
 			  load_FUEL()
 			  hide_temporarily_cart = false
@@ -2724,6 +2730,17 @@ function SGES_script()
 		  end
 		  if FUEL_instance[0] ~= nil and show_FUEL  then
 			  draw_FUEL()
+		  end
+		  if FUEL_instance[0] ~= nil and FuelTruck_is_deer  then
+			if SGES_deer_run_cycle == nil then
+				SGES_deer_run_cycle = create_dataref_table("sges/sim/graphics/animation/deer/deer_run_cycle", "FloatArray")
+				SGES_deer_run_cycle[0] = -1
+			end
+			if SGES_deer_run_cycle[0] < 1 then
+				SGES_deer_run_cycle[0] = SGES_deer_run_cycle[0] + 0.02
+			elseif SGES_deer_run_cycle[0] >= 1 then
+				SGES_deer_run_cycle[0] = -1
+			end
 		  end
 	  end
 
@@ -4129,6 +4146,20 @@ function SGES_script()
 					--~ set("Colimata/F104_A_SW_canopy_i",1)
 				end
 
+
+
+				if PLANE_ICAO == "VF14" and string.find(PLANE_AUTHOR,"Hager") and IsXPlane12 then -- toggle F104 chocks
+					set("com/petersaircraft/airbus/cabin_door_pos",1)
+					set("com/petersaircraft/airbus/ckpt_door_pos",1)
+					set("com/petersaircraft/airbus/lava_door_pos",0.05)
+					set("com/petersaircraft/airbus/main_door_handle_pos",0)
+					set("com/petersaircraft/airbus/main_door_pos",0)
+					set("com/petersaircraft/VFW614/inner_door_pos",0)
+					if get("sim/cockpit2/electrical/GPU_generator_volts") == 0 then
+						command_once("sim/ground_ops/toggle_gpu_request")
+					end
+				end
+
 				if AIRCRAFT_FILENAME == "AW109SP.acf" and PLANE_AUTHOR == "X-Trident" then set("aw109/servicing/wheel_chocks",1) end
 
 
@@ -4198,6 +4229,19 @@ function SGES_script()
 					set("Colimata/F104_A_SW_GROUND_ladder_i",0)
 				end
 
+
+				if PLANE_ICAO == "VF14" and string.find(PLANE_AUTHOR,"Hager") and IsXPlane12 then -- toggle F104 chocks
+					set("com/petersaircraft/airbus/cabin_door_pos",0)
+					set("com/petersaircraft/airbus/ckpt_door_pos",0)
+					set("com/petersaircraft/airbus/lava_door_pos",0.7)
+					set("com/petersaircraft/airbus/main_door_handle_pos",1)
+					set("com/petersaircraft/airbus/main_door_pos",1)
+					set("com/petersaircraft/VFW614/inner_door_pos",2)
+					if get("sim/cockpit2/electrical/GPU_generator_volts") > 0 then
+						command_once("sim/ground_ops/toggle_gpu_request") -- remove the x-plane GPU
+					end
+					distance_to_fuselage = 2.7
+				end
 
 				if AIRCRAFT_FILENAME == "AW109SP.acf" and PLANE_AUTHOR == "X-Trident" then set("aw109/servicing/wheel_chocks",0) end
 
@@ -5118,7 +5162,14 @@ function SGES_script()
 				and ground_level_difference_LR < 11 -- takes into account the roll of the terrain slope in the acft axis
 				then
 
-					ConeObject1 = Linked_cones
+				randomView = math.random()
+				if randomView < 0.25 then
+					Linked_cones = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/XPJ_conus_2.obj"
+					else
+					Linked_cones = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/XPJ_conus.obj"
+				end
+				ConeObject1 = Linked_cones
+
 					--~ print("[Ground Equipment " .. version_text_SGES .. "] OGL_plane_pitch " .. math.abs(OGL_plane_pitch) .. "°. OGL_plane_roll " .. math.abs(OGL_plane_roll) .. "°. The wide set of cones can be used.")
 					--print("[Ground Equipment " .. version_text_SGES .. "] ground_level_difference= " .. ground_level_difference .. ".")
 					--print("[Ground Equipment " .. version_text_SGES .. "] ground_level_difference_LR= " .. ground_level_difference_LR .. ". The wide set of cones with a fabric strip is used.")
@@ -5214,7 +5265,15 @@ function SGES_script()
 	function load_FUEL()
 		if FUEL_instance[0] == nil and fuel_show_only_once then
 
-			if IsXPlane12 and show_Pump then-- fuel pump choice activated and forced
+			if FuelTruck_is_deer then
+				math.randomseed(os.time())
+				randomView = math.random()
+				if randomView > 0.2 then
+					Prefilled_FuelObject = DeerF
+				else
+					Prefilled_FuelObject = DeerM
+				end
+			elseif IsXPlane12 and show_Pump then-- fuel pump choice activated and forced
 				Prefilled_FuelObject = XPlane_Ramp_Equipment_directory   .. "../Dynamic_Vehicles/fuelHydDisp_truck.obj"
 				-- watch your steps ! in service_object_physics_Fuel()
 			elseif PLANE_ICAO == "SR71" then -- special JP-7 fuel for the SR-71 means a special truck everywhere :-)
@@ -5661,6 +5720,10 @@ function SGES_script()
 			end
 			------------------ VEHICLE REPLACEMENT AFTER X-PLANE 12.1.4 ----------------
 
+			---------------- KAI TAK YELLOW BLUE BUS ---------------------------
+			if IsPassengerPlane == 1 and sges_military_default == 0 and sges_airport_ID ~= nil and (sges_airport_ID == "VHHX" or sges_airport_ID == "VHHH") then
+				Prefilled_BusObject = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/MisterX_Lib/"   .. "Cobus/Cobus_2700_VHHX.obj"
+			end
 
 			--print("[Ground Equipment " .. version_text_SGES .. "] load Bus Object : " .. Prefilled_BusObject)
 			XPLM.XPLMLoadObjectAsync(Prefilled_BusObject,
@@ -8138,7 +8201,9 @@ function SGES_script()
 				end
 				Fuel_heading_correcting_factor = -27
 			end
-
+			if FuelTruck_is_deer then -- a deer is far faster than a fuel truck
+				fuel_dY= fuel_dY + 0.15
+			end
 			fuel_currentX = fuel_currentX + fuel_dX
 			fuel_currentY = fuel_currentY + fuel_dY
 
@@ -8198,6 +8263,15 @@ function SGES_script()
 			-- store final position to start disappearance later
 			FuelFinalX = fuel_currentX
 			FuelFinalY = fuel_currentY
+
+			-- When the fuel truck animation is used to display wildlife instead of a fuel truck :
+			if FuelTruck_is_deer then
+				show_FUEL = false
+				FUEL_chg = true
+				print("[Ground Equipment " .. version_text_SGES .. "]  The curious deer has reached its observation point and starts running away again.")
+			else
+				print("[Ground Equipment " .. version_text_SGES .. "]  Fuel truck has reached final position " .. fuel_currentX .. " , " .. fuel_currentY)
+			end
 
 		end
 
@@ -8630,6 +8704,8 @@ function SGES_script()
 			end
 			if object_name_t[object_name] == "FUEL" and Prefilled_FuelObject == XPlane12_ford_carrier_accessories_directory .. "SH60_Seahawk_animated.obj"	then
 				obj_finalZ = Initial_Z + 400
+			elseif object_name_t[object_name] == "FUEL" and FuelTruck_is_deer then
+				obj_finalZ = Initial_Z + 400
 			end
 
 			if current_Z[object_name] < obj_finalZ then
@@ -8653,6 +8729,11 @@ function SGES_script()
 					elseif current_Z[object_name] > obj_finalZ - 0.6 then --kept on 16-7-23
 						heading_corr[object_name] = heading_corr[object_name] + 0.2
 					end
+
+					if object_name_t[object_name] == "FUEL" and FuelTruck_is_deer then -- a deer is far faster than a fuel truck
+						current_Z[object_name]= current_Z[object_name] + 0.25
+					end
+
 				end
 
 				if object_name_t[object_name] == "Hydrant" then
@@ -8809,7 +8890,7 @@ function SGES_script()
 				changed = false               -- indicate that the possible change in ramp/gate has been processed
 				print("[Ground Equipment " .. version_text_SGES .. "]  " .. object_name_t[object_name] .. " has reached final position before disappearance. Bye bye !")
 				--
-
+				if object_name_t[object_name] == "FUEL" and FuelTruck_is_deer then FuelTruck_is_deer = false end
 				-- send the vehicle to Common_unload :
 				changed,Instance,refrce = common_unload(object_name_t[object_name],Instance,refrce)
 				current_X[object_name] = nil -- important
@@ -13514,7 +13595,9 @@ function SGES_script()
 		imgui.Columns(1)
 
 	  if PLANE_ICAO ~= "ALIA" then -- ALIA doesn't require petroleum derivatives directly
-		if SGES_BushMode and IsXPlane12 and sges_military == 0 and sges_military_default == 0 then
+	    if FuelTruck_is_deer and SGES_deer_run_cycle ~= nil then
+		  l_changed, l_newval = imgui.Checkbox(" The curious deer (" .. math.floor(SGES_deer_run_cycle[0]*10)/10 .. ")", show_FUEL)
+	    elseif SGES_BushMode and IsXPlane12 and sges_military == 0 and sges_military_default == 0 then
 		  l_changed, l_newval = imgui.Checkbox(" Small fuel", show_FUEL)
 		elseif  Prefilled_FuelObject == XPlane12_ford_carrier_accessories_directory .. "SH60_Seahawk_animated.obj" then
 		  l_changed, l_newval = imgui.Checkbox(" Fuel (air delivery)", show_FUEL)
@@ -13524,6 +13607,7 @@ function SGES_script()
 		  if l_changed then
 			show_FUEL = l_newval
 			FUEL_chg = true
+			if show_FUEL and FuelTruck_is_deer then FuelTruck_is_deer = false end
 
 
 			if not IsXPlane12 then
@@ -16651,6 +16735,14 @@ function SGES_script()
 						else
 							BushObjectsToggle(0)
 						end
+
+						if IsXPlane12 and SGES_BushMode and BeltLoaderFwdPosition < 2 and outsideAirTemp > 5 and outsideAirTemp <= 35 and SGES_local_time_in_simulator_hours ~= nil and (SGES_local_time_in_simulator_hours[0] <= 10 or SGES_local_time_in_simulator_hours[0] >= 16) and sges_big_airport ~= nil and not sges_big_airport then
+							FuelTruck_is_deer = true
+							show_FUEL = true
+							FUEL_chg = true
+							print("[Ground Equipment " .. version_text_SGES .. "] Have you seen the wildlife here ?")
+						end
+
 						if SGES_BushMode then show_Pump = false sges_big_airport = false end
 					end
 
@@ -17359,10 +17451,12 @@ function SGES_script()
 				imgui.SameLine()
 				if  imgui.Button("Hook",45,25)  then
 					command_once("sim/flight_controls/jettison_reset")
+					set("sim/aircraft/overflow/acf_jett_is_slung",1)
 				end
 				imgui.SameLine()
 				if  imgui.Button("Release",60,25)  then
-					command_once("sim/flight_controls/jettison_payload")
+					--~ command_once("sim/flight_controls/jettison_payload")
+					set("sim/aircraft/overflow/acf_jett_is_slung",0)
 				end
 				imgui.TextUnformatted("Cable length")
 				imgui.SameLine()
@@ -18803,7 +18897,7 @@ function SGES_script()
 					imgui.EndTooltip()
 				end
 
-				l_changed, _ = imgui.Checkbox(" Airstairs cast light", Airstairs_with_lights)
+				l_changed, _ = imgui.Checkbox(" Airstairs & cones cast light", Airstairs_with_lights)
 				if l_changed then
 					Buttonstring = "Save the changes"
 					set("sges/airstairs/light",math.abs(get("sges/airstairs/light")-1))
