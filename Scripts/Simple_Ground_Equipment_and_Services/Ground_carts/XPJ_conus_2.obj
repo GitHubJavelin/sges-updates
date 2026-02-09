@@ -4,7 +4,7 @@ OBJ
 
 GLOBAL_specular 1.0
 # Build with AC3D by XPJavelin. Last version created on 23th of June, 2023.
-TEXTURE ASU_ACU_b.png
+TEXTURE ASU_ACU_2.png
 #TEXTURE_NORMAL ASU_ACU_b_normal.png
 NORMAL_METALNESS
 POINT_COUNTS 94946 0 0 145950
