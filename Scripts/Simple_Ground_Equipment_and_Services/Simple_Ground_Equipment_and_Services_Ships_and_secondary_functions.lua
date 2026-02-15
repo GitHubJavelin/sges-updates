@@ -534,6 +534,8 @@ function execute_DYNAMIC_service_objects()
 	end
 -- ////////////////////////////// BOAT STEERING /////////////////////////////////
 
+	----------------------------------------------------------------------------
+
 end
 
 --------------------------------------------------------------------------------
@@ -895,7 +897,36 @@ function scan_for_external_asset(aircraft, aircraft2, verbose)
     return nil  -- Aucun résultat trouvé
 end
 
+--------------------------------------------------------------------------------
+-- Ejection with confirmation !
+--------------------------------------------------------------------------------
+local eject_confirm_locker = 0
+local eject_request_time = os.clock()
+function eject_confirm()
+	eject_confirm_locker = eject_confirm_locker + 1
+	if eject_confirm_locker == 3 and os.clock() > eject_request_time + 2 and os.clock() <= eject_request_time + 10 then
+		command_once("sim/flight_controls/eject")
+		eject_confirm_locker = 0
+		print("[Ground Equipment " .. version_text_SGES .. "] Ejection confirmed !")
+	elseif eject_confirm_locker == 1 or eject_confirm_locker == 2 then
+		if eject_confirm_locker == 1 then eject_request_time = os.clock() end
+		if SGES_eject_sound == nil then
+			SGES_eject_sound = load_WAV_file(SCRIPT_DIRECTORY .. "Simple_Ground_Equipment_and_Services/Sounds/Hit_the_silk.wav")
+		end
+		print("[Ground Equipment " .. version_text_SGES .. "] Confirm ejection seat ?")
+		if SGES_eject_sound ~= nil then
+			set_sound_gain(SGES_eject_sound, 1)
+			play_sound(SGES_eject_sound)
+		end
+	elseif os.clock() > eject_request_time + 10 then
+		eject_confirm_locker = 0
+		print("[Ground Equipment " .. version_text_SGES .. "] Reset ejection seat")
+	end
+end
+create_command("Simple_Ground_Equipment_and_Services/Ejection_seat/eject", "Eject (press three times to confirm ejection)", "eject_confirm()", "", "")
 
 
+
+--------------------------------------------------------------------------------
 
 print("[Ground Equipment " .. version_text_SGES .. "] A module with ships, dynamic and secondary functions has been loaded.")
