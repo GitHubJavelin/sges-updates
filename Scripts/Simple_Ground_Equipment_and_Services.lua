@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "78.9"
+version_text_SGES = "79"
 --------------------------------------------------------------------------------
 --[[
 
@@ -2190,6 +2190,9 @@ function SGES_script()
 			--
 	local	approaching_TargetMarker = 0
 	local	stand_found_flag = 0
+
+
+	local FrontCount = 0
 
 	local Busobject = XPlane_Ramp_Equipment_directory   .. "../../1000 roads/objects/cars_EU/dynamic/d_busIC_01.obj"
 	local CatObject = XPlane_Ramp_Equipment_directory   .. "../../1000 roads/objects/cars_EU/dynamic/d_busIC_01.obj"
@@ -5692,6 +5695,11 @@ function SGES_script()
 			end
 			------------------ VEHICLE REPLACEMENT AFTER X-PLANE 12.1.4 ----------------
 
+			---------------- KAI TAK YELLOW BLUE BUS ---------------------------
+			if IsPassengerPlane == 1 and sges_military_default == 0 and sges_airport_ID ~= nil and (sges_airport_ID == "VHHX" or sges_airport_ID == "VHHH") then
+				Prefilled_BusObject = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/MisterX_Lib/"   .. "Cobus/Cobus_2700_VHHX.obj"
+			end
+
 			------------------ VEHICLE REPLACEMENT AFTER X-PLANE 12.1.4 ----------------
 			-- CASE OF THE REGULAR DAY ONLY BUS WITH ENHANCED CUSTOM LIGHTS
 			if (IsXPlane1214 and Cobus_light_flashing_lights_addonObject ~= nil)
@@ -5720,10 +5728,7 @@ function SGES_script()
 			end
 			------------------ VEHICLE REPLACEMENT AFTER X-PLANE 12.1.4 ----------------
 
-			---------------- KAI TAK YELLOW BLUE BUS ---------------------------
-			if IsPassengerPlane == 1 and sges_military_default == 0 and sges_airport_ID ~= nil and (sges_airport_ID == "VHHX" or sges_airport_ID == "VHHH") then
-				Prefilled_BusObject = SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/MisterX_Lib/"   .. "Cobus/Cobus_2700_VHHX.obj"
-			end
+
 
 			--print("[Ground Equipment " .. version_text_SGES .. "] load Bus Object : " .. Prefilled_BusObject)
 			XPLM.XPLMLoadObjectAsync(Prefilled_BusObject,
@@ -12209,6 +12214,9 @@ function SGES_script()
 	add_macro("SGES : air to air refueling","show_AAR = true AAR_chg = true","show_AAR = false  AAR_chg = true","deactivate")
 	end
 
+
+	--~ add_macro("SGES : reload the Custom-2 battle (debug)","if sges_Load_locations == nil then 	dofile (SCRIPT_DIRECTORY .. 'Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_Front_Line.lua') end  if  FrontLine_instance[1] ~= nil then show_Front_Line = false Front_Line_chg = true else show_Front_Line = true Front_Line_chg = true end")
+
 	function auto_hide_floatting_windoz()
 		if groundservices_float_wnd ~= nil and ((sges_gs_ias_spd[0] > 260 and SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 20)  or (sges_gs_plane_y_agl[0] > 3333 and SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 20) or SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 600) then --IAS24
 			hide_floatting_windoz() -- avoids OOM
@@ -16625,9 +16633,18 @@ function SGES_script()
 
 			imgui.PopStyleColor()
 			imgui.Separator()
-			if not Front_Line_chg then
-				l_changed, l_newval = imgui.Checkbox(" Front Line", show_Front_Line)
+			if FrontCount > 2 and not show_Front_Line then
+				imgui.TextUnformatted(" Front Line (now limited)")
+				imgui.Button(preselected_Front_line_title,200,18)
+			elseif not Front_Line_chg then
+
+				if preselected_Front_line_title == "Select" then
+					imgui.TextUnformatted(" Front Line")
+				else
+					l_changed, l_newval = imgui.Checkbox(" Front Line", show_Front_Line)
+				end
 				if l_changed and preselected_Front_line_title ~= "Select" then
+					if l_newval then FrontCount = FrontCount + 1 end
 					show_Front_Line = l_newval
 					Front_Line_chg = true
 					if show_Front_Line and sges_Load_locations == nil then
@@ -16647,13 +16664,16 @@ function SGES_script()
 					front_line_file_path = load_next_profile()
 					preselected_Front_line_title = sges_retrieve_profile_title()
 				end
+
 			else
-				imgui.Checkbox(" Front Line...", false)
+				imgui.TextUnformatted("     Front Line...")
 			end
 			if show_Front_Line and not Front_Line_chg and Front_line_title ~= nil then
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("Active : " .. string.sub(Front_line_title,1,21))
 				imgui.PopStyleColor()
+			else
+				imgui.TextUnformatted("Max 2 displays by session.")
 			end
 			imgui.TreePop()
 		end
@@ -16950,7 +16970,7 @@ function SGES_script()
 					imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
 					if  imgui.Button("WT",20,20)  then
 						-- actualize the curr position
-						 local weather_x,weather_z,_ =local_to_latlon(sges_gs_plane_x[0],0,sges_gs_plane_z[0])
+						local weather_x,weather_z,_ = local_to_latlon(sges_gs_plane_x[0],0,sges_gs_plane_z[0])
 						open_that_sges_url("https://earth.nullschool.net/fr/#current/wind/isobaric/1000hPa/overlay=precip_3hr/equirectangular/loc=" .. weather_z .. "," .. weather_x)
 						--~ open_that_sges_url("https://aviationweather.gov/gfa/?tab=obs&center=" .. weather_x .. "," .. weather_z .. "&zoom=6&pop=yes&tab=obs")
 						--~ open_that_sges_url("http://skyvector.com/?ll=" .. weather_x .. "," .. weather_z .. "&chart=304&zoom=3")
