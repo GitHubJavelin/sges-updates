@@ -1,6 +1,22 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
+Version 79, 16th of February, 2026
+	• Fixed the double night lighting of the passenger bus at night at Kai Tak airport
+	• Front line : re-coded the module, now resistant to long range flights and DSF loading thanks to
+the use of world coordinates and no more openGL coordinates. Also shoots at you when in
+close proximity of the Front Line. Enabled 4 custom profiles (instead of 2 previously). Added
+sounds to the battles. Added spaces or gaps between battles. Prevented a FlyWithLua memory
+error by limiting to the number of Front Lines placed per session.
+
+Version 78.9, 9th of February, 2026
+	Add to X-Plane settings a "Hook and Release" command for helicopters sling load operations (easy sling load ops with a single joystick button)
+	SGES option "Airstairs and cones cast lights" modified to kill/enable more lights at once
+	Added the Kai Tak Hong Kong passenger bus at Kai Tak
+	New aircraft support : added the VFW-614 parameters
+	Added some random wildlife for X-Plane 12 bush operations and the Deer manual PDF is added in the documentation folder
+	Renabled the battle front objects (bugfix)
+
 Version 78.8, 25th of December, 2025
 	Available on the rolling beta channel via SkunkCraft Updater (Beta enabled), as of 25th of December, 2025
     Pushback module updated for X-Plane 12.4
