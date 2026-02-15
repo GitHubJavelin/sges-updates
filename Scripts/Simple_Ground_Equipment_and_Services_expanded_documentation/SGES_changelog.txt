@@ -8,6 +8,7 @@ the use of world coordinates and no more openGL coordinates. Also shoots at you 
 close proximity of the Front Line. Enabled 4 custom profiles (instead of 2 previously). Added
 sounds to the battles. Added spaces or gaps between battles. Prevented a FlyWithLua memory
 error by limiting to the number of Front Lines placed per session.
+	• Created a command (see X-Plane keyboard settings) to eject only after a triple press of confirmation
 
 Version 78.9, 9th of February, 2026
 	Add to X-Plane settings a "Hook and Release" command for helicopters sling load operations (easy sling load ops with a single joystick button)
