@@ -40,7 +40,8 @@ function AircraftParameters() -- don't remove the function
     elseif PLANE_ICAO == "B789" then BeltLoaderFwdPosition = 18.5 	SecondStairsFwdPosition = -19.7		airstart_unit_factor = 27	custom_fuel_finalX = -17 custom_fuel_finalY = -6 custom_fuel_pump_finalX = 18 custom_fuel_pump_finalY = -6
     elseif PLANE_ICAO == "B772" then BeltLoaderFwdPosition = 17.9	SecondStairsFwdPosition = -20		airstart_unit_factor = 22.8 BeltLoaderRearPosition = -12.40 	custom_fuel_pump_finalX = 15  custom_fuel_pump_finalY = 0.5
     elseif PLANE_ICAO == "B77L" then BeltLoaderFwdPosition = 17.9	SecondStairsFwdPosition = -20		airstart_unit_factor = 22.8 BeltLoaderRearPosition = -12.40 	custom_fuel_pump_finalX = 15  custom_fuel_pump_finalY = 0.5
-    elseif PLANE_ICAO == "B773" then BeltLoaderFwdPosition = 17.5	SecondStairsFwdPosition = -26.5		airstart_unit_factor = 24	custom_fuel_pump_finalX = 15  custom_fuel_pump_finalY = 0.5
+    elseif PLANE_ICAO == "B773" then BeltLoaderFwdPosition = 23.3 BeltLoaderRearPosition = -17.3 airstart_unit_factor = 24 SecondStairsFwdPosition = -24.7 custom_fuel_finalX = -15 custom_fuel_finalY = 0 custom_fuel_pump_finalX = 15.5 custom_fuel_pump_finalY = 0.5
+    elseif PLANE_ICAO == "B77W" then BeltLoaderFwdPosition = 23.3 BeltLoaderRearPosition = -17.3 airstart_unit_factor = 24 SecondStairsFwdPosition = -24.7 custom_fuel_finalX = -15 custom_fuel_finalY = 0 custom_fuel_pump_finalX = 15.5 custom_fuel_pump_finalY = 0.5 UseXplane1220Chocks = true UseXplane1220Chocks_specific = true
     elseif PLANE_ICAO == "B779" then BeltLoaderFwdPosition = 17.5	SecondStairsFwdPosition = -28		airstart_unit_factor = 19
     elseif PLANE_ICAO == "MD82" then BeltLoaderFwdPosition = 12.3										airstart_unit_factor = -1  targetDoorX_alternate = 0.001 targetDoorZ_alternate = 0 targetDoorH_alternate = 0.8 custom_fuel_pump_finalX = 21.5
 custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
@@ -65,6 +66,9 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "A310" then BeltLoaderFwdPosition = 11  	SecondStairsFwdPosition = -12.5	custom_fuel_pump_finalX = 13.50  custom_fuel_pump_finalY = -1
     elseif PLANE_ICAO == "A3ST" then BeltLoaderFwdPosition = 17		custom_fuel_pump_finalX = 13.50  custom_fuel_pump_finalY = -1
     elseif PLANE_ICAO == "IL96" then BeltLoaderFwdPosition = 14  	SecondStairsFwdPosition = -11.0
+
+    elseif PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" then BeltLoaderFwdPosition = 6.6 airstart_unit_factor = 16.4  longitudinal_factor3 = 0 height_factor3 = 0 lateral_factor3 = 0  targetDoorX_alternate = -0.32258069515228 targetDoorZ_alternate = 0 targetDoorH_alternate = 0.97580647468567 plane_has_cargo_hold_on_the_left_hand_side = true custom_fuel_finalX = -15 custom_fuel_finalY = -4 custom_fuel_pump_finalX = 15.5 custom_fuel_pump_finalY = -2 -- ERJ values
+    elseif PLANE_ICAO == "E135" or PLANE_ICAO == "E35L" then BeltLoaderFwdPosition = 6.6 airstart_unit_factor = 16.4  longitudinal_factor3 = 0 height_factor3 = 0 lateral_factor3 = 0  targetDoorX_alternate = -0.32258069515228 targetDoorZ_alternate = 0 targetDoorH_alternate = 0.97580647468567 plane_has_cargo_hold_on_the_left_hand_side = true custom_fuel_finalX = -15 custom_fuel_finalY = -4 custom_fuel_pump_finalX = 15.5 custom_fuel_pump_finalY = -2 -- ERJ values
 
     elseif PLANE_ICAO == "E170" then BeltLoaderFwdPosition = 6.1	BeltLoaderRearPosition = -5.7	SecondStairsFwdPosition = -7.80	custom_fuel_pump_finalX = -9  custom_fuel_pump_finalY = 0.5
     elseif PLANE_ICAO == "E175" then BeltLoaderFwdPosition = 6.1	BeltLoaderRearPosition = -6.5	SecondStairsFwdPosition = -8.7	custom_fuel_pump_finalX = -8.50  custom_fuel_pump_finalY = -0.5
@@ -296,7 +300,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "B788" then vertical_door_position = -1.6 deltaDoorX = 8.6
     elseif PLANE_ICAO == "B789" then vertical_door_position = -1.6 deltaDoorX = 8.8
     elseif PLANE_ICAO == "B772" or PLANE_ICAO == "B77L" then vertical_door_position = -2.7 deltaDoorX = 8.85 -- STS/FF 777 v2 : 777-200ER
-    elseif PLANE_ICAO == "B773" then vertical_door_position = -3.0 deltaDoorX = 8.6
+    elseif PLANE_ICAO == "B773" or PLANE_ICAO == "B77W" then vertical_door_position = -2.1 deltaDoorX = 8.7
     elseif PLANE_ICAO == "B779" then vertical_door_position = -3.0 deltaDoorX = 8.6
     elseif PLANE_ICAO == "IL96" then vertical_door_position = -0.1 deltaDoorX = 8.3
     elseif AIRCRAFT_FILENAME == "YAK42.acf" or PLANE_ICAO == "YK42"  then vertical_door_position = -2.5 deltaDoorX = 7.6
@@ -309,6 +313,8 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "E19L" then vertical_door_position = -2.8 deltaDoorX = 5.9
     elseif PLANE_ICAO == "E175" then vertical_door_position = -2.35 deltaDoorX = 5.9
     elseif PLANE_ICAO == "E195" then vertical_door_position = -2.7 deltaDoorX = 5.6
+    elseif PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" then vertical_door_position = -4 deltaDoorX = 9 -- ERJ values
+    elseif PLANE_ICAO == "E135" or PLANE_ICAO == "E35L" then vertical_door_position = -4 deltaDoorX = 9 -- ERJ values
     elseif string.match(AIRCRAFT_PATH,"146") then 		vertical_door_position = -3.35 deltaDoorX = 6.55
     elseif PLANE_ICAO == "RJ70" then  vertical_door_position = -3.35 deltaDoorX = 6.55
     elseif PLANE_ICAO == "RJ85" then  vertical_door_position = -3.35 deltaDoorX = 6.55
@@ -358,7 +364,8 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "B762" then vertical_door_position2 = -1.9 deltaDoorX2 = 7.7
     elseif PLANE_ICAO == "B762F" then vertical_door_position2 = -1.9 deltaDoorX2 = 7.7
     elseif PLANE_ICAO == "B772" or PLANE_ICAO == "B77L" then vertical_door_position2 = -2 deltaDoorX2 = 8.8		sges_gs_plane_head_correction2 = -0.2	longitudinal_factor3 = 12.9
-    elseif PLANE_ICAO == "B773" then vertical_door_position2 = -3.0 deltaDoorX2 = 9.9	sges_gs_plane_head_correction2 = -0.2
+    elseif PLANE_ICAO == "B773" or PLANE_ICAO == "B77W" then vertical_door_position2 = -2.2 deltaDoorX2 = 8.75  sges_gs_plane_head_correction2 = -0.2 longitudinal_factor3 = 18.3 height_factor3 = 0 lateral_factor3 = 0.15
+    elseif PLANE_ICAO == "B77W" then vertical_door_position2 = -3.0 deltaDoorX2 = 9.9	sges_gs_plane_head_correction2 = -0.2
     elseif PLANE_ICAO == "B779" then vertical_door_position2 = -3.0 deltaDoorX2 = 9.9	sges_gs_plane_head_correction2 = -0.2
     elseif PLANE_ICAO == "B788" then vertical_door_position2 = -1.1 deltaDoorX2 = 8.65 	sges_gs_plane_head_correction2 = -1	longitudinal_factor3 = 0 height_factor3 = 0 lateral_factor3 = 0
     elseif PLANE_ICAO == "B789" then vertical_door_position2 = -1.1 deltaDoorX2 = 8.6 sges_gs_plane_head_correction2 = -0.4	longitudinal_factor3 = 23.7 height_factor3 = 0 lateral_factor3 = 0
@@ -377,6 +384,8 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "E190" then vertical_door_position2 = -2.2 deltaDoorX2 = 6  sges_gs_plane_head_correction2 = -1
     elseif PLANE_ICAO == "E19L" then vertical_door_position2 = -2.2 deltaDoorX2 = 6  sges_gs_plane_head_correction2 = -1
     elseif PLANE_ICAO == "E195" then vertical_door_position2 = -2.1  deltaDoorX2 = 5.  sges_gs_plane_head_correction2 = -0.4
+    elseif PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" then vertical_door_position2 = -4 deltaDoorX2 = 11 sges_gs_plane_head_correction2 = 0 -- ERJ values
+    elseif PLANE_ICAO == "E135" or PLANE_ICAO == "E35L" then vertical_door_position2 = -4 deltaDoorX2 = 11 sges_gs_plane_head_correction2 = 0 -- ERJ values
     elseif PLANE_ICAO == "GLF650ER" then vertical_door_position2 = -4  deltaDoorX2 = 11  sges_gs_plane_head_correction2 = 0  	longitudinal_factor3 = 0  height_factor3 = 0  lateral_factor3 = 0
     elseif PLANE_ICAO == "E55P" then vertical_door_position2 = -4 deltaDoorX2 = 11 sges_gs_plane_head_correction2 = 0 			longitudinal_factor3 = 0 height_factor3 = 0 lateral_factor3 = 0
 	else vertical_door_position2 = -4 deltaDoorX2 = 11
@@ -390,7 +399,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
 
     if PLANE_ICAO == "A321"     and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0 	target_to_open_the_door = 2 index_to_open_the_second_door = 6 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
     elseif PLANE_ICAO == "A21N"     and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0 	target_to_open_the_door = 2 index_to_open_the_second_door = 6 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
-    elseif PLANE_ICAO == "A20N" and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0	target_to_open_the_door = 2 index_to_open_the_second_door = 2 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
+    elseif (PLANE_ICAO == "A320" or PLANE_ICAO == "A20N") and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0	target_to_open_the_door = 2 index_to_open_the_second_door = 2 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
     elseif PLANE_ICAO == "A319" and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0	target_to_open_the_door = 2 index_to_open_the_second_door = 2 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
     elseif PLANE_ICAO == "A339" and SGES_Author == "GlidingKiwi" then
 		dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray"
@@ -409,7 +418,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "B764" and string.find(SGES_Author,"FlightFactor") then dataref_to_open_the_door = "sim/cockpit2/switches/custom_slider_on"   	index_to_open_the_door = 0 target_to_open_the_door = 1 index_to_open_the_second_door = 4  -- FF/STS 767
     elseif PLANE_ICAO == "B763" and string.find(SGES_Author,"FlightFactor") then dataref_to_open_the_door = "sim/cockpit2/switches/custom_slider_on"   	index_to_open_the_door = 0 target_to_open_the_door = 1 index_to_open_the_second_door = 4  -- FF/STS 767
 
-    elseif (PLANE_ICAO == "B772" or PLANE_ICAO == "B77L") and string.find(SGES_Author,"FlightFactor") then dataref_to_open_the_door = "1-sim/anim/doorL1"   	index_to_open_the_door = 0 target_to_open_the_door = 1 index_to_open_the_second_door = 5  -- FF/STS 767
+    elseif (PLANE_ICAO == "B772" or PLANE_ICAO == "B77L" or PLANE_ICAO == "B773" or PLANE_ICAO == "B77W") and string.find(SGES_Author,"FlightFactor") then dataref_to_open_the_door = "1-sim/anim/doorL1"   	index_to_open_the_door = 0 target_to_open_the_door = 1 index_to_open_the_second_door = 5  -- FF/STS 767
 
     elseif PLANE_ICAO == "B788" and SGES_Author == "Magknight" then 			dataref_to_open_the_door = "aero787/doors/door_open_ratio" 			 	index_to_open_the_door = 0 target_to_open_the_door = 0.9 index_to_open_the_second_door = 1  -- Magknight
     elseif PLANE_ICAO == "B789" and SGES_Author == "Magknight" then 			dataref_to_open_the_door = "aero787/doors/door_open_ratio"  			index_to_open_the_door = 0 target_to_open_the_door = 0.9 index_to_open_the_second_door = 1  -- Magknight
@@ -421,6 +430,8 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     --~ elseif PLANE_ICAO == "E190" then dataref_to_open_the_door =
     elseif PLANE_ICAO == "E170" and SGES_Author == "Supercritical Simulations Group" then dataref_to_open_the_door = "sim/cockpit2/switches/custom_slider_on"   index_to_open_the_door = 0 target_to_open_the_door = 1 -- SSG Embraer
     elseif PLANE_ICAO == "E195" and SGES_Author == "Supercritical Simulations Group" then dataref_to_open_the_door = "sim/cockpit2/switches/custom_slider_on"   index_to_open_the_door = 0 target_to_open_the_door = 1 -- SSG Embraer
+
+
     elseif string.match(AIRCRAFT_PATH,"146") and string.find(SGES_Author,"Thranda") then  dataref_to_open_the_door = "sim/cockpit2/switches/door_open" 			index_to_open_the_door = 1 target_to_open_the_door = 1 -- Just Flight BAe 146
     elseif PLANE_ICAO == "A359" then											dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- not controlled by writable dataref (Flight Factor A350)
     elseif PLANE_ICAO == "B733" then 											dataref_to_open_the_door = nil index_to_open_the_door = nil target_to_open_the_door = 1 -- No door at all (IXEG for X-Plane 11)
@@ -435,6 +446,8 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     --elseif PLANE_ICAO == "DH8D" and string.find(SGES_Author,"FlyJSim") then 											dataref_to_open_the_door = "FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door" index_to_open_the_door = 0 target_to_open_the_door = 0 index_to_open_the_second_door = 3 -- not controlled by dataref (Zibo/Level Up)
 	elseif (PLANE_ICAO == "E190" or PLANE_ICAO == "E195" or PLANE_ICAO == "E170" or PLANE_ICAO == "E175") and SGES_Author == "Marko Mamula" then dataref_to_open_the_door = "XCrafts/doors/front_main"   index_to_open_the_door = 0 target_to_open_the_door = 1   dataref_to_open_the_second_door = "XCrafts/doors/back_main" -- X-Crafts Embraer
 	elseif PLANE_ICAO == "E19L" and SGES_Author == "Marko Mamula" then dataref_to_open_the_door = "XCrafts/doors/front_main"   index_to_open_the_door = 0 target_to_open_the_door = 1   dataref_to_open_the_second_door = "XCrafts/Lineage/animation/airstairs_target" -- X-Crafts Embraer
+
+    elseif SGES_Author == "Marko Mamula" and (PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" or PLANE_ICAO == "E135" or PLANE_ICAO == "E35L") then  dataref_to_open_the_door = "XCrafts/doors/front_main"   index_to_open_the_door = 0 target_to_open_the_door = 1 -- X-Craft ERJ
 
     elseif string.find(SGES_Author,"Unruh") and (PLANE_ICAO == "A339") then dataref_to_open_the_door = "sim/cockpit2/switches/door_open"  index_to_open_the_door = 0 target_to_open_the_door = 1 index_to_open_the_second_door = 6
     -- Laminar Research X-Plane 12 default fleet is supported by the following lines.

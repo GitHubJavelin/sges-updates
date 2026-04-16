@@ -47,9 +47,14 @@ local probeinfo_addr =  ffi.new("XPLMProbeInfo_t*")
 local probeinfo_value = ffi.new("XPLMProbeInfo_t[1]")
 
 local FrontLineRef = {}
+local FrontLine3DRef = {}
+local FrontLineSandbagsRef = {}
 
 --~ local FrontLine_instance = ffi.new("XPLMInstanceRef[101]")
 FrontLine_instance = {} -- allow more than 101
+FrontLine_threeD_instance = {} -- allow more than 101
+FrontLine_sandbags_instance = {}
+heading_object_modifier = {}
 local max_objects = 350
 local draw_distance_max = 15000  -- en mètres 15km
 
@@ -61,6 +66,36 @@ local z1_value = ffi.new("double[1]")
 -- to store in values of the local nature of the terrain (wet / land)
 ffi.cdef("void XPLMWorldToLocal(double inLatitude, double inLongitude, double inAltitude, double * outX, double * outY, double * outZ)")
 
+
+
+LoadedObjects = {}   -- cache global
+
+function load_object_once(path)
+    if LoadedObjects[path] ~= nil then
+        return LoadedObjects[path]
+    end
+
+    XPLM.XPLMLoadObjectAsync(path,
+        function(obj)
+            LoadedObjects[path] = obj
+        end,
+        nil
+    )
+end
+
+function all_instances_created()
+    for i = 1, #FLx_densified do
+        if FrontLine_instance[i] == nil then
+            return false
+        end
+    end
+    return true
+end
+
+
+local Front_Line_chg_bat1 = true
+local Front_Line_chg_bat2 = true
+local Front_Line_chg_bat3 = true
 
 -----------------------------------
 -- FIND FRONT LINE LOCATION
@@ -226,9 +261,45 @@ end
 
 function load_Front_Line()
 	local count_all_gaps = 0
-	local gap_threshold = 0.25
+	local gap_threshold = 0.125
 	local battles_with_sounds = 0
 	math.randomseed(os.time())
+
+
+				-- 2026 04 11  adding optional 3D objects
+
+	local SandbagsObject = io.open(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/pak38/SANDBAGS.obj", "r")
+	if SandbagsObject ~= nil then
+		SandbagsObject = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/pak38/SANDBAGS.obj"-- 1.9 Mo
+	else
+		print("[Front Line] Optional SANDBAGS.obj not found. It's here : https://forums.x-plane.org/files/file/99551-pak-38-anti-tank-gun-and-pak-38-anti-tank-gun-nest/")
+	end
+
+
+	local targetObject = io.open(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/Chi-nu/chinu.obj", "r")
+	if targetObject ~= nil then
+		targetObject = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/Chi-nu/chinu.obj" -- 8,3 Mo
+		targetObject4 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/Chi-nu/chinu.obj" -- 8,3 Mo- 1.9 Mo
+	else
+		print("[Front Line] Optional chinu.obj not found. It's here : https://forums.x-plane.org/files/file/99525-chi-nu/")
+	end
+
+	local targetObject4 = io.open(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/pak38/pak38.obj", "r")
+	if targetObject4 ~= nil then
+		targetObject4 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Front_Lines_optional_objects/pak38/pak38.obj" -- 8,3 Mo
+	end
+	local targetObject2 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Ground_carts/WillysMB.obj" -- 4.4 Mo
+	local targetObject3 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/BTR-80_Target/objects/M-48_A1.obj" -- 31Mo
+	if targetObject4 == nil then targetObject4 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Ground_carts/WillysMB.obj" end
+
+	if modern_assets ~= nil and modern_assets then
+		targetObject = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Ground_carts/Van_Camo_b.obj" -- 112 Ko
+		targetObject2 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/BTR-80_Target/objects/BTR-80.obj" -- 942 Ko
+		targetObject3 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/BTR-80_Target/objects/BTR-80.obj" -- 942 Ko
+		targetObject4 = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/BTR-80_Target/objects/BTR-80.obj" -- 942 Ko
+	end
+
+
 	for i = 1, #FLx_densified do
 		-- February 2026, add some randmness to avoid having a continuous front, add some gaps without firearms action for a more realistic landscape
 
@@ -250,12 +321,92 @@ function load_Front_Line()
 				end
 			end
 			--~ enqueue_frontline_object(object, i)
-			XPLM.XPLMLoadObjectAsync(object,
-					function(inObject, inRefcon)
-					FrontLine_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
-					FrontLineRef[i] = inObject
-					end,
-					inRefcon )
+			--~ XPLM.XPLMLoadObjectAsync(object,
+					--~ function(inObject, inRefcon)
+					--~ FrontLine_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+					--~ FrontLineRef[i] = inObject
+					--~ end,
+					--~ inRefcon )
+			load_object_once(object)
+			FrontLineRef[i] = LoadedObjects[object]
+			if LoadedObjects[object] then
+				FrontLine_instance[i] = XPLM.XPLMCreateInstance(LoadedObjects[object], datarefs_addr)
+				--~ print("NOT waiting")
+				Front_Line_chg_bat1 = false
+			else
+				-- On attend que l’objet soit chargé
+				-- On retentera au prochain passage de Front_Line_object_physics()
+				Front_Line_chg = true -- restores the loop to allow a second pass
+				--~ print("waiting")
+			end
+
+
+			--~ if (#FLx_densified > 100 and randomBattleGap > 2.5*gap_threshold) or (#FLx_densified <= 100 and randomBattleGap > gap_threshold) then
+				randomTarget = math.random()
+				if targetObject ~= nil and randomTarget >= 0.5 and randomTarget < 0.9 then
+					selectedTargetObject = targetObject
+				elseif targetObject2 ~= nil and randomTarget < 0.2 then
+					selectedTargetObject = targetObject2
+				elseif targetObject4 ~= nil and randomTarget >= 0.2 then
+					selectedTargetObject = targetObject4
+				elseif targetObject3 ~= nil and randomTarget >= 0.9 then
+					selectedTargetObject = targetObject3
+				end
+
+				if selectedTargetObject ~= nil then
+					--~ XPLM.XPLMLoadObjectAsync(selectedTargetObject,
+							--~ function(inObject, inRefcon)
+							--~ FrontLine_threeD_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+							--~ FrontLine3DRef[i] = inObject
+							--~ end,
+							--~ inRefcon )
+					load_object_once(selectedTargetObject)
+					FrontLine3DRef[i] = LoadedObjects[selectedTargetObject]
+					if LoadedObjects[selectedTargetObject] then
+						FrontLine_threeD_instance[i] = XPLM.XPLMCreateInstance(FrontLine3DRef[i], datarefs_addr)
+						Front_Line_chg_bat2 = false
+					else
+						-- On attend que l’objet soit chargé
+						-- On retentera au prochain passage de Front_Line_object_physics()
+						Front_Line_chg = true -- restores the loop to allow a second pass
+					end
+
+
+
+					--~ print("[Front Line] Also loaded " .. selectedTargetObject .. ", " .. i)
+					if selectedTargetObject ~= nil and string.find(selectedTargetObject,"pak38") then
+						heading_object_modifier[i] = 90
+					elseif selectedTargetObject ~= nil and string.find(selectedTargetObject,"chinu") then
+						heading_object_modifier[i] = 270
+					elseif selectedTargetObject ~= nil and string.find(selectedTargetObject,"BTR") then
+						heading_object_modifier[i] = 180
+					else
+						heading_object_modifier[i] = 0
+					end
+				--~ end
+				--~ if selectedTargetObject ~= nil and SandbagsObject ~= nil and (string.find(selectedTargetObject,"pak38") or string.find(selectedTargetObject,"BTR-80")) then
+				if selectedTargetObject ~= nil and SandbagsObject ~= nil and (string.find(selectedTargetObject,"pak38") or string.find(selectedTargetObject,"BTR-80")) then
+					--~ XPLM.XPLMLoadObjectAsync(SandbagsObject,
+							--~ function(inObject, inRefcon)
+							--~ FrontLine_sandbags_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+							--~ FrontLineSandbagsRef[i] = inObject
+							--~ end,
+							--~ inRefcon )
+					load_object_once(SandbagsObject)
+					FrontLineSandbagsRef[i] = LoadedObjects[SandbagsObject]
+					if LoadedObjects[SandbagsObject] then
+						FrontLine_sandbags_instance[i] = XPLM.XPLMCreateInstance(FrontLineSandbagsRef[i], datarefs_addr)
+						Front_Line_chg_bat3 = false
+					else
+						-- On attend que l’objet soit chargé
+						-- On retentera au prochain passage de Front_Line_object_physics()
+						Front_Line_chg = true -- restores the loop to allow a second pass
+					end
+					--~ print("[Front Line] And loaded " .. SandbagsObject .. ", " .. i)
+				end
+				selectedTargetObject = nil -- RESET THAT !
+			end
+
 		elseif randomBattleGap <= gap_threshold and FrontLine_instance[i] == nil then
 			count_all_gaps = count_all_gaps + 1
 			--~ print("[Front Line] Creating a small gap in the front line.")
@@ -275,9 +426,21 @@ function unload_Front_Line_Objects()
 		if FrontLine_instance[i] ~= nil then
 			--~ print("[Ground Equipment " .. version_text_SGES .. "] Unloading Front Line... ...point " .. i)
 			if FrontLine_instance[i] ~= nil then       XPLM.XPLMDestroyInstance(FrontLine_instance[i]) end
-			if FrontLineRef[i] ~= nil then     XPLM.XPLMUnloadObject(FrontLineRef[i])  end
+			--~ if FrontLineRef[i] ~= nil then     XPLM.XPLMUnloadObject(FrontLineRef[i])  end
 			FrontLine_instance[i] = nil
-			FrontLineRef[i] = nil
+			--~ FrontLineRef[i] = nil
+		end
+		if FrontLine_threeD_instance[i] ~= nil then
+			if FrontLine_threeD_instance[i] ~= nil then       XPLM.XPLMDestroyInstance(FrontLine_threeD_instance[i]) end
+			--~ if FrontLine3DRef[i] ~= nil then     XPLM.XPLMUnloadObject(FrontLine3DRef[i])  end
+			FrontLine_threeD_instance[i] = nil
+			--~ FrontLine3DRef[i] = nil
+		end
+		if FrontLine_sandbags_instance[i] ~= nil then
+			if FrontLine_sandbags_instance[i] ~= nil then       XPLM.XPLMDestroyInstance(FrontLine_sandbags_instance[i]) end
+			--~ if FrontLineSandbagsRef[i] ~= nil then     XPLM.XPLMUnloadObject(FrontLineSandbagsRef[i])  end
+			FrontLine_sandbags_instance[i] = nil
+			--~ FrontLineSandbagsRef[i] = nil
 		end
 	end
 	-- Vider les coordonnées
@@ -285,7 +448,10 @@ function unload_Front_Line_Objects()
 	FLz = {}
 	FLx_densified = {}
 	FLz_densified = {}
-	FrontLineRef = {}
+	--~ FrontLineRef = {}
+	--~ FrontLine3DRef = {}
+	--~ FrontLineSandbagsRef = {}
+	heading_object_modifier = {}
 	--~ Front_Line_chg = false
 	Front_Line_object_spacing = Front_Line_object_spacing_init
 	--~ Front_line_title  = nil
@@ -327,6 +493,26 @@ function draw_Front_Line()
 			float_addr = float_value
 			objpos_addr = objpos_value
 			XPLM.XPLMInstanceSetPosition(FrontLine_instance[i], objpos_addr, float_addr)
+		end
+
+		-- and also draw as required additional objects
+		if FrontLine_threeD_instance[i] ~= nil then
+			--~ objpos_value[0].x = objpos_value[0].x
+			--~ objpos_value[0].z = objpos_value[0].z
+			--~ if string.find(selectedTargetObject,"pak38") then
+				objpos_value[0].heading = objpos_value[0].heading + heading_object_modifier[i]
+			--~ end
+			float_addr = float_value
+			objpos_addr = objpos_value
+			XPLM.XPLMInstanceSetPosition(FrontLine_threeD_instance[i], objpos_addr, float_addr)
+		end
+		if FrontLine_sandbags_instance[i] ~= nil then
+			objpos_value[0].x = objpos_value[0].x - 2
+			objpos_value[0].z = objpos_value[0].z - 2
+			objpos_value[0].heading = objpos_value[0].heading - heading_object_modifier[i]
+			float_addr = float_value
+			objpos_addr = objpos_value
+			XPLM.XPLMInstanceSetPosition(FrontLine_sandbags_instance[i], objpos_addr, float_addr)
 		end
 	end
 	return draw_front_line + 1
@@ -415,6 +601,9 @@ function Front_Line_object_physics()
 	if Front_Line_chg == true then
 		if show_Front_Line then
 			if FrontLine_instance[1] == nil then
+				Front_Line_chg_bat1 = true
+				Front_Line_chg_bat2 = true
+				Front_Line_chg_bat3 = true
 				sges_Load_locations()
 				densify_Front_Line(Front_Line_object_spacing)  -- <-- ICI : densification tous les 100 m ou 5000 m
 				if #FLx_densified > frontline_points then
@@ -432,7 +621,12 @@ function Front_Line_object_physics()
 				Front_Line_object_spacing = Front_Line_object_spacing_init -- reinit
 			end
 			--~ draw_Front_Line()
-			Front_Line_chg = false
+			--~ Front_Line_chg = false
+			--~ if 	Front_Line_chg_bat1 == false and Front_Line_chg_bat2 == false and Front_Line_chg_bat3 == false then
+			if 	Front_Line_chg_bat1 == false and Front_Line_chg_bat2 == false then
+				Front_Line_chg = false
+				print("[Front Line] Front_Line_chg = false (it's good, we loaded all assets).")
+			end
 			--~ print("[Front Line] Done setting " .. #FLx_densified .. " battles on their calculated positions.")
 		else
 			unload_Front_Line_Objects()

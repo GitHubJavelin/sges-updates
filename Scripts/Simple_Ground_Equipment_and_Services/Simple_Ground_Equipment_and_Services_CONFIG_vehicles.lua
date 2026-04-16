@@ -41,6 +41,10 @@ User_Custom_Prefilled_FuelObject_option2 = 			MisterX_Lib   .. "Fuel_Trucks/Swis
 User_Custom_Prefilled_FuelObject_Mil 	= 			MisterX_Lib   .. "Fuel_Trucks/Fuel_Mil.obj"		-- only for military option
 User_Custom_Prefilled_FuelObject_USA 	= 			MisterX_Lib   .. "Fuel_Trucks/Fuel_EXXON.obj"		-- only for USA airports
 User_Custom_Prefilled_FuelObject_USA_2 	= 			MisterX_Lib   .. "Fuel_Trucks/Fuel_long_nose.obj" -- only for USA airports
+XP1241_EuropeanFuelTruck_white	= 					XPlane_Ramp_Equipment_directory ..  "../Common_Elements/Vehicles/tankerTrailer_truck_cabover_01.obj"
+XP1241_EuropeanFuelTruck_blue	= 					XPlane_Ramp_Equipment_directory ..  "../Common_Elements/Vehicles/tankerTrailer_truck_cabover_02.obj"
+XP1241_FuelKit_EU 	= 								SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/1241_FuelKit.obj"
+XP1241_FuelKit_USA 	= 								SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/1241_FuelKit_USA.obj"
 --User_Custom_Prefilled_FuelObject_option1 = 		Custom_Scenery_root3   .. "Vehicles/fuel_truck1.obj"
 
 -- STAIRS ----------------------------------------------------------------------
@@ -55,6 +59,8 @@ User_Custom_Prefilled_ASUObject = 					XPlane_Ramp_Equipment_directory   .. "Air
 
 -- CATERING --------------------------------------------------------------------
 User_Custom_Prefilled_CateringObject			= 	MisterX_Lib   .. "Catering/Catering_low_part.obj"
+User_Custom_Prefilled_CateringObject_1241		= 	XPlane_Ramp_Equipment_directory ..  "../Common_Elements/Vehicles/flatbed_cabover_01.obj"
+User_Custom_Prefilled_CateringObject_elevator	= 	SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/Catering_elevator.obj"
 User_Custom_Prefilled_CateringHighPartObject 	= 	MisterX_Lib   .. "Catering/Catering_high_part.obj"
 User_Custom_Prefilled_CateringHighPart_GG_Object = 	MisterX_Lib   .. "Catering/Catering_high_part_GateGourmet.obj"
 User_Custom_Prefilled_CateringHighPart_NR_Object = 	MisterX_Lib   .. "Catering/Catering_high_part_Newrest.obj"
