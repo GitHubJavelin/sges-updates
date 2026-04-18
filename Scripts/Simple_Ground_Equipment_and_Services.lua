@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "79.3"
+version_text_SGES = "79.4"
 --------------------------------------------------------------------------------
 --[[
 
@@ -1285,10 +1285,16 @@ function SGES_script()
 	function load_special_B777v2_objects(test_777v2_a)
 		--~ if test_777v2_a and PLANE_ICAO == "B772" and string.find(SGES_Author,"FlightFactor") then
 		if test_777v2_a then --and PLANE_ICAO == "B772" and string.find(SGES_Author,"FlightFactor") then
-			print("[Ground Equipment " .. version_text_SGES .. "] Loading STS/FF objects found in the Boeing 777-200ER folder.")
+			print("[Ground Equipment " .. version_text_SGES .. "] Loading STS/FF objects found in the Flight Factor Boeing 777 folder.")
 			if BeltLoaderFwdPosition >= 7 then
 				Prefilled_CateringObject = 			SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/cater.obj"
-				if (PLANE_ICAO ~= "B77L" or PLANE_ICAO ~= "B772" or PLANE_ICAO ~= "B773" or PLANE_ICAO ~= "B77W") and string.find(SGES_Author,"FlightFactor") then set("1-sim/anim/service/caterigtrucklift",1) end
+				if XPLMFindDataRef("1-sim/anim/service/caterigtrucklift") ~= nil then
+					if (PLANE_ICAO == "B77L" or PLANE_ICAO == "B772" or PLANE_ICAO == "B773" or PLANE_ICAO == "B77W") and string.find(SGES_Author,"FlightFactor") then set("1-sim/anim/service/caterigtrucklift",1) end
+				else
+					define_shared_DataRef("1-sim/anim/service/caterigtrucklift", "Float")
+					set("1-sim/anim/service/caterigtrucklift",1)
+					print("[Ground Equipment " .. version_text_SGES .. "] The dataref 1-sim/anim/service/caterigtrucklift was not found, so I created it on the fly.")
+				end
 				Prefilled_CateringHighPartObject = 	Prefilled_LightObject
 				Prefilled_CateringHighPart_GG_Object = Prefilled_LightObject
 				Prefilled_CateringHighPart_NR_Object = Prefilled_LightObject
@@ -1304,8 +1310,15 @@ function SGES_script()
 			Prefilled_PeopleObject3 = 			SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/workers/worker3.obj"
 			Prefilled_PeopleObject4 = 			SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/workers/worker2.obj"
 			Prefilled_CleaningTruckObject = 	SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/lsu.obj"
-			if (PLANE_ICAO ~= "B77L" or PLANE_ICAO ~= "B772" or PLANE_ICAO ~= "B773" or PLANE_ICAO ~= "B77W") and string.find(SGES_Author,"FlightFactor") then set("1-sim/anim/service/lavatoryservicelift",0.9) end Original_CleaningTruckObject = Prefilled_CleaningTruckObject
-			if (PLANE_ICAO ~= "B77L" or PLANE_ICAO ~= "B772" or PLANE_ICAO ~= "B773" or PLANE_ICAO ~= "B77W") and string.find(SGES_Author,"FlightFactor") then
+				if XPLMFindDataRef("1-sim/anim/service/lavatoryservicelift") ~= nil then
+					if (PLANE_ICAO == "B77L" or PLANE_ICAO == "B772" or PLANE_ICAO == "B773" or PLANE_ICAO == "B77W") and string.find(SGES_Author,"FlightFactor") then set("1-sim/anim/service/lavatoryservicelift",0.9) end
+				else
+					define_shared_DataRef("1-sim/anim/service/lavatoryservicelift", "Float")
+					set("1-sim/anim/service/caterigtrucklift",1)
+					print("[Ground Equipment " .. version_text_SGES .. "] The dataref 1-sim/anim/service/lavatoryservicelift was not found, so I created it on the fly.")
+				end
+			 Original_CleaningTruckObject = Prefilled_CleaningTruckObject
+			if (PLANE_ICAO == "B77L" or PLANE_ICAO == "B772" or PLANE_ICAO == "B773" or PLANE_ICAO == "B77W") and string.find(SGES_Author,"FlightFactor") then
 				Prefilled_PushBack1Object = 		Prefilled_LightObject
 				Prefilled_PushBackObject = 			SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/Tug2.obj"
 			end
@@ -1325,6 +1338,7 @@ function SGES_script()
 			--~ mdlmainliftcargo = create_dataref_table("1-sim/anim/service/mdlmainliftcargo", "FloatArray")
 			--~ mdlmainliftcargo[0] = 0.9
 			define_shared_DataRef("1-sim/anim/service/mdlmainliftcargo", "Float")
+			print("[Ground Equipment " .. version_text_SGES .. "] I created the dataref 1-sim/anim/service/mdlmainliftcargo on the fly.")
 			set("1-sim/anim/service/mdlmainliftcargo",0.92)
 			define_shared_DataRef("1-sim/anim/service/mdlfrontliftcargo", "Float")
 			set("1-sim/anim/service/mdlfrontliftcargo",0.90)
@@ -19311,7 +19325,7 @@ function SGES_script()
 				imgui.Separator()
 
 				if FFSTS_777v2_Directory ~= nil and BeltLoaderFwdPosition > 6.10 and SGES_Author ~= nil
-					and (string.find(SGES_Author,"Gliding") or string.find(SGES_Author,"FlightFactor")  or string.find(SGES_Author,"FlyJSim")  or string.find(SGES_Author,"COLIMATA"))
+					and (string.find(SGES_Author,"Gliding") or string.find(SGES_Author,"FlightFactor")  or string.find(SGES_Author,"FlyJSim")  or string.find(SGES_Author,"COLIMATA") or PLANE_ICAO == "A333")
 					then -- limit that when 777 is installed and for airliners
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
 					l_changed, l_newval = imgui.Checkbox(" Force B777 v2 services once.\n Used only for this session.", string.match(Prefilled_CleaningTruckObject,"lsu"))
