@@ -1,5 +1,5 @@
 Scripts/SGES_quick_start.pdf|316240
-Scripts/Simple_Ground_Equipment_and_Services.lua|989992
+Scripts/Simple_Ground_Equipment_and_Services.lua|990919
 Scripts/Simple_Ground_Equipment_and_Services/VDGS/VDGSFixed-zulu.obj|230859
 Scripts/Simple_Ground_Equipment_and_Services/VDGS/VDGS.png|2787818
 Scripts/Simple_Ground_Equipment_and_Services/VDGS/VDGSMobile.png|564
