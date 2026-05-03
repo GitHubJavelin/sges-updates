@@ -1,6 +1,13 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
+Version 79.5, 3rd of May, 2026
+    Disabled by default the Felis Boeing 747-200 scripted and automated crew
+
+Version 79.4, 18th of April, 2026
+    Emergency bug fix for airliners ground handling assets (prevents a Flywithlua crash)
+    Available in the Org and in SkunkCrafft Updater (beta AND stable channels)
+
 Version 79.3, 16th of April, 2026
 	• Minor adjustements in X-Plane 12.4.1 to restore the ability to display alternative catering trucks
 	• Tailored ground kit for the FF/STS 777-300ER released today by FF/STS
