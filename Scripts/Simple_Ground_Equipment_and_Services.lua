@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "79.4"
+version_text_SGES = "79.5"
 --------------------------------------------------------------------------------
 --[[
 
@@ -650,7 +650,7 @@ function SGES_script()
 	-- many variable are just temporary set, and should not be changed here, but changed in the configuration files instead !
 	User_prefers_containerized_freight = false
 	reduce_even_more_the_number_of_passengers = false
-	SpeedyCopilotForFelis = true
+	SpeedyCopilotForFelis = false
 	SpeedyCopilotForFelis_wait4spoilers = true
 	walking_direction_changed_armed = false
 	get_hospital_ambulance = false
@@ -14147,7 +14147,14 @@ function SGES_script()
 		imgui.PopStyleColor()
 
 
-	  if math.abs(BeltLoaderFwdPosition) > 4 then
+	  if math.abs(BeltLoaderFwdPosition) > 12 then
+		  imgui.SameLine()
+		  l_changed, l_newval = imgui.Checkbox(" Nose loader", show_Forklift)
+		  if l_changed then
+			show_Forklift = l_newval
+			Forklift_chg = true
+		  end
+	  elseif math.abs(BeltLoaderFwdPosition) > 4 then
 		  imgui.SameLine()
 		  l_changed, l_newval = imgui.Checkbox(" Forklift", show_Forklift)
 		  if l_changed then
@@ -17561,6 +17568,25 @@ function SGES_script()
 						imgui.EndTooltip()
 					end
 				end
+
+			end
+
+			if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") and SpeedyCopilotForFelis ~= nil and not show_ArrestorSystem then
+					if SpeedyCopilotForFelis == nil then SpeedyCopilotForFelis = true end
+					l_changed, l_newval = imgui.Checkbox(" Activate the 747 copilot", SpeedyCopilotForFelis)
+					if l_changed then
+						SpeedyCopilotForFelis = l_newval
+						Buttonstring = "Save the changes"
+					end
+					if imgui.IsItemActive() then
+						imgui.BeginTooltip()
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Here are some 742 scripted procedures directly available through SGES. Click on B/ST to start the before start procedure. After landing and approach flows start automatically. It's all documented in the documentation folder.")
+						imgui.PopStyleColor()
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
 			end
 
 			if PLANE_ICAO == "ch47" and not show_ArrestorSystem then
