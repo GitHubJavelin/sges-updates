@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "79.5"
+version_text_SGES = "79.6"
 --------------------------------------------------------------------------------
 --[[
 
@@ -183,6 +183,8 @@ function SGES_script()
 	--~ IsXPlane12 = false  IsXPlane1209 = false IsXPlane1211 = false -- do not activate this -- only for XPJavelin
 	----------------------------------------------------------------------------
 	----------------------------------------------------------------------------
+
+
 
 	IsSimcoders = false
 	if XPLMFindDataRef("simcoders/rep/landinggear/tires/show_chocks_2") ~= nil then
@@ -1325,13 +1327,16 @@ function SGES_script()
 		end
 	end
 
-	function Reuse_special_B777v2_Cargo()
+	function Reuse_special_B777v2_Cargo(option)
+
 		if FFSTS_777v2_Directory ~= nil and file_exists(SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/cLoader.obj") then
 			-- only when the B742 in use is a crago variant !
 			-- only when the freighter variant is installed of the 777 v2 by FF/STS
 			-- change the SGES main deck cargo loader for a FF/STS cargo loader which can reach the 747F deck !
 			Prefilled_CargoDeck_ULDLoaderObject = SCRIPT_DIRECTORY .. FFSTS_777v2_Directory .. "/objects/service/cLoader.obj"
-			Prefilled_ForkliftObject = Prefilled_CargoDeck_ULDLoaderObject
+			if option == nil then
+				Prefilled_ForkliftObject = Prefilled_CargoDeck_ULDLoaderObject
+			end
 			-- You can create your own DataRefs to share them with other plugins
 			-- A string must be created as a "Data" type
 			-- When the FF/STS 77 is not loaded, we need to create the dataref !
@@ -1343,6 +1348,8 @@ function SGES_script()
 			define_shared_DataRef("1-sim/anim/service/mdlfrontliftcargo", "Float")
 			set("1-sim/anim/service/mdlfrontliftcargo",0.90)
 			CargoDeck_ULDLoaderObject = "highly_high_variant"
+			reuse_lateral_factor = 1.7
+
 		end
 	end
 	----------------------------------------------------------------------------
@@ -2150,6 +2157,14 @@ function SGES_script()
 		-- When the Felis 742 Freighter, then use the FF/STS 777F Cargo loader also :
 		if AIRCRAFT_FILENAME == "B742_Cargo_Felis_XP12.acf" then
 			Reuse_special_B777v2_Cargo() -- this function safely does nothing if the 777 folder is not found, so it's secure to use like that
+		end
+		if ((PLANE_ICAO == "A321" or PLANE_ICAO == "A21N" or PLANE_ICAO == "A320" or PLANE_ICAO == "A20N") and SGES_Author == "Gliding Kiwi")
+			or (PLANE_ICAO == "B461" or PLANE_ICAO == "B462" or PLANE_ICAO == "B463")
+			or ((PLANE_ICAO == "B752" or PLANE_ICAO == "B753") and string.find(SGES_Author,"FlightFactor"))
+			or ((PLANE_ICAO == "B762" or PLANE_ICAO == "B763" or PLANE_ICAO == "B764") and string.find(SGES_Author,"FlightFactor"))
+			then
+			Reuse_special_B777v2_Cargo("keep_forklift") -- this function safely does nothing if the 777 folder is not found, so it's secure to use like that
+
 		end
 
 		if XTrident_NaveCavour_Directory ~= nil then XTrident_NaveCavour_Object =  SCRIPT_DIRECTORY .. XTrident_NaveCavour_Directory .. "/extra/Nave Cavour/Nimitz.obj" end
@@ -3190,8 +3205,10 @@ function SGES_script()
 
 			if dataref_to_open_the_door ~= nil then
 				if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
-					if get("XCrafts/doors/front_service") == 0 then -- open the door if closed
-						command_once("XCrafts/ERJ/service_door")
+					if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
+						if get("XCrafts/doors/front_service") == 0 then -- open the door if closed
+							command_once("XCrafts/ERJ/service_door")
+						end
 					end
 				elseif dataref_to_open_the_door == "AirbusFBW/PaxDoorModeArray" then -- toliss
 					if PLANE_ICAO == "A319" then set_array(dataref_to_open_the_door,3,target_to_open_the_door) end
@@ -3217,8 +3234,10 @@ function SGES_script()
 
 			if dataref_to_open_the_door ~= nil then
 				if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
-					if get("XCrafts/doors/front_service") == 1 then -- close the door if open
-						command_once("XCrafts/ERJ/service_door")
+					if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
+						if get("XCrafts/doors/front_service") == 1 then -- close the door if open
+							command_once("XCrafts/ERJ/service_door")
+						end
 					end
 				elseif dataref_to_open_the_door == "AirbusFBW/PaxDoorModeArray" then -- toliss
 					if PLANE_ICAO == "A319" then set_array(dataref_to_open_the_door,3,target_to_open_the_door-1) end
@@ -3347,8 +3366,10 @@ function SGES_script()
 			end
 			if dataref_to_open_the_door ~= nil then
 				if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
-					if get("XCrafts/doors/front_service") == 1 then -- close the door if open
-						command_once("XCrafts/ERJ/service_door")
+					if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
+						if get("XCrafts/doors/front_service") == 1 then -- close the door if open
+							command_once("XCrafts/ERJ/service_door")
+						end
 					end
 				end
 			end
@@ -3594,6 +3615,7 @@ function SGES_script()
 			elseif PLANE_ICAO == "B748" then ULDLoaderFwdPositionFactor = -0.53
 			elseif PLANE_ICAO == "B742" then ULDLoaderFwdPositionFactor = -0.67 lateral_factor_ULDLoader = -1.2
 			elseif PLANE_ICAO == "B744" then ULDLoaderFwdPositionFactor = -0.7
+			elseif PLANE_ICAO == "B762" then ULDLoaderFwdPositionFactor = 0.95
 			elseif PLANE_ICAO == "B763" then ULDLoaderFwdPositionFactor = 0.9
 			elseif PLANE_ICAO == "B772" then ULDLoaderFwdPositionFactor = 1
 			elseif PLANE_ICAO == "B773" then ULDLoaderFwdPositionFactor = 1
@@ -3632,7 +3654,9 @@ function SGES_script()
 				end
 
 				if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") then --77F FF/STS
-					x = x + 1.7
+					if reuse_lateral_factor == nil then reuse_lateral_factor = 1.7 end
+					x = x + reuse_lateral_factor
+					print("[Ground Equipment " .. version_text_SGES .. "] Adjusting the location of the special animated cargo loader : " .. reuse_lateral_factor .. " for the " .. PLANE_ICAO ..".")
 				end
 
 			end
@@ -4831,7 +4855,7 @@ function SGES_script()
 
 	baggage_heading_swap = 0
 	local left_ULD_heading = math.random(-3,3)
-	function service_object_physics_ULD()
+	function service_object_physics_ULD() -- left hand side cargo pallet
 
 		local baggage_vertical_step = 0 --.0003
 		local baggage_vertical_step_down = 0 --.0004
@@ -6356,9 +6380,36 @@ function SGES_script()
 				end
 			elseif CargoDeck_ULDLoaderObject == "highly_high_variant" and PLANE_ICAO ~= "B77L" and PLANE_ICAO ~= "B772" and PLANE_ICAO ~= "B773" and PLANE_ICAO ~= "B77W"   and XPLMFindDataRef("1-sim/anim/service/mdlmainliftcargo") ~= nil and XPLMFindDataRef("1-sim/anim/service/mdlfrontliftcargo") ~= nil then
 				if PLANE_ICAO == "B742" then
-					set("1-sim/anim/service/mdlmainliftcargo",0.92) -- Felis cargo deck 742F
+					height_value_cargo_uld_display = 0.92
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display) -- Felis cargo deck 742F
 					set("1-sim/anim/service/mdlfrontliftcargo",0.90)
+				elseif PLANE_ICAO == "A321" or PLANE_ICAO == "A320" or PLANE_ICAO == "A20N" or PLANE_ICAO == "A21N" then
+					reuse_lateral_factor = - 1.8
+					height_value_cargo_uld_display = 0.539
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+					set("1-sim/anim/service/mdlfrontliftcargo",0.357)
+				elseif PLANE_ICAO == "B461" or PLANE_ICAO == "B462" or PLANE_ICAO == "B463" then
+					reuse_lateral_factor = - 1.1
+					height_value_cargo_uld_display = 0.29
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+					set("1-sim/anim/service/mdlfrontliftcargo",0.025)
+				elseif (PLANE_ICAO == "B752" or PLANE_ICAO == "B753") then
+					reuse_lateral_factor = - 1.45
+					height_value_cargo_uld_display = 0.666
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+					set("1-sim/anim/service/mdlfrontliftcargo",0.54)
+				elseif PLANE_ICAO == "B762" then
+					reuse_lateral_factor = -0.55
+					height_value_cargo_uld_display = 0.729
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+					set("1-sim/anim/service/mdlfrontliftcargo",0.628)
+				elseif (PLANE_ICAO == "B763" or PLANE_ICAO == "B764") then
+					reuse_lateral_factor = 1.3
+					height_value_cargo_uld_display = 0.729
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+					set("1-sim/anim/service/mdlfrontliftcargo",0.628)
 				else
+					if height_value_cargo_uld_display ~= nil then height_value_cargo_uld_display = nil end
 					set("1-sim/anim/service/mdlmainliftcargo",0.90) -- Room for future expansions
 					set("1-sim/anim/service/mdlfrontliftcargo",0.88)
 				end
@@ -6495,7 +6546,7 @@ function SGES_script()
 					end
 
 				elseif show_StairsXPJ2 then
-					if index_to_open_the_second_door ~= nil and PaxDoorRearLeft == nil and (PLANE_ICAO ~= "B77L" or PLANE_ICAO ~= "B772" or PLANE_ICAO ~= "B773" or PLANE_ICAO ~= "B77W"   ) and string.find(SGES_Author,"FlightFactor") then
+					if index_to_open_the_second_door ~= nil and PaxDoorRearLeft == nil and (PLANE_ICAO ~= "B77L" or PLANE_ICAO ~= "B772" or PLANE_ICAO ~= "B773" or PLANE_ICAO ~= "B77W"   ) and string.find(SGES_Author,"FlightFactor") and XPLMFindDataRef("1-sim/anim/doorL5") ~= nil then
 						dataref("PaxDoorRearLeft","1-sim/anim/doorL5","writable",index_to_open_the_second_door)
 					elseif index_to_open_the_second_door ~= nil and  PaxDoorRearLeft == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
 						dataref("PaxDoorRearLeft",dataref_to_open_the_door,"writable",index_to_open_the_second_door)
@@ -7791,8 +7842,8 @@ function SGES_script()
 					objpos_target_value_y = ground + 1.82
 				elseif string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") and PLANE_ICAO == "B77L" then
 					objpos_target_value_y = ground + 5.54
-				elseif string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") and PLANE_ICAO == "B742" then
-					objpos_target_value_y = ground + (5.60 * 0.92)
+				elseif string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") and height_value_cargo_uld_display ~= nil then
+					objpos_target_value_y = ground + (5.7 * height_value_cargo_uld_display)
 				end
 				objpos_value[0].y = objpos_target_value_y
 			end
@@ -13963,10 +14014,21 @@ function SGES_script()
 	  if BeltLoaderFwdPosition > 2 then
 		  if PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" and sges_military_default == 1 then
 				 l_changed, l_newval = imgui.Checkbox(" E-4 stairs", show_BeltLoader)
-		  elseif BeltLoaderFwdPosition >= ULDthresholdx and PLANE_ICAO ~= "MD88" then l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader)
+		  elseif BeltLoaderFwdPosition >= ULDthresholdx and PLANE_ICAO ~= "MD88" then l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader) imgui.SameLine()
+		    if  imgui.SmallButton("+")  then
+				if adjust_BeltLoader == false then
+					adjust_BeltLoader = true
+				else
+					adjust_BeltLoader = false
+				end
+			end
+			imgui.SameLine()
+
 		  elseif PLANE_ICAO == "A321" and IsPassengerPlane == 0 then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
 		  elseif PLANE_ICAO == "A21N" and IsPassengerPlane == 0 then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
-		   elseif (PLANE_ICAO == "A319" or PLANE_ICAO == "A19N" or PLANE_ICAO=="A320" or PLANE_ICAO == "A20N" or PLANE_ICAO == "A321" or PLANE_ICAO == "A21N") and User_prefers_containerized_freight then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
+		   elseif (PLANE_ICAO == "A319" or PLANE_ICAO == "A19N" or PLANE_ICAO=="A320" or PLANE_ICAO == "A20N" or PLANE_ICAO == "A321" or PLANE_ICAO == "A21N") and User_prefers_containerized_freight then
+				l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
+
 		  else l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader) imgui.SameLine()
 		    if  imgui.SmallButton("+")  then
 				if adjust_BeltLoader == false then
@@ -14105,6 +14167,27 @@ function SGES_script()
 			RearBeltLoader_chg = true
 		end
 		imgui.PopStyleColor()
+		if init_BeltLoaderFwdPosition == nil then
+			init_BeltLoaderFwdPosition = BeltLoaderFwdPosition
+		end
+		local changed, newVal5 = imgui.SliderFloat("L", BeltLoaderFwdPosition, init_BeltLoaderFwdPosition-0.4, init_BeltLoaderFwdPosition+0.4, "LoaderFwdPos " .. math.floor(BeltLoaderFwdPosition*100)/100)
+		if changed then
+			BeltLoaderFwdPosition = newVal5
+			--l_changed = true
+			BeltLoader_chg = true
+			RearBeltLoader_chg = true
+		end
+		imgui.SameLine()
+		if  imgui.Button("Reset F",44,20)  then
+			BeltLoaderFwdPosition = init_BeltLoaderFwdPosition
+			BeltLoader_chg = true
+			RearBeltLoader_chg = true
+		end
+		if BeltLoaderFwdPosition >= ULDthresholdx then
+			imgui.TextUnformatted("In this range ULD are used.")
+		else
+			imgui.TextUnformatted("In this range loose cargo is used.")
+		end
 	end
 
 	if SGES_BushMode and IsXPlane12 then
@@ -14147,7 +14230,7 @@ function SGES_script()
 		imgui.PopStyleColor()
 
 
-	  if math.abs(BeltLoaderFwdPosition) > 12 then
+	  if math.abs(BeltLoaderFwdPosition) > 12 and string.find(PLANE_ICAO,"B74") then
 		  imgui.SameLine()
 		  l_changed, l_newval = imgui.Checkbox(" Nose loader", show_Forklift)
 		  if l_changed then
@@ -14192,6 +14275,22 @@ function SGES_script()
 				ULDLoader_chg = true
 				CargoULD_chg = true
 			end
+
+
+			if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") then --77F FF/STS loader
+				height_value_cargo_uld_display = get("1-sim/anim/service/mdlmainliftcargo")
+				local changed, height_value_cargo_uld_display = imgui.SliderFloat("H MAIN", height_value_cargo_uld_display, 0, 1, "Main part " .. math.floor(height_value_cargo_uld_display*1000)/1000)
+				if changed then
+					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+
+				end
+				local newVal3 = get("1-sim/anim/service/mdlfrontliftcargo")
+				local changed, newVal1 = imgui.SliderFloat("H FRT", newVal3, 0, 1, "Front part " .. math.floor(newVal3*1000)/1000)
+				if changed then
+					set("1-sim/anim/service/mdlfrontliftcargo",newVal1)
+				end
+			end
+
 			imgui.PopStyleColor()
 			imgui.Separator()
 
@@ -18989,6 +19088,18 @@ function SGES_script()
 						end
 						Buttonstring = "Save the changes"
 					end
+
+					--~ if sges_gs_gnd_spd[0] < 1 and sges_EngineState[0] > 95 then
+						--~ if imgui.SmallButton("Release stuck brakes !?!") then
+							--~ set("sim/operation/override/override_toe_brakes",0)
+							--~ set("sim/operation/override/override_gearbrake",0)
+							--~ set("sim/operation/override/override_engine_forces",0)
+							--~ set("sim/operation/override/override_wing_forces",0)
+							--~ set("sim/cockpit2/switches/auto_brake_level",1) -- off
+							--~ set("sim/cockpit2/controls/parking_brake_ratio",1)
+							--~ set_array("sim/flightmodel/controls/parkbrake",0,0)
+						--~ end
+					--~ end
 				end
 
 				l_changed, l_newval = imgui.Checkbox(" Use automatic stairs at 1L", show_auto_stairs)
@@ -19360,6 +19471,7 @@ function SGES_script()
 						if FFSTS_777v2_Directory ~= nil then -- this is not a saved option, because not our objects, so even if the user has paid for the 777v2, we still don't want to hijack their objects
 							-- it is therefore more aimed at a demonstration
 							load_special_B777v2_objects(FFSTS_777v2_Directory)
+							--~ Reuse_special_B777v2_Cargo()
 						end
 					end
 					if imgui.IsItemActive() then
