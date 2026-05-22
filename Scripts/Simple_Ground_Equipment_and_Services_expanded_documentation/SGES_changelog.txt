@@ -1,9 +1,17 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
-Version 79.6, 14th of May, 2026
+Version 79.6, 22th of May, 2026
     Prevents a crash with the FREE E-Jets by X-Craft X-Plane model
     Updates cargo set for the B757SF/F, B767RF/F, BAe-146QT, A320P2F, A321P2F under certain conditions
+    Enhanced options for cargo loaders
+    Boeing 737-200 enhanced support
+    Added a checkbox to toggle all Felis B747-200 hatches at once
+    Reworked the graphical options menu
+    After reports from SImLoadManager users, changed the SGES chocks function to remove any problem related to the aircraft heading before displaying the trucks.
+    Removes LuaJit option for Felis 742, now the 742 normally takes the setting into account
+    Made X-Plane chocks option persistent accross sessions
+    Improved GPU handling for Thranda/JustFlight planes
 
 Version 79.5, 3rd of May, 2026
     Disabled by default the Felis Boeing 747-200 scripted and automated crew
