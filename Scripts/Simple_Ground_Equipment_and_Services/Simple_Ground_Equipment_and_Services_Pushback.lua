@@ -1176,11 +1176,13 @@ function execute_PUSHBACK_service_objects ()
 			end
 			if SGES_override_engine_forces ~= nil and (SGES_override_engine_forces == 0) then
 				SGES_override_engine_forces = 1
+				set("sim/operation/override/override_engine_forces",1)
 				print("[Ground Equipment " .. version_text_SGES .. "] Activating the SGES pushback. SGES_override_engine_forces = " .. SGES_override_engine_forces)
 			end
 		elseif show_PB  and sges_gs_gnd_spd[0] < 3 and wetness == 0 and SGES_parkbrake < 0.8 and SGES_XPlaneIsPaused == 0 and sges_EngineState[0] >= 80 then
 			if SGES_override_engine_forces ~= nil and SGES_override_engine_forces == 1 then
 				SGES_override_engine_forces = 0
+				set("sim/operation/override/override_engine_forces",0)
 				print("[Ground Equipment " .. version_text_SGES .. "] Engine force bypassing the SGES pushback. SGES_override_engine_forces = " .. SGES_override_engine_forces)
 			end
 		end

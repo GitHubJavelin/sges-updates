@@ -123,7 +123,7 @@ function WriteToDisk_SGES_USER_CONFIG()
 	if reduce_even_more_the_number_of_passengers ~= nil and reduce_even_more_the_number_of_passengers~= false then file:write("\nreduce_even_more_the_number_of_passengers = true") end
 	if SpeedyCopilotForFelis ~= nil and SpeedyCopilotForFelis~= true then file:write("\nSpeedyCopilotForFelis = false") end
 	if SpeedyCopilotForFelis_wait4spoilers ~= nil and SpeedyCopilotForFelis_wait4spoilers~= true then file:write("\nSpeedyCopilotForFelis_wait4spoilers = false") end
-	if LuaJITForFelis ~= nil and LuaJITForFelis~= true then file:write("\nLuaJITForFelis = false") end
+	if UseXplane1220Chocks ~= nil and UseXplane1220Chocks~= false then file:write("\nUseXplane1220Chocks = true") end
 
 
 	if SGES_sound ~= nil and not SGES_sound then file:write("\nSGES_sound = false")  end -- only need to save it when false, because default is true
@@ -140,6 +140,8 @@ function WriteToDisk_SGES_USER_CONFIG()
 	if XTrident_NaveCavour_Directory ~= nil then 	file:write("\nXTrident_NaveCavour_Directory = \"" .. XTrident_NaveCavour_Directory .. "\"") end
 	if FFSTS_777v2_Directory ~= nil then 	file:write("\nFFSTS_777v2_Directory = \"" .. FFSTS_777v2_Directory .. "\"") end
 	if Cami_de_Bellis_Directory ~= nil then 	file:write("\nCami_de_Bellis_Directory = \"" .. Cami_de_Bellis_Directory .. "\"") end
+	if TolissWB_Directory ~= nil then 	file:write("\nTolissWB_Directory = \"" .. TolissWB_Directory .. "\"") end
+	if TolissSA_Directory ~= nil then 	file:write("\nTolissSA_Directory = \"" .. TolissSA_Directory .. "\"") end
 
 	if Airstairs_with_lights ~= nil and Airstairs_with_lights~= true then file:write("\nAirstairs_with_lights = false") end
 
@@ -167,8 +169,10 @@ function Wipe_SGES_USER_CONFIG()
 	XTrident_NaveCavour_Directory = nil
 	FFSTS_777v2_Directory = nil
 	Cami_de_Bellis_Directory = nil
+	TolissWB_Directory = nil
+	TolissSA_Directory = nil
 	Airstairs_with_lights = nil
-	LuaJITForFelis = nil
+	UseXplane1220Chocks = false
 	SpeedyCopilotForFelis_wait4spoilers = nil
 	WriteToDisk_SGES_USER_CONFIG()
 end
