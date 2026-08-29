@@ -1,6 +1,14 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
+Version 80, 25th of June, 2026
+	Added a tailored set for the A310 and A310F by CremonaSoft (user request) and for the V35 Bonanza
+	Repaired the combat functions when destroying the SAM site with weapons (user feedback)
+	Added IVAO / VATSIM / Pilot Edge ATIS via the Hoppie Network (a Hoppie ACARS logon code is required)
+	Added direct METAR retrieval
+	Added vehicle toggles (piece of code kindly submitted by an user )
+	UI tweaks
+
 Version 79.6, 22th of May, 2026
     Prevents a crash with the FREE E-Jets by X-Craft X-Plane model
     Updates cargo set for the B757SF/F, B767RF/F, BAe-146QT, A320P2F, A321P2F under certain conditions

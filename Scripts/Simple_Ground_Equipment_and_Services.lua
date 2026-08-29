@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "79.6"
+version_text_SGES = "80.1"
 --------------------------------------------------------------------------------
 --[[
 
@@ -647,6 +647,10 @@ function SGES_script()
 	temperature_below_which_we_display_the_active_deicing_service = 10
 
 	ULDthresholdx = 13 -- above this value, an ULD loader instead of a Belt Loader
+
+	if string.match(AIRCRAFT_PATH, "A310") then
+		ULDthresholdx = 10.9
+	end
 
 	-- many variable are just temporary set, and should not be changed here, but changed in the configuration files instead !
 	User_prefers_containerized_freight = false
@@ -1665,6 +1669,7 @@ function SGES_script()
 		or string.match(PLANE_ICAO,"A20N")
 		or string.match(PLANE_ICAO,"DC")
 		or string.match(PLANE_ICAO,"IL96")
+		or (string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft"))
 		--or string.match(AIRCRAFT_PATH, "C-17") or PLANE_ICAO == "C17"
 	then SGES_stairs_type = "New_Normal"
 	else SGES_stairs_type = "New_Small"
@@ -2082,8 +2087,8 @@ function SGES_script()
 
 			-- also open the aircraft door when defined in the aircraft set
 			if show_DoorOpen and dataref_to_open_the_door ~= nil and target_to_open_the_door ~= nil then
-				if PaxDoor1L == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil and PLANE_ICAO ~= "MD88"  and PLANE_ICAO ~= "MD11" and not string.find(PLANE_ICAO,"B73") then
-					dataref("PaxDoor1L",dataref_to_open_the_door,"writable",index_to_open_the_door)
+				if PaxDoor1Left == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil and PLANE_ICAO ~= "MD88"  and PLANE_ICAO ~= "MD11" and not string.find(PLANE_ICAO,"B73") then
+					dataref("PaxDoor1Left",dataref_to_open_the_door,"writable",index_to_open_the_door)
 				end
 				if index_to_open_the_second_door ~= nil and PaxDoorRearLeft == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
 					dataref("PaxDoorRearLeft",dataref_to_open_the_door,"writable",index_to_open_the_second_door)
@@ -2092,11 +2097,10 @@ function SGES_script()
 					dataref("PaxDoorRearLeft",dataref_to_open_the_second_door,"writable",index_to_open_the_door)
 					print("[Ground Equipment " .. version_text_SGES .. "]  PaxDoorRearLeft dataref is loaded from Simple Ground Equipment, via a second dataref.")
 				end
-				if show_DoorOpen and PaxDoor1L ~= nil and PaxDoor1L ~= target_to_open_the_door then
-					PaxDoor1L = target_to_open_the_door
+				if show_DoorOpen and PaxDoor1Left ~= nil and PaxDoor1Left ~= target_to_open_the_door then
+					PaxDoor1Left = target_to_open_the_door
 				end
 			end
-
 		end
 
 		if sges_airport_ID == nil then sges_airport_ID = "ZZZZ" end
@@ -2182,6 +2186,8 @@ function SGES_script()
 
 		if XTrident_NaveCavour_Directory ~= nil then XTrident_NaveCavour_Object =  SCRIPT_DIRECTORY .. XTrident_NaveCavour_Directory .. "/extra/Nave Cavour/Nimitz.obj" end
 
+		dofile(SCRIPT_DIRECTORY .. "Simple_Ground_Equipment_and_Services/SGES_Toggle_Commands_by_RackhamRPL.lua")
+		register_SGES_toggle_commands() -- By RackhamRPL 31/05/2026
 
 		if sges_EngineState[0] < 5 and SGES_is_glider == 0 and sges_gs_plane_y_agl[0] < 1 then
 			-- only ring SGES ready when aircraft is parked.
@@ -2198,6 +2204,7 @@ function SGES_script()
 		end
 
 		automatic_display_EMS_acceptable = true --enabling the EMS upon crash only once the situation is stable and loaded. Important.
+
 
 		print("\n====================================")
 		--------------------------------------------------------------------
@@ -2359,6 +2366,7 @@ function SGES_script()
 
 	show_Watersalute = false
 	final_heading = false
+	ATIS_window_requested = false
 
 	distance_to_fuselage = 0 -- belt loader
 	TargetSelfPushbackX_stored = 0
@@ -3641,6 +3649,7 @@ function SGES_script()
 			elseif PLANE_ICAO == "B752" then ULDLoaderFwdPositionFactor = 1.15
 			elseif PLANE_ICAO == "SF34" then ULDLoaderFwdPositionFactor = -1.1
 			elseif PLANE_ICAO == "B462" then ULDLoaderFwdPositionFactor = 1.03
+			elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then ULDLoaderFwdPositionFactor = 0.95
 			else ULDLoaderFwdPositionFactor = 1.1 end
 			-- then :
 			local x = targetDoorX+10
@@ -3650,6 +3659,7 @@ function SGES_script()
 			if PLANE_ICAO == "A306" then x = targetDoorX+8 end
 			if PLANE_ICAO == "B722" then x = targetDoorX+9.5 end
 			if PLANE_ICAO == "B77L" then x = targetDoorX+8.75 end
+			if string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then x = targetDoorX+11 end
 			local z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
 			local h = 90
 			if UseXplaneDefaultObject == true then
@@ -3804,7 +3814,7 @@ function SGES_script()
 			-- delay door closing after airstairs is folded
 			if PLANE_ICAO == "E19L"
 			and PaxLineageStairs_time ~= nil and SGES_total_flight_time_sec > PaxLineageStairs_time + 16
-			and PaxDoor1L ~= nil and PaxDoor1L ~= target_to_open_the_door-1
+			and PaxDoor1Left ~= nil and PaxDoor1Left ~= target_to_open_the_door-1
 			and PaxLineageStairs ~= nil and PaxLineageStairs ~= target_to_open_the_door then
 				-- insist on closing the Embraer Lineage jet door : waiting for stairs
 				Pax_chg = true
@@ -3840,8 +3850,8 @@ function SGES_script()
 				end
 				--------------
 
-				if PaxDoor1L ~= nil and PaxDoor1L == target_to_open_the_door then
-					PaxDoor1L = target_to_open_the_door-1 -- we will try with -1 if that's Ok for the airplane, otherwise the user will hopefully correct that manually in game
+				if PaxDoor1Left ~= nil and PaxDoor1Left == target_to_open_the_door then
+					PaxDoor1Left = target_to_open_the_door-1 -- we will try with -1 if that's Ok for the airplane, otherwise the user will hopefully correct that manually in game
 				end
 				if PaxDoorRearLeft ~= nil and PaxDoorRearLeft == target_to_open_the_door then
 					PaxDoorRearLeft = target_to_open_the_door-1 -- we will try with -1 if that's Ok for the airplane, otherwise the user will hopefully correct that manually in game
@@ -6550,31 +6560,31 @@ function SGES_script()
 
 
 				if dataref_to_open_the_door == "laminar/B738/door/fwd_L_toggle" and string.match(PLANE_ICAO,"B73") then			-- ZIBO / LevelUp
-					if PaxDoor1L == nil and XPLMFindDataRef("laminar/B738/doors/status") ~= nil then								-- ZIBO / LevelUp
-							dataref("PaxDoor1L","laminar/B738/doors/status","readonly",index_to_open_the_door)						-- ZIBO / LevelUp
+					if PaxDoor1Left == nil and XPLMFindDataRef("laminar/B738/doors/status") ~= nil then								-- ZIBO / LevelUp
+							dataref("PaxDoor1Left","laminar/B738/doors/status","readonly",index_to_open_the_door)						-- ZIBO / LevelUp
 					end																												-- ZIBO / LevelUp
-					if show_Pax and PaxDoor1L ~= nil and PaxDoor1L == 2 then														-- ZIBO / LevelUp
+					if show_Pax and PaxDoor1Left ~= nil and PaxDoor1Left == 2 then														-- ZIBO / LevelUp
 						command_once("laminar/B738/door/fwd_L_toggle")
 						--print("[Ground Equipment " .. version_text_SGES .. "] open the laminar/B738 door via toggle command.")
 					end
 				elseif string.find(dataref_to_open_the_door,"md80") then			-- Rotate MD80
 
-					if PaxDoor1L == nil and XPLMFindDataRef("Rotate/md80/doors/main_cabin_door_ratio") ~= nil then
+					if PaxDoor1Left == nil and XPLMFindDataRef("Rotate/md80/doors/main_cabin_door_ratio") ~= nil then
 						print("[Ground Equipment " .. version_text_SGES .. "] The door has the command " .. dataref_to_open_the_door)
-						dataref("PaxDoor1L","Rotate/md80/doors/main_cabin_door_ratio","readonly",index_to_open_the_door)
+						dataref("PaxDoor1Left","Rotate/md80/doors/main_cabin_door_ratio","readonly",index_to_open_the_door)
 					end
-					if show_Pax and PaxDoor1L ~= nil and PaxDoor1L == 0 then
+					if show_Pax and PaxDoor1Left ~= nil and PaxDoor1Left == 0 then
 						command_once("Rotate/md80/doors/main_cabin_door_open")
 						print("[Ground Equipment " .. version_text_SGES .. "] Opening the Rotate MD-88 door via command.")
-						PaxDoor1L = nil
+						PaxDoor1Left = nil
 					end
 				elseif show_StairsXPJ then
-					if PaxDoor1L == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
+					if PaxDoor1Left == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
 						print("[Ground Equipment " .. version_text_SGES .. "] The door has the dataref " .. dataref_to_open_the_door .. ":" .. index_to_open_the_door)
-						dataref("PaxDoor1L",dataref_to_open_the_door,"writable",index_to_open_the_door)
+						dataref("PaxDoor1Left",dataref_to_open_the_door,"writable",index_to_open_the_door)
 					end
-					if show_Pax and PaxDoor1L ~= nil and PaxDoor1L ~= target_to_open_the_door then
-						PaxDoor1L = target_to_open_the_door
+					if show_Pax and PaxDoor1Left ~= nil and PaxDoor1Left ~= target_to_open_the_door then
+						PaxDoor1Left = target_to_open_the_door
 						--print("[Ground Equipment " .. version_text_SGES .. "] open the door with dataref " .. dataref_to_open_the_door .. ":" .. index_to_open_the_door)
 					end
 					-- Peculiar case of Embraer Lineage stairs :
@@ -6590,13 +6600,13 @@ function SGES_script()
 			--~ elseif dataref_table_to_open_the_door ~= nil and index_to_open_the_door ~= nil then -- second case when the dataref is a table !
 
 				--~ if BoardStairsXPJ then -- open the door only when it's the front door at which we board. As a simplificaiton, the human will take care of opening the rear door.
-					--~ if PaxDoor1L == nil and XPLMFindDataRef(dataref_table_to_open_the_door) ~= nil then
+					--~ if PaxDoor1Left == nil and XPLMFindDataRef(dataref_table_to_open_the_door) ~= nil then
 						--~ PaxDoors = dataref_table(dataref_table_to_open_the_door)
-						--~ PaxDoor1L = PaxDoors[target_to_open_the_door]
+						--~ PaxDoor1Left = PaxDoors[target_to_open_the_door]
 						--~ print("[Ground Equipment " .. version_text_SGES .. "]  arm the door with dataref table " .. dataref_table_to_open_the_door .. ":" .. index_to_open_the_door)
 					--~ end
-					--~ if show_Pax and PaxDoor1L ~= nil and PaxDoor1L < target_to_open_the_door then
-						--~ PaxDoor1L = target_to_open_the_door
+					--~ if show_Pax and PaxDoor1Left ~= nil and PaxDoor1Left < target_to_open_the_door then
+						--~ PaxDoor1Left = target_to_open_the_door
 						--~ print("[Ground Equipment " .. version_text_SGES .. "] open the door with dataref table " .. dataref_table_to_open_the_door .. ":" .. index_to_open_the_door)
 					--~ end
 				--~ end
@@ -9259,11 +9269,11 @@ function SGES_script()
 		if dataref_to_open_the_door ~= nil and index_to_open_the_door ~= nil and not string.match(PLANE_ICAO, "B73") then -- don't go more forward if stairs already in place
 
 			-- find the dataref
-			if PaxDoor1L == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
-					dataref("PaxDoor1L",dataref_to_open_the_door,"writable",index_to_open_the_door)
+			if PaxDoor1Left == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
+					dataref("PaxDoor1Left",dataref_to_open_the_door,"writable",index_to_open_the_door)
 			end
 
-			if PaxDoor1L ~= nil and PaxDoor1L == target_to_open_the_door  and show_StairsXPJ == false then
+			if PaxDoor1Left ~= nil and PaxDoor1Left == target_to_open_the_door  and show_StairsXPJ == false then
 				-- then show the forward stairs (and apply consequent actions)
 				show_StairsXPJ = true
 				StairsXPJ_chg = true
@@ -9289,7 +9299,7 @@ function SGES_script()
 				show_Cones = true
 				Cones_chg = true
 				-- if the door is closed by the user, remove the stairs
-			elseif PaxDoor1L ~= nil and PaxDoor1L ~= target_to_open_the_door and show_StairsXPJ then
+			elseif PaxDoor1Left ~= nil and PaxDoor1Left ~= target_to_open_the_door and show_StairsXPJ then
 				show_StairsXPJ2 = false
 				StairsXPJ2_chg = true
 				show_StairsXPJ = false
@@ -12634,48 +12644,10 @@ function SGES_script()
 
 		end
 
-		if IsXPlane12 then
-
-
-			if (math.abs(sges_gs_gnd_spd[0]) < 0.5 or show_CockpitLight) then
-				imgui.SameLine()
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-				if  imgui.SmallButton("Glow",15,10)  then
-
-					if show_CockpitLight then
-						show_CockpitLight = false
-						CockpitLight_chg = true
-					else
-						show_CockpitLight = true
-						CockpitLight_chg = true
-					end
-				end
-				imgui.PopStyleColor()
-				if imgui.IsItemActive() then
-					-- Click & hold tooltip
-					imgui.BeginTooltip()
-					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Night ambiance.")
-					imgui.TextUnformatted("Available if stopped.")
-					imgui.PopStyleColor()
-					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-					imgui.PopTextWrapPos()
-					imgui.EndTooltip()
-				end
-			else
-			imgui.SameLine()
-			imgui.TextUnformatted("XP12 ")
-			end
-
-		else
-			imgui.SameLine()
-			imgui.TextUnformatted("XP11 ")
-		end
-
-	  imgui.SetWindowFontScale(1)
+	  imgui.SetWindowFontScale(0.99)
 	  if groundservices_float_wnd ~= nil then
+			imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
+
 
 
 			--~ float_wnd_saved_position = imgui.GetWindowPos(groundservices_float_wnd).x
@@ -12683,8 +12655,8 @@ function SGES_script()
 			--~ float_wnd_saved_position_y = imgui.GetWindowPos(groundservices_wnd).y
 
 
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF000000)
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+			--~ imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF000000)
+			--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
 
 			--~ imgui.PushItemWidth(110)
 			--~ local changed, newVal2 = imgui.SliderFloat("wp", posx, 100, SCREEN_WIDTH*0.5-larg/2, "Window")
@@ -12693,56 +12665,110 @@ function SGES_script()
 			--~ end
 
 			imgui.SameLine()
-			if  imgui.SmallButton("<<")  then
-				posx = 100
-				float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-				float_wnd_saved_position_x = posx
-				--~ float_wnd_saved_position_y = posy
-				SGES_WriteToDisk()
+			if  imgui.Button("Move",38,18)  then
+				if adjust_sges_menu_pos then adjust_sges_menu_pos = false else adjust_sges_menu_pos = true end
 			end
 			imgui.SameLine()
-			if  imgui.SmallButton("<")  then
-				posx = posx - 200
-				float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-				float_wnd_saved_position_x = posx
-				--~ float_wnd_saved_position_y = posy
-				SGES_WriteToDisk()
-			end
-			imgui.SameLine()
-			if  imgui.SmallButton("^")  then
-				posx = SCREEN_WIDTH*0.5-larg/2
-				float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-				float_wnd_saved_position_x = posx
-				SGES_WriteToDisk()
-			end
-			imgui.SameLine()
-			if  imgui.SmallButton(">")  then
-				posx = posx + 200
-				float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-				float_wnd_saved_position_x = posx
-				--~ float_wnd_saved_position_y = posy
-				SGES_WriteToDisk()
-			end
-			imgui.SameLine()
-			if  imgui.SmallButton(">>")  then
-				posx = screen_width - larg - 100
-				float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-				float_wnd_saved_position_x = posx
-				--~ float_wnd_saved_position_y = posy
-				SGES_WriteToDisk()
-			end
-			imgui.PopStyleColor()
-			if sges_gs_ias_spd[0] < 50 and sges_gs_plane_y_agl[0] < 150 then
-				imgui.SameLine()
-				imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
-				if  imgui.Button("W",15,15)  then
-					command_once("sim/operation/open_weight_and_balance_window")
+			if adjust_sges_menu_pos == nil then adjust_sges_menu_pos = false end
+			if adjust_sges_menu_pos then
+				if  imgui.SmallButton("<<")  then
+					posx = 100
+					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+					float_wnd_saved_position_x = posx
+					--~ float_wnd_saved_position_y = posy
+					SGES_WriteToDisk()
 				end
-				imgui.PopStyleVar()
+				imgui.SameLine()
+				if  imgui.SmallButton("<")  then
+					posx = posx - 200
+					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+					float_wnd_saved_position_x = posx
+					--~ float_wnd_saved_position_y = posy
+					SGES_WriteToDisk()
+				end
+				imgui.SameLine()
+				if  imgui.SmallButton("^")  then
+					posx = SCREEN_WIDTH*0.5-larg/2
+					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+					float_wnd_saved_position_x = posx
+					SGES_WriteToDisk()
+				end
+				imgui.SameLine()
+				if  imgui.SmallButton(">")  then
+					posx = posx + 200
+					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+					float_wnd_saved_position_x = posx
+					--~ float_wnd_saved_position_y = posy
+					SGES_WriteToDisk()
+				end
+				imgui.SameLine()
+				if  imgui.SmallButton(">>")  then
+					posx = screen_width - larg - 100
+					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+					float_wnd_saved_position_x = posx
+					--~ float_wnd_saved_position_y = posy
+					SGES_WriteToDisk()
+				end
+			else
+				if IsXPlane12 then
+					if (math.abs(sges_gs_gnd_spd[0]) < 0.5 or show_CockpitLight) then
+						imgui.SameLine()
+						if  imgui.Button("LIT",30,18)  then
+
+							if show_CockpitLight then
+								show_CockpitLight = false
+								CockpitLight_chg = true
+							else
+								show_CockpitLight = true
+								CockpitLight_chg = true
+							end
+						end
+						if imgui.IsItemActive() then
+							-- Click & hold tooltip
+							imgui.BeginTooltip()
+							-- This function configures the wrapping inside the toolbox and thereby its width
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+							imgui.TextUnformatted("Night ambiance.")
+							imgui.TextUnformatted("Available if stopped.")
+							imgui.PopStyleColor()
+							-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+							imgui.PopTextWrapPos()
+							imgui.EndTooltip()
+						end
+					else
+					imgui.SameLine()
+					imgui.TextUnformatted("XP12 ")
+					end
+
+				else
+					imgui.SameLine()
+					imgui.TextUnformatted("XP11 ")
+				end
+				if sges_gs_ias_spd[0] < 50 and sges_gs_plane_y_agl[0] < 150 then
+					imgui.SameLine()
+					imgui.PushStyleColor(imgui.constant.Col.Button,  imgui.ColorConvertFloat4ToU32(0.5, 0.5, 0.5, 1.0))
+					if  imgui.Button("W&B",35,18)  then
+						command_once("sim/operation/open_weight_and_balance_window")
+					end
+					imgui.PopStyleColor()
+				end
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  imgui.ColorConvertFloat4ToU32(0.3, 0.45, 0.66, 1.0))
+				if  imgui.Button("ATIS",35,18)  then
+					-- actualize the curr position
+					if ATIS_window_requested == nil then ATIS_window_requested = false end
+					if ATIS_window_requested then ATIS_window_requested = false
+					else
+						ATIS_window_requested = true
+					end
+				end
+				imgui.PopStyleColor()
 			end
-			imgui.SetWindowFontScale(1.0)
-			imgui.PopStyleColor()
+
+			imgui.PopStyleVar()
 		end
+	  imgui.SetWindowFontScale(1)
 	  --if not SGES_LegacyGUI then
 		--~ imgui.SameLine()
 		--~ if imgui.Button("X",35,17) then
@@ -13730,762 +13756,562 @@ function SGES_script()
 		end
 
 
+		if not ATIS_window_requested and not config_options then
+			imgui.Columns(2)
 
-		imgui.Columns(2)
-
-	  if PLANE_ICAO == "ALIA" or  AIRCRAFT_FILENAME == "AW109SP.acf" then
-		l_changed, l_newval = imgui.Checkbox(" Active GPU", show_GPU)
-		if show_GPU then
-			imgui.NextColumn()
-			imgui.TextUnformatted("(charging batt.)")
-		end
-	  elseif PLANE_ICAO == "412" or string.match(PLANE_ICAO,"CRJ") or PLANE_ICAO == "ALIA" or PLANE_ICAO == "B738" or IsToLiSs or PLANE_ICAO == "PC12" or PLANE_ICAO == "KODI"or (PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo")) then
-		l_changed, l_newval = imgui.Checkbox(" GPU", show_GPU)
-	  elseif (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
-		l_changed, l_newval = imgui.Checkbox(" BAe-146 GPU", show_GPU)
-	  elseif (PLANE_ICAO == "E190" or PLANE_ICAO == "E19L" or PLANE_ICAO == "E195" or PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" or PLANE_ICAO == "E135" or PLANE_ICAO == "E35L") and string.match(SGES_Author,"Marko") then
-		l_changed, l_newval = imgui.Checkbox(" X-Crafts GPU", show_GPU)
-	  elseif (PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA") then
-		l_changed, l_newval = imgui.Checkbox(" EPU / ASU", show_GPU)
-	  elseif string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh") then --LevelUp series
-		l_changed, l_newval = imgui.Checkbox(" GPU", show_GPU)
-	  elseif PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis")  then
-		l_changed, l_newval = imgui.Checkbox(" GPU", show_GPU)
-		--~ imgui.TextUnformatted(" GPU")
-		imgui.SameLine()
-		imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-		imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-		if  imgui.Button("ON",25,18)  then -- Felis 742 command menu
-			--~ command_once("B742/menu/showHide2D_EFB")
-			--~ command_once("B742/command/connect_gpu")
-			--~ command_once("B742/command/toggle_gpu")
-			set("B742/INT_PA/connect_gpu",1)
-		end
-		imgui.SameLine()
-		if  imgui.Button("OFF",25,18)  then -- Felis 742 command menu
-			--~ command_once("B742/menu/showHide2D_EFB")
-			--~ command_once("B742/command/connect_gpu")
-			--~ command_once("B742/command/toggle_gpu")
-			set("B742/INT_PA/connect_gpu",0)
-		end
-		imgui.PopStyleColor(2)
-	  elseif string.match(PLANE_AUTHOR,"Thranda") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then
-			l_changed, l_newval = imgui.Checkbox(" GPU (Thranda)", show_GPU)
-	  else
-			l_changed, l_newval = imgui.Checkbox(" GPU (visual)", show_GPU)
-	  end
-	  if l_changed then
-		if PLANE_ICAO == string.match(PLANE_ICAO,"CRJ") then command_once("crj700/tablet/menu/settings/hot_external_power_command")
-		else
-			show_GPU = l_newval
-			GPU_chg = true
-			if PLANE_ICAO ~= "F104" then -- the F104 should be charged, its starting only with an external power unit
-			--if PLANE_ICAO == "ALIA" then -- commented out : nice to have for any aircraft
-				--~ if IsXPlane1221 then
-					--~ if show_GPU then set("sim/operation/override/override_GPU_volts",1) --https://developer.x-plane.com/article/ground-power-in-x-plane-12-0-8/
-					--~ else set("sim/operation/override/override_GPU_volts",0) end
-						command_once("sim/electrical/recharge")
-				--~ end
-			--end
+		  if PLANE_ICAO == "ALIA" or  AIRCRAFT_FILENAME == "AW109SP.acf" then
+			l_changed, l_newval = imgui.Checkbox(" Active GPU", show_GPU)
+			if show_GPU then
+				imgui.NextColumn()
+				imgui.TextUnformatted("(charging batt.)")
 			end
-
-
-
-			if not IsXPlane12 then
-				if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
-			end
-		end
-		if show_GPU  and IsToLiSs then -- add ToLiss GPU
-			set("AirbusFBW/EnableExternalPower",1)
-		elseif  IsToLiSs then -- remove ToLiss GPU
-			set("AirbusFBW/EnableExternalPower",0)
-		end
-		if show_GPU and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104
-			set("Colimata/F104_A_SW_GROUND_gpu_i",1)
-		elseif 			   PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104
-			set("Colimata/F104_A_SW_GROUND_gpu_i",0)
-		end
-
-		if show_GPU  and PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- add Melbo's GPU
-			command_once("uh60m/ops/show_gpu")
-			set("uh60m/conf/cable",1)
-		elseif PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- remove Melbo's GPU
-			command_once("uh60m/ops/hide_gpu")
-			set("uh60m/conf/cable",0)
-		end
-
-		if show_GPU and not show_ASU and IsToLiSs then -- add ToLiss GPU
-			show_ASU =  true -- also prepare the Low pressure and High pressure object depiction, but then their appearance is 3D animation driven.
-			ASU_chg = true
-		elseif show_ASU == true and IsToLiSs then -- remove ToLiss GPU
-			show_ASU =  false -- couple the GPU removal with the ASU+ACU object removal (ease of use)
-			ASU_chg = true
-		end
-
-			if (string.match(PLANE_AUTHOR,"Thranda") or string.match(PLANE_AUTHOR,"JustFlight")) and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil and show_GPU then -- toggle Thranda GPU
-				set("thranda/electrical/ExtPwrGPUAvailable",1)
-				set("sim/cockpit/electrical/gpu_on",1)
-			elseif (string.match(PLANE_AUTHOR,"Thranda") or string.match(PLANE_AUTHOR,"JustFlight")) and  XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil  then
-				set("sim/cockpit/electrical/gpu_on",0)
-				set("thranda/electrical/ExtPwrGPUAvailable",0)
-			end
-
-
-	  end
-	  if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
+		  elseif PLANE_ICAO == "412" or string.match(PLANE_ICAO,"CRJ") or PLANE_ICAO == "ALIA" or PLANE_ICAO == "B738" or IsToLiSs or PLANE_ICAO == "PC12" or PLANE_ICAO == "KODI"or (PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo")) then
+			l_changed, l_newval = imgui.Checkbox(" GPU", show_GPU)
+		  elseif (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
+			l_changed, l_newval = imgui.Checkbox(" BAe-146 GPU", show_GPU)
+		  elseif (PLANE_ICAO == "E190" or PLANE_ICAO == "E19L" or PLANE_ICAO == "E195" or PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" or PLANE_ICAO == "E135" or PLANE_ICAO == "E35L") and string.match(SGES_Author,"Marko") then
+			l_changed, l_newval = imgui.Checkbox(" X-Crafts GPU", show_GPU)
+		  elseif (PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA") then
+			l_changed, l_newval = imgui.Checkbox(" EPU / ASU", show_GPU)
+		  elseif string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh") then --LevelUp series
+			l_changed, l_newval = imgui.Checkbox(" GPU", show_GPU)
+		  elseif PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis")  then
+			l_changed, l_newval = imgui.Checkbox(" GPU", show_GPU)
+			--~ imgui.TextUnformatted(" GPU")
 			imgui.SameLine()
 			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			--~ imgui.SetWindowFontScale(0.9)
-			if imgui.Button("GPU",50,20) then
-				ZIBOToggleGPU()
+			if  imgui.Button("ON",25,18)  then -- Felis 742 command menu
+				--~ command_once("B742/menu/showHide2D_EFB")
+				--~ command_once("B742/command/connect_gpu")
+				--~ command_once("B742/command/toggle_gpu")
+				set("B742/INT_PA/connect_gpu",1)
 			end
-			--~ imgui.SetWindowFontScale(1)
+			imgui.SameLine()
+			if  imgui.Button("OFF",25,18)  then -- Felis 742 command menu
+				--~ command_once("B742/menu/showHide2D_EFB")
+				--~ command_once("B742/command/connect_gpu")
+				--~ command_once("B742/command/toggle_gpu")
+				set("B742/INT_PA/connect_gpu",0)
+			end
 			imgui.PopStyleColor(2)
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("ZIBO or LevelUp Ground Power Unit")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-
-
-	  if show_ASU or (IsToLiSs == false and SGES_BushMode == false and PLANE_ICAO ~= "F104" and math.abs(BeltLoaderFwdPosition) > 4) then
-			imgui.NextColumn()
-		  --~ imgui.SameLine()
-		  l_changed, l_newval = imgui.Checkbox(" ASU", show_ASU)
-		  if l_changed then
-			show_ASU = l_newval
-			ASU_chg = true
-
-			if not IsXPlane12 then
-				if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
-			end
+		  elseif string.match(PLANE_AUTHOR,"Thranda") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then
+				l_changed, l_newval = imgui.Checkbox(" GPU (Thranda)", show_GPU)
+		  else
+				l_changed, l_newval = imgui.Checkbox(" GPU (visual)", show_GPU)
 		  end
-		if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			if imgui.Button("ASU",40,20) then
-				ZIBOToggleASU()
-			end
-			imgui.PopStyleColor(2)
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("ZIBO or LevelUp Air Start Unit")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-	  end
-
-		if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis")  then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			if  imgui.Button("ACU",38,18)  then -- Felis 742 command menu
-				if show_ASU then
-					set("B742/anim/ACU_called",1)
-				else
-					set("B742/anim/ACU_called",0)
-				end
-			end
-			imgui.PopStyleColor(2)
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Felis B742 Air Conditionning Unit.\nIf SGES Air Start Unit is already present, this will request the Felis ACU, in the contrary a request for removal will be sent.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-
-		if string.match(AircraftPath ,"146") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then -- check is Thranda plugin is loaded and running
-			imgui.SameLine()
-			if  imgui.Button("Ladder",50,20)  then
-				if ladder_state ~= 2 and (not show_Stairs and not show_StairsH and not show_StairsXPJ) then set_array("thranda/cockpit/animations/doormanip",2,1) ladder_state = 2
-				else
-					set_array("thranda/cockpit/animations/doormanip",2,0) ladder_state = 0
-				end
-			end
-		end
-
-		imgui.Columns(1)
-
-	  if PLANE_ICAO ~= "ALIA" then -- ALIA doesn't require petroleum derivatives directly
-	    if FuelTruck_is_deer and SGES_deer_run_cycle ~= nil then
-		  l_changed, l_newval = imgui.Checkbox(" The curious deer (" .. math.floor(SGES_deer_run_cycle[0]*10)/10 .. ")", show_FUEL)
-	    elseif SGES_BushMode and IsXPlane12 and sges_military == 0 and sges_military_default == 0 then
-		  l_changed, l_newval = imgui.Checkbox(" Small fuel", show_FUEL)
-		elseif  Prefilled_FuelObject == XPlane12_ford_carrier_accessories_directory .. "SH60_Seahawk_animated.obj" then
-		  l_changed, l_newval = imgui.Checkbox(" Fuel (air delivery)", show_FUEL)
-		else
-		  l_changed, l_newval = imgui.Checkbox(" Fuel", show_FUEL)
-		end
 		  if l_changed then
-			show_FUEL = l_newval
-			FUEL_chg = true
-			if show_FUEL and FuelTruck_is_deer then FuelTruck_is_deer = false end
-
-
-			if not IsXPlane12 then
-				if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
-			end
-
-		  end
-
-		if show_Chocks and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then
-			imgui.SameLine()
-			l_changed, l_newval = imgui.Checkbox(" F-104 Tanker", show_ColimataFUEL)
-		  if l_changed then
-			show_ColimataFUEL = l_newval
-			if l_newval then
-				set("Colimata/F104_A_SW_GROUND_tanker_i",1)
-				show_People2 = false
-				People2_chg = true
-				show_People4 = false
-				People4_chg = true
+			if PLANE_ICAO == string.match(PLANE_ICAO,"CRJ") then command_once("crj700/tablet/menu/settings/hot_external_power_command")
 			else
-				set("Colimata/F104_A_SW_GROUND_tanker_i",0)
-				if show_People1 then
-					show_People2 = true
-					People2_chg = true
-					show_People4 = true
-					People4_chg = true
+				show_GPU = l_newval
+				GPU_chg = true
+				if PLANE_ICAO ~= "F104" then -- the F104 should be charged, its starting only with an external power unit
+				--if PLANE_ICAO == "ALIA" then -- commented out : nice to have for any aircraft
+					--~ if IsXPlane1221 then
+						--~ if show_GPU then set("sim/operation/override/override_GPU_volts",1) --https://developer.x-plane.com/article/ground-power-in-x-plane-12-0-8/
+						--~ else set("sim/operation/override/override_GPU_volts",0) end
+							command_once("sim/electrical/recharge")
+					--~ end
+				--end
+				end
+
+
+
+				if not IsXPlane12 then
+					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
 				end
 			end
+			if show_GPU  and IsToLiSs then -- add ToLiss GPU
+				set("AirbusFBW/EnableExternalPower",1)
+			elseif  IsToLiSs then -- remove ToLiss GPU
+				set("AirbusFBW/EnableExternalPower",0)
+			end
+			if show_GPU and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104
+				set("Colimata/F104_A_SW_GROUND_gpu_i",1)
+			elseif 			   PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104
+				set("Colimata/F104_A_SW_GROUND_gpu_i",0)
+			end
+
+			if show_GPU  and PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- add Melbo's GPU
+				command_once("uh60m/ops/show_gpu")
+				set("uh60m/conf/cable",1)
+			elseif PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- remove Melbo's GPU
+				command_once("uh60m/ops/hide_gpu")
+				set("uh60m/conf/cable",0)
+			end
+
+			if show_GPU and not show_ASU and IsToLiSs then -- add ToLiss GPU
+				show_ASU =  true -- also prepare the Low pressure and High pressure object depiction, but then their appearance is 3D animation driven.
+				ASU_chg = true
+			elseif show_ASU == true and IsToLiSs then -- remove ToLiss GPU
+				show_ASU =  false -- couple the GPU removal with the ASU+ACU object removal (ease of use)
+				ASU_chg = true
+			end
+
+				if (string.match(PLANE_AUTHOR,"Thranda") or string.match(PLANE_AUTHOR,"JustFlight")) and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil and show_GPU then -- toggle Thranda GPU
+					set("thranda/electrical/ExtPwrGPUAvailable",1)
+					set("sim/cockpit/electrical/gpu_on",1)
+				elseif (string.match(PLANE_AUTHOR,"Thranda") or string.match(PLANE_AUTHOR,"JustFlight")) and  XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil  then
+					set("sim/cockpit/electrical/gpu_on",0)
+					set("thranda/electrical/ExtPwrGPUAvailable",0)
+				end
+
+
 		  end
-		end
-		--~ if show_FUEL  and PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- add Melbo's fuel
-			--~ command_once("uh60m/ops/show_truck")
-			--~ set("uh60m/conf/hose",1)
-		--~ elseif PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- remove Melbo's fuel
-			--~ command_once("uh60m/ops/hide_truck")
-			--~ set("uh60m/conf/hose",0)
-		--~ end
-		if sges_ahr == 1 and show_AAR then
-			imgui.SameLine()
-			l_changed, l_newval = imgui.Checkbox(" AAR", show_AAR)
-			if l_changed then
-				show_AAR = l_newval
-				AAR_chg = true
-			end
-		end
-		if (not show_AAR and sges_big_airport and math.abs(BeltLoaderFwdPosition) > 4.5 and IsXPlane12) or show_Pump then
-
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
-			--~ imgui.SameLine()
-			--~ imgui.TextUnformatted("/")
-			imgui.SameLine()
-			l_changed, l_newval = imgui.Checkbox(" Is a dispenser", show_Pump)
-			if l_changed then
-				show_Pump = l_newval
-			end
-			imgui.PopStyleColor()
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("The fuel truck is an hydrant dispenser in this case. Fuel hydrant is a pressurized fuel supply point.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-
-		if show_FUEL and fuel_currentX ~= nil and fuel_currentY ~= nil and fuel_finalX ~= nil and fuel_finalY ~= nil and show_Chocks and not IsToLiSs then
-
-			if fuel_currentX < fuel_finalX and fuel_currentY < fuel_finalY then
-				-- nothing, the fuel truck is not in place at the moment, arriving.
-			else
+		  if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
 				imgui.SameLine()
-				--~ if active_fueling_is_possible == nil then active_fueling_is_possible = false end
-				--~ l_changed, active_fueling_is_possible = imgui.Checkbox(" Replenish", active_fueling_is_possible)
-				if imgui.SmallButton("R!") then
-					active_fueling_is_possible = true
-					aircraft_refueling_in_SGES()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				--~ imgui.SetWindowFontScale(0.9)
+				if imgui.Button("GPU",50,20) then
+					ZIBOToggleGPU()
 				end
-				if imgui.IsItemActive() then
-					imgui.BeginTooltip()
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Replenishing")
-					if sges_max_tanks ~= nil and sges_max_tanks > 0 then
-						if sges_tank_all ~= nil then imgui.TextUnformatted("Cur : " .. math.floor(sges_tank_all) .. " kg") end
-						imgui.TextUnformatted("Max : " .. math.floor(sges_max_tanks) .. " kg")
-					end
-					imgui.PopStyleColor()
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF6C6CFF)
-					imgui.TextUnformatted("Custom systems shall not be compatible, use at your own risk")
-					imgui.PopStyleColor()
-					imgui.PopTextWrapPos()
-					imgui.EndTooltip()
-					active_fueling_is_possible = true
-					aircraft_refueling_in_SGES()
-				elseif sges_tank_all ~= nil and imgui.IsItemHovered() then
+				--~ imgui.SetWindowFontScale(1)
+				imgui.PopStyleColor(2)
+				if imgui.IsItemHovered() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted(" ")
-					imgui.TextUnformatted("Cur : " .. math.floor(sges_tank_all) .. " kg")
+					imgui.TextUnformatted("ZIBO or LevelUp Ground Power Unit")
 					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
 			end
-		end
-
-	  else
-		if SGES_ELEC[2] == 1 then show_ELEC = true else show_ELEC = false end
-		  l_changed, l_newval = imgui.Checkbox(" Toggle ALL batteries ON.", show_ELEC)
-		  if l_changed then
-				show_ELEC = l_newval
-				ELEC_chg = true
-				command_once("sim/electrical/batteries_toggle")
-				command_once("sim/electrical/battery_1_toggle")
-		end
-	  end
-
-		if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
-			l_changed, l_newval = imgui.Checkbox(" Car", show_Cleaning)
-		elseif SGES_BushMode and IsXPlane1240 and outsideAirTemp < 14 and sges_big_airport ~= nil and not sges_big_airport then
-			l_changed, l_newval = imgui.Checkbox(" Tent", show_Cleaning)
-		elseif SGES_BushMode and IsXPlane12 then
-			l_changed, l_newval = imgui.Checkbox(" Table & sunshade", show_Cleaning)
-		else
-			l_changed, l_newval = imgui.Checkbox(" Cleaning van", show_Cleaning)
-		end
-
-	  if l_changed then
-		show_Cleaning = l_newval
-		Cleaning_chg = true
-		--show_Light = l_newval
-		--Light_chg = true
-	  end
 
 
-	  if BeltLoaderFwdPosition > 2 then
-		  if PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" and sges_military_default == 1 then
-				 l_changed, l_newval = imgui.Checkbox(" E-4 stairs", show_BeltLoader)
-		  elseif BeltLoaderFwdPosition >= ULDthresholdx and PLANE_ICAO ~= "MD88" then l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader) imgui.SameLine()
-		    if  imgui.SmallButton("+")  then
-				if adjust_BeltLoader == false then
-					adjust_BeltLoader = true
-				else
-					adjust_BeltLoader = false
+		  if show_ASU or (IsToLiSs == false and SGES_BushMode == false and PLANE_ICAO ~= "F104" and math.abs(BeltLoaderFwdPosition) > 4) then
+				imgui.NextColumn()
+			  --~ imgui.SameLine()
+			  l_changed, l_newval = imgui.Checkbox(" ASU", show_ASU)
+			  if l_changed then
+				show_ASU = l_newval
+				ASU_chg = true
+
+				if not IsXPlane12 then
+					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				end
+			  end
+			if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				if imgui.Button("ASU",40,20) then
+					ZIBOToggleASU()
+				end
+				imgui.PopStyleColor(2)
+				if imgui.IsItemHovered() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("ZIBO or LevelUp Air Start Unit")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
 			end
-			imgui.SameLine()
+		  end
 
-		  elseif PLANE_ICAO == "A321" and IsPassengerPlane == 0 then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
-		  elseif PLANE_ICAO == "A21N" and IsPassengerPlane == 0 then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
-		   elseif (PLANE_ICAO == "A319" or PLANE_ICAO == "A19N" or PLANE_ICAO=="A320" or PLANE_ICAO == "A20N" or PLANE_ICAO == "A321" or PLANE_ICAO == "A21N") and User_prefers_containerized_freight then
-				l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
-
-		  else l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader) imgui.SameLine()
-		    if  imgui.SmallButton("+")  then
-				if adjust_BeltLoader == false then
-					adjust_BeltLoader = true
-				else
-					adjust_BeltLoader = false
+			if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis")  then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				if  imgui.Button("ACU",38,18)  then -- Felis 742 command menu
+					if show_ASU then
+						set("B742/anim/ACU_called",1)
+					else
+						set("B742/anim/ACU_called",0)
+					end
+				end
+				imgui.PopStyleColor(2)
+				if imgui.IsItemHovered() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Felis B742 Air Conditionning Unit.\nIf SGES Air Start Unit is already present, this will request the Felis ACU, in the contrary a request for removal will be sent.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
 			end
-			imgui.SameLine()
-			--~ imgui.TextUnformatted(" ")
-			--~ imgui.SameLine()
-		  end
-		  if l_changed then
-			show_BeltLoader = l_newval
-			BeltLoader_chg = true
-			-- don't show for the Beluga
-			if PLANE_ICAO == "A3ST" then show_BeltLoader = false end
-			show_Cart = l_newval
-			Cart_chg = true
-			-- also link the rear bealot loader when defined in the aircraft set, or on removal always
-			if BeltLoaderRearPosition ~= nil or l_newval == false then
-				show_RearBeltLoader = l_newval
-				RearBeltLoader_chg = true
+
+			if string.match(AircraftPath ,"146") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then -- check is Thranda plugin is loaded and running
+				imgui.SameLine()
+				if  imgui.Button("Ladder",50,20)  then
+					if ladder_state ~= 2 and (not show_Stairs and not show_StairsH and not show_StairsXPJ) then set_array("thranda/cockpit/animations/doormanip",2,1) ladder_state = 2
+					else
+						set_array("thranda/cockpit/animations/doormanip",2,0) ladder_state = 0
+					end
+				end
 			end
-			if l_newval == false then
-				show_Baggage = l_newval
-				Baggage_chg = true
+
+			imgui.Columns(1)
+
+		  if PLANE_ICAO ~= "ALIA" then -- ALIA doesn't require petroleum derivatives directly
+			if FuelTruck_is_deer and SGES_deer_run_cycle ~= nil then
+			  l_changed, l_newval = imgui.Checkbox(" The curious deer (" .. math.floor(SGES_deer_run_cycle[0]*10)/10 .. ")", show_FUEL)
+			elseif SGES_BushMode and IsXPlane12 and sges_military == 0 and sges_military_default == 0 then
+			  l_changed, l_newval = imgui.Checkbox(" Small fuel", show_FUEL)
+			elseif  Prefilled_FuelObject == XPlane12_ford_carrier_accessories_directory .. "SH60_Seahawk_animated.obj" then
+			  l_changed, l_newval = imgui.Checkbox(" Fuel (air delivery)", show_FUEL)
+			else
+			  l_changed, l_newval = imgui.Checkbox(" Fuel", show_FUEL)
 			end
-		  end
-		  imgui.SameLine()
-		  -- but user can also manually unlink it :
-		  l_changed, l_newval = imgui.Checkbox(" Cart", show_Cart)
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Luggage train.")
+			  if l_changed then
+				show_FUEL = l_newval
+				FUEL_chg = true
+				if show_FUEL and FuelTruck_is_deer then FuelTruck_is_deer = false end
+
+
+				if not IsXPlane12 then
+					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				end
+
+			  end
+
+			if show_Chocks and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then
+				imgui.SameLine()
+				l_changed, l_newval = imgui.Checkbox(" F-104 Tanker", show_ColimataFUEL)
+			  if l_changed then
+				show_ColimataFUEL = l_newval
+				if l_newval then
+					set("Colimata/F104_A_SW_GROUND_tanker_i",1)
+					show_People2 = false
+					People2_chg = true
+					show_People4 = false
+					People4_chg = true
+				else
+					set("Colimata/F104_A_SW_GROUND_tanker_i",0)
+					if show_People1 then
+						show_People2 = true
+						People2_chg = true
+						show_People4 = true
+						People4_chg = true
+					end
+				end
+			  end
+			end
+			--~ if show_FUEL  and PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- add Melbo's fuel
+				--~ command_once("uh60m/ops/show_truck")
+				--~ set("uh60m/conf/hose",1)
+			--~ elseif PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") then -- remove Melbo's fuel
+				--~ command_once("uh60m/ops/hide_truck")
+				--~ set("uh60m/conf/hose",0)
+			--~ end
+			if sges_ahr == 1 and show_AAR then
+				imgui.SameLine()
+				l_changed, l_newval = imgui.Checkbox(" AAR", show_AAR)
+				if l_changed then
+					show_AAR = l_newval
+					AAR_chg = true
+				end
+			end
+			if (not show_AAR and sges_big_airport and math.abs(BeltLoaderFwdPosition) > 4.5 and IsXPlane12) or show_Pump then
+
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+				--~ imgui.SameLine()
+				--~ imgui.TextUnformatted("/")
+				imgui.SameLine()
+				l_changed, l_newval = imgui.Checkbox(" Is a dispenser", show_Pump)
+				if l_changed then
+					show_Pump = l_newval
+				end
 				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		  if l_changed then
-			show_Cart = l_newval
-			Cart_chg = true
-
-			if not IsXPlane12 then
-				if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
-			end
-
-		  end
-
-		  if show_RearBeltLoader or BeltLoaderFwdPosition > 6 then
-			if PLANE_ICAO ~= "D328" and PLANE_ICAO ~= "SF34" and not string.match(PLANE_ICAO,"CRJ") and not string.match(PLANE_ICAO,"DH8A") and not (string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13")) and PLANE_ICAO ~= "DH8D" and PLANE_ICAO ~= "DH8C" and PLANE_ICAO ~= "QX" and  PLANE_ICAO ~= "AMF" and PLANE_ICAO ~= "GLF650ER" and not plane_has_cargo_hold_on_the_left_hand_side then
-				  imgui.SameLine()
-				  l_changed, l_newval = imgui.Checkbox(" Rear", show_RearBeltLoader)
 				if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				if BeltLoaderRearPosition == nil then
-					imgui.TextUnformatted("A rear loader in the vicinity of the fuselage (but not in direct contact to it : BeltLoaderRearPosition not set in the config).")
-				else
-					imgui.TextUnformatted("A rear loader (defined by BeltLoaderRearPosition in the config.).")
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("The fuel truck is an hydrant dispenser in this case. Fuel hydrant is a pressurized fuel supply point.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
 			end
-				  if l_changed then
+
+			if show_FUEL and fuel_currentX ~= nil and fuel_currentY ~= nil and fuel_finalX ~= nil and fuel_finalY ~= nil and show_Chocks and not IsToLiSs then
+
+				if fuel_currentX < fuel_finalX and fuel_currentY < fuel_finalY then
+					-- nothing, the fuel truck is not in place at the moment, arriving.
+				else
+					imgui.SameLine()
+					--~ if active_fueling_is_possible == nil then active_fueling_is_possible = false end
+					--~ l_changed, active_fueling_is_possible = imgui.Checkbox(" Replenish", active_fueling_is_possible)
+					if imgui.SmallButton("R!") then
+						active_fueling_is_possible = true
+						aircraft_refueling_in_SGES()
+					end
+					if imgui.IsItemActive() then
+						imgui.BeginTooltip()
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Replenishing")
+						if sges_max_tanks ~= nil and sges_max_tanks > 0 then
+							if sges_tank_all ~= nil then imgui.TextUnformatted("Cur : " .. math.floor(sges_tank_all) .. " kg") end
+							imgui.TextUnformatted("Max : " .. math.floor(sges_max_tanks) .. " kg")
+						end
+						imgui.PopStyleColor()
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF6C6CFF)
+						imgui.TextUnformatted("Custom systems shall not be compatible, use at your own risk")
+						imgui.PopStyleColor()
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+						active_fueling_is_possible = true
+						aircraft_refueling_in_SGES()
+					elseif sges_tank_all ~= nil and imgui.IsItemHovered() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted(" ")
+						imgui.TextUnformatted("Cur : " .. math.floor(sges_tank_all) .. " kg")
+						imgui.PopStyleColor()
+						imgui.EndTooltip()
+					end
+				end
+			end
+
+		  else
+			if SGES_ELEC[2] == 1 then show_ELEC = true else show_ELEC = false end
+			  l_changed, l_newval = imgui.Checkbox(" Toggle ALL batteries ON.", show_ELEC)
+			  if l_changed then
+					show_ELEC = l_newval
+					ELEC_chg = true
+					command_once("sim/electrical/batteries_toggle")
+					command_once("sim/electrical/battery_1_toggle")
+			end
+		  end
+
+			if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
+				l_changed, l_newval = imgui.Checkbox(" Car", show_Cleaning)
+			elseif SGES_BushMode and IsXPlane1240 and outsideAirTemp < 14 and sges_big_airport ~= nil and not sges_big_airport then
+				l_changed, l_newval = imgui.Checkbox(" Tent", show_Cleaning)
+			elseif SGES_BushMode and IsXPlane12 then
+				l_changed, l_newval = imgui.Checkbox(" Table & sunshade", show_Cleaning)
+			else
+				l_changed, l_newval = imgui.Checkbox(" Cleaning van", show_Cleaning)
+			end
+
+		  if l_changed then
+			show_Cleaning = l_newval
+			Cleaning_chg = true
+			--show_Light = l_newval
+			--Light_chg = true
+		  end
+
+
+		  if BeltLoaderFwdPosition > 2 then
+			  if PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" and sges_military_default == 1 then
+					 l_changed, l_newval = imgui.Checkbox(" E-4 stairs", show_BeltLoader)
+			  elseif BeltLoaderFwdPosition >= ULDthresholdx and PLANE_ICAO ~= "MD88" then l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader) imgui.SameLine()
+				if  imgui.SmallButton("+")  then
+					if adjust_BeltLoader == false then
+						adjust_BeltLoader = true
+					else
+						adjust_BeltLoader = false
+					end
+				end
+				imgui.SameLine()
+
+			  elseif PLANE_ICAO == "A321" and IsPassengerPlane == 0 then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
+			  elseif PLANE_ICAO == "A21N" and IsPassengerPlane == 0 then l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
+			   elseif (PLANE_ICAO == "A319" or PLANE_ICAO == "A19N" or PLANE_ICAO=="A320" or PLANE_ICAO == "A20N" or PLANE_ICAO == "A321" or PLANE_ICAO == "A21N") and User_prefers_containerized_freight then
+					l_changed, l_newval = imgui.Checkbox(" LD Loader", show_BeltLoader)
+
+			  else l_changed, l_newval = imgui.Checkbox(" Loader", show_BeltLoader) imgui.SameLine()
+				if  imgui.SmallButton("+")  then
+					if adjust_BeltLoader == false then
+						adjust_BeltLoader = true
+					else
+						adjust_BeltLoader = false
+					end
+				end
+				imgui.SameLine()
+				--~ imgui.TextUnformatted(" ")
+				--~ imgui.SameLine()
+			  end
+			  if l_changed then
+				show_BeltLoader = l_newval
+				BeltLoader_chg = true
+				-- don't show for the Beluga
+				if PLANE_ICAO == "A3ST" then show_BeltLoader = false end
+				show_Cart = l_newval
+				Cart_chg = true
+				-- also link the rear bealot loader when defined in the aircraft set, or on removal always
+				if BeltLoaderRearPosition ~= nil or l_newval == false then
 					show_RearBeltLoader = l_newval
 					RearBeltLoader_chg = true
-				  end
-			 end
-		   end
-	  --elseif math.abs(BeltLoaderFwdPosition) >= 4.9 and dataref_to_open_the_door ~= nil then -- allow at least the luggage cart to show
-			-- the |4.9| value allows the cart on some BAe-146 variants (-200)
-			-- checking dataref_to_open_the_door ensures my offer of the cart is limited to airliners that I know in X-Plane
-			-- and is practical to avoid the offer on General Aviation aircraft
-
-	  -- finally I prefer it to limit it manually to the Avro RJs :
-	  elseif string.match(PLANE_ICAO,"B46") or string.match(PLANE_ICAO,"RJ") then
-			l_changed, l_newval = imgui.Checkbox(" Baggages cart", show_Cart)
-		  if l_changed then
-			show_Cart = l_newval
-			Cart_chg = true
-
-
-
-			if not IsXPlane12 then
-				if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
-			end
-
-		  end
-	  elseif wetness == 1 then
-			imgui.SameLine() --IAS24 , avoid jumping GUI
-			l_changed, l_newval = imgui.Checkbox(" Canoe", show_Cart)
-		  if l_changed then
-			show_Cart = l_newval
-			Cart_chg = true
-		  end
-	  elseif show_Cart then
-			l_changed, l_newval = imgui.Checkbox(" Cart (as available)", show_Cart)
-		  if l_changed then
-			show_Cart = l_newval
-			Cart_chg = true
-		  end
-	  end
-
-	-- manual slider ajustment of the front beltloader
-	if adjust_BeltLoader then
-		imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-		local changed, newVal4 = imgui.SliderFloat("D", distance_to_fuselage, -5, 2, "Distance " .. math.floor(distance_to_fuselage*100)/100)
-		if changed then
-			distance_to_fuselage = newVal4
-			--l_changed = true
-			BeltLoader_chg = true
-			RearBeltLoader_chg = true
-			if distance_to_fuselage < -1 then
-				show_Cart = false
+				end
+				if l_newval == false then
+					show_Baggage = l_newval
+					Baggage_chg = true
+				end
+			  end
+			  imgui.SameLine()
+			  -- but user can also manually unlink it :
+			  l_changed, l_newval = imgui.Checkbox(" Cart", show_Cart)
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Luggage train.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+			  if l_changed then
+				show_Cart = l_newval
 				Cart_chg = true
-				show_Baggage = false
-				Baggage_chg = true
-			end
-		end
-		imgui.SameLine()
-		if  imgui.Button("Reset D",44,20)  then
-			distance_to_fuselage = 0
-			--l_changed = true
-			BeltLoader_chg = true
-			RearBeltLoader_chg = true
-		end
-		imgui.PopStyleColor()
-		if init_BeltLoaderFwdPosition == nil then
-			init_BeltLoaderFwdPosition = BeltLoaderFwdPosition
-		end
-		local changed, newVal5 = imgui.SliderFloat("L", BeltLoaderFwdPosition, init_BeltLoaderFwdPosition-0.4, init_BeltLoaderFwdPosition+0.4, "LoaderFwdPos " .. math.floor(BeltLoaderFwdPosition*100)/100)
-		if changed then
-			BeltLoaderFwdPosition = newVal5
-			--l_changed = true
-			BeltLoader_chg = true
-			RearBeltLoader_chg = true
-		end
-		imgui.SameLine()
-		if  imgui.Button("Reset F",44,20)  then
-			BeltLoaderFwdPosition = init_BeltLoaderFwdPosition
-			BeltLoader_chg = true
-			RearBeltLoader_chg = true
-		end
-		if BeltLoaderFwdPosition >= ULDthresholdx then
-			imgui.TextUnformatted("In this range ULD are used.")
-		else
-			imgui.TextUnformatted("In this range loose cargo is used.")
-		end
-	end
 
-	if SGES_BushMode and IsXPlane12 then
-	  l_changed, l_newval = imgui.Checkbox(" Forklift", show_Forklift)
-	  if l_changed then
-		show_Forklift = l_newval
-		Forklift_chg = true
-	  end
-	elseif IsPassengerPlane == 0 or show_ULDLoader or show_Forklift then
-	  l_changed, l_newval = imgui.Checkbox(" ULD Loader", show_ULDLoader)
-	  if l_changed then
-		show_ULDLoader = l_newval
-		ULDLoader_chg = true
-	  end
+				if not IsXPlane12 then
+					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				end
+
+			  end
+
+			  if show_RearBeltLoader or BeltLoaderFwdPosition > 6 then
+				if PLANE_ICAO ~= "D328" and PLANE_ICAO ~= "SF34" and not string.match(PLANE_ICAO,"CRJ") and not string.match(PLANE_ICAO,"DH8A") and not (string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13")) and PLANE_ICAO ~= "DH8D" and PLANE_ICAO ~= "DH8C" and PLANE_ICAO ~= "QX" and  PLANE_ICAO ~= "AMF" and PLANE_ICAO ~= "GLF650ER" and not plane_has_cargo_hold_on_the_left_hand_side then
+					  imgui.SameLine()
+					  l_changed, l_newval = imgui.Checkbox(" Rear", show_RearBeltLoader)
+					if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					if BeltLoaderRearPosition == nil then
+						imgui.TextUnformatted("A rear loader in the vicinity of the fuselage (but not in direct contact to it : BeltLoaderRearPosition not set in the config).")
+					else
+						imgui.TextUnformatted("A rear loader (defined by BeltLoaderRearPosition in the config.).")
+					end
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+					  if l_changed then
+						show_RearBeltLoader = l_newval
+						RearBeltLoader_chg = true
+					  end
+				 end
+			   end
+		  --elseif math.abs(BeltLoaderFwdPosition) >= 4.9 and dataref_to_open_the_door ~= nil then -- allow at least the luggage cart to show
+				-- the |4.9| value allows the cart on some BAe-146 variants (-200)
+				-- checking dataref_to_open_the_door ensures my offer of the cart is limited to airliners that I know in X-Plane
+				-- and is practical to avoid the offer on General Aviation aircraft
+
+		  -- finally I prefer it to limit it manually to the Avro RJs :
+		  elseif string.match(PLANE_ICAO,"B46") or string.match(PLANE_ICAO,"RJ") then
+				l_changed, l_newval = imgui.Checkbox(" Baggages cart", show_Cart)
+			  if l_changed then
+				show_Cart = l_newval
+				Cart_chg = true
 
 
-	  if show_ULDLoader then
-		if adjust_ULDLoader == nil then adjust_ULDLoader = false end
-		imgui.SameLine()
-		imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-		if  imgui.SmallButton("ù")  then
-			if adjust_ULDLoader == false then
-				adjust_ULDLoader = true
-			else
-				adjust_ULDLoader = false
-			end
-		end
-		if imgui.IsItemActive() then
-			-- Click & hold tooltip
-			imgui.BeginTooltip()
-			-- This function configures the wrapping inside the toolbox and thereby its width
-			imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-			imgui.TextUnformatted("Adjust the cargo loader.")
-			imgui.PopStyleColor()
-			-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-			imgui.PopTextWrapPos()
-			imgui.EndTooltip()
-		end
-		imgui.PopStyleColor()
 
+				if not IsXPlane12 then
+					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				end
 
-	  if math.abs(BeltLoaderFwdPosition) > 12 and string.find(PLANE_ICAO,"B74") then
-		  imgui.SameLine()
-		  l_changed, l_newval = imgui.Checkbox(" Nose loader", show_Forklift)
-		  if l_changed then
-			show_Forklift = l_newval
-			Forklift_chg = true
+			  end
+		  elseif wetness == 1 then
+				imgui.SameLine() --IAS24 , avoid jumping GUI
+				l_changed, l_newval = imgui.Checkbox(" Canoe", show_Cart)
+			  if l_changed then
+				show_Cart = l_newval
+				Cart_chg = true
+			  end
+		  elseif show_Cart then
+				l_changed, l_newval = imgui.Checkbox(" Cart (as available)", show_Cart)
+			  if l_changed then
+				show_Cart = l_newval
+				Cart_chg = true
+			  end
 		  end
-	  elseif math.abs(BeltLoaderFwdPosition) > 4 then
-		  imgui.SameLine()
+
+		-- manual slider ajustment of the front beltloader
+		if adjust_BeltLoader then
+			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+			local changed, newVal4 = imgui.SliderFloat("D", distance_to_fuselage, -5, 2, "Distance " .. math.floor(distance_to_fuselage*100)/100)
+			if changed then
+				distance_to_fuselage = newVal4
+				--l_changed = true
+				BeltLoader_chg = true
+				RearBeltLoader_chg = true
+				if distance_to_fuselage < -1 then
+					show_Cart = false
+					Cart_chg = true
+					show_Baggage = false
+					Baggage_chg = true
+				end
+			end
+			imgui.SameLine()
+			if  imgui.Button("Reset D",44,20)  then
+				distance_to_fuselage = 0
+				--l_changed = true
+				BeltLoader_chg = true
+				RearBeltLoader_chg = true
+			end
+			imgui.PopStyleColor()
+			if init_BeltLoaderFwdPosition == nil then
+				init_BeltLoaderFwdPosition = BeltLoaderFwdPosition
+			end
+			local changed, newVal5 = imgui.SliderFloat("L", BeltLoaderFwdPosition, init_BeltLoaderFwdPosition-0.4, init_BeltLoaderFwdPosition+0.4, "LoaderFwdPos " .. math.floor(BeltLoaderFwdPosition*100)/100)
+			if changed then
+				BeltLoaderFwdPosition = newVal5
+				--l_changed = true
+				BeltLoader_chg = true
+				RearBeltLoader_chg = true
+			end
+			imgui.SameLine()
+			if  imgui.Button("Reset F",44,20)  then
+				BeltLoaderFwdPosition = init_BeltLoaderFwdPosition
+				BeltLoader_chg = true
+				RearBeltLoader_chg = true
+			end
+			if BeltLoaderFwdPosition >= ULDthresholdx then
+				imgui.TextUnformatted("In this range ULD are used.")
+			else
+				imgui.TextUnformatted("In this range loose cargo is used.")
+			end
+		end
+
+		if SGES_BushMode and IsXPlane12 then
 		  l_changed, l_newval = imgui.Checkbox(" Forklift", show_Forklift)
 		  if l_changed then
 			show_Forklift = l_newval
 			Forklift_chg = true
 		  end
-	  end
-
-		if show_ULDLoader and adjust_ULDLoader then
-
-
-
-			imgui.Separator()
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-			local changed, newVal1 = imgui.SliderFloat("X Loader", lateral_factor_ULDLoader, -1, 1, "Lateral " .. math.floor(lateral_factor_ULDLoader*10)/10)
-			if changed then
-				lateral_factor_ULDLoader = newVal1
-				ULDLoader_chg = true
-				CargoULD_chg = true
-			end
-			local changed, newVal2 = imgui.SliderFloat("Z Loader", longitudinal_factor3_ULDLoader, -5, 5, "Longitudinal " .. math.floor(longitudinal_factor3_ULDLoader*10)/10)
-			if changed then
-				longitudinal_factor3_ULDLoader = newVal2
-				ULDLoader_chg = true
-				CargoULD_chg = true
-			end
-			if imgui.Button("Long. -0.1",79,17) then
-				longitudinal_factor3_ULDLoader = longitudinal_factor3_ULDLoader - 0.1
-				ULDLoader_chg = true
-				CargoULD_chg = true
-			end
-			imgui.SameLine()
-			if imgui.Button("Long. +0.1",79,17) then
-				longitudinal_factor3_ULDLoader = longitudinal_factor3_ULDLoader + 0.1
-				ULDLoader_chg = true
-				CargoULD_chg = true
-			end
-
-
-			if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") then --77F FF/STS loader
-				height_value_cargo_uld_display = get("1-sim/anim/service/mdlmainliftcargo")
-				local changed, height_value_cargo_uld_display = imgui.SliderFloat("H MAIN", height_value_cargo_uld_display, 0, 1, "Main part " .. math.floor(height_value_cargo_uld_display*1000)/1000)
-				if changed then
-					set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
-
-				end
-				local newVal3 = get("1-sim/anim/service/mdlfrontliftcargo")
-				local changed, newVal1 = imgui.SliderFloat("H FRT", newVal3, 0, 1, "Front part " .. math.floor(newVal3*1000)/1000)
-				if changed then
-					set("1-sim/anim/service/mdlfrontliftcargo",newVal1)
-				end
-			elseif string.find(Prefilled_CargoDeck_ULDLoaderObject,"ContainerLoader.obj") then --ToLiss loader
-				height_value_cargo_uld_display = get("toliss/anim/container/rearLift")
-				local changed, height_value_cargo_uld_display = imgui.SliderFloat("H MAIN", height_value_cargo_uld_display, 0, 1, "Main part " .. math.floor(height_value_cargo_uld_display*1000)/1000)
-				if changed then
-					set("toliss/anim/container/rearLift",height_value_cargo_uld_display)
-				end
-				local newVal3 = get("toliss/anim/container/forwardLift")
-				local changed, newVal1 = imgui.SliderFloat("H FRT", newVal3, 0, 1, "Front part " .. math.floor(newVal3*1000)/1000)
-				if changed then
-					set("toliss/anim/container/forwardLift",newVal1)
-				end
-			end
-
-			imgui.PopStyleColor()
-			imgui.Separator()
-
-
-		  if show_CargoULD then
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
-				  l_changed, l_newval = imgui.Checkbox(" Keep displaying the ULD", show_CargoULD)
-				  if l_changed then
-					show_CargoULD = l_newval
-					CargoULD_chg = true
-				  end
-
-					imgui.PopStyleColor()
-				if imgui.IsItemActive() then
-					-- Click & hold tooltip
-					imgui.BeginTooltip()
-					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Removes the ULD currently loading on the main deck.")
-					imgui.TextUnformatted("You can otherwise immobilize it by removing the ULD train, and make it reappear by recalling the ULD train.")
-					imgui.PopStyleColor()
-					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-					imgui.PopTextWrapPos()
-					imgui.EndTooltip()
-				end
-		   end
-
-
-		end
-
-
-
-	  end
-	end
-
-
-
-	--[[
-	  l_changed, l_newval = imgui.Checkbox(" Stairs Mark I ", show_Stairs) -- deprecated
-	  if l_changed then
-		show_Stairs = l_newval
-		Stairs_chg = true
-		show_StairsXPJ = false
-		StairsXPJ_chg = true
-		show_StairsH = false
-		StairsH_chg = true
-	  end
-	  ]]
-
-	  if (BeltLoaderFwdPosition > 3 or string.match(AIRCRAFT_PATH,"146")) and not string.match(PLANE_ICAO,"CRJ") and not (string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13")) then
-		  --imgui.SameLine()
-		  if show_auto_stairs then
-			  imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF999999)
-			  l_changed, l_newval = imgui.Checkbox(" Stairs Mk III", show_StairsXPJ)
-			  imgui.PopStyleColor()
-				if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Currently controlled by the 1L door. (Auto stairs).")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		  else
-
-			if SGES_stairs_type ~= "Boarding_without_stairs" then
-				l_changed, l_newval = imgui.Checkbox(" Stairs Mk III", show_StairsXPJ)
-			else
-
-				if not SGES_BushMode and Transporting_Jetsetpeople ~= nil and Transporting_Jetsetpeople and show_Cones then
-					if (LATITUDE > 36 and LATITUDE < 55) and (LONGITUDE > -5 and LONGITUDE < 19) or (LATITUDE > 24 and LATITUDE < 44) and (LONGITUDE > -84 and LONGITUDE < -69)  then
-						if show_StairsXPJ then
-							l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
-						else
-							l_changed, l_newval = imgui.Checkbox(" Board directly (red carpet)", show_StairsXPJ)
-						end
-					else
-						l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
-					end
-				else
-					l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
-				end
-
-				if imgui.IsItemActive() then
-					-- Click & hold tooltip
-					imgui.BeginTooltip()
-					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Will allow passengers boarding without airport stairs. Please adjust the door coordinates.")
-					imgui.PopStyleColor()
-					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-					imgui.PopTextWrapPos()
-					imgui.EndTooltip()
-				end
-			end
+		elseif IsPassengerPlane == 0 or show_ULDLoader or show_Forklift then
+		  l_changed, l_newval = imgui.Checkbox(" ULD Loader", show_ULDLoader)
+		  if l_changed then
+			show_ULDLoader = l_newval
+			ULDLoader_chg = true
 		  end
 
-		  if show_StairsXPJ  then -- Warn
+
+		  if show_ULDLoader then
+			if adjust_ULDLoader == nil then adjust_ULDLoader = false end
 			imgui.SameLine()
 			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-		    if  imgui.SmallButton("*")  then
-				if adjust_StairsXPJ == false then
-					adjust_StairsXPJ = true
+			if  imgui.SmallButton("ù")  then
+				if adjust_ULDLoader == false then
+					adjust_ULDLoader = true
 				else
-					adjust_StairsXPJ = false
+					adjust_ULDLoader = false
 				end
 			end
 			if imgui.IsItemActive() then
@@ -14494,232 +14320,191 @@ function SGES_script()
 				-- This function configures the wrapping inside the toolbox and thereby its width
 				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Adjust the door coordinates.")
+				imgui.TextUnformatted("Adjust the cargo loader.")
 				imgui.PopStyleColor()
 				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 				imgui.PopTextWrapPos()
 				imgui.EndTooltip()
 			end
 			imgui.PopStyleColor()
-			-- Protect as required the aircraft by moving airstairs far away enough :
-			if SGES_stairs_type ~= "Boarding_without_stairs" and (not show_Pax or protect_StairsXPJ) then
-				imgui.SameLine()
+
+
+		  if math.abs(BeltLoaderFwdPosition) > 12 and string.find(PLANE_ICAO,"B74") then
+			  imgui.SameLine()
+			  l_changed, l_newval = imgui.Checkbox(" Nose loader", show_Forklift)
+			  if l_changed then
+				show_Forklift = l_newval
+				Forklift_chg = true
+			  end
+		  elseif math.abs(BeltLoaderFwdPosition) > 4 then
+			  imgui.SameLine()
+			  l_changed, l_newval = imgui.Checkbox(" Forklift", show_Forklift)
+			  if l_changed then
+				show_Forklift = l_newval
+				Forklift_chg = true
+			  end
+		  end
+
+			if show_ULDLoader and adjust_ULDLoader then
+
+
+
+				imgui.Separator()
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-				if  imgui.SmallButton("P")  then
-					if protect_StairsXPJ == false then
-						protect_StairsXPJ = true
-						-- and close the door as required in ZSAR :
-						if PaxDoor1L ~= nil 		and PaxDoor1L == target_to_open_the_door 		then PaxDoor1L = target_to_open_the_door-1				end
-						if PaxDoorRearLeft ~= nil 	and PaxDoorRearLeft == target_to_open_the_door 	then	PaxDoorRearLeft = target_to_open_the_door-1 	end
-						show_Pax = false
-						show_Bus = false
-						Pax_chg = true
-						Bus_chg = true
-					else
-						protect_StairsXPJ = false
+				local changed, newVal1 = imgui.SliderFloat("X Loader", lateral_factor_ULDLoader, -1, 1, "Lateral " .. math.floor(lateral_factor_ULDLoader*10)/10)
+				if changed then
+					lateral_factor_ULDLoader = newVal1
+					ULDLoader_chg = true
+					CargoULD_chg = true
+				end
+				local changed, newVal2 = imgui.SliderFloat("Z Loader", longitudinal_factor3_ULDLoader, -5, 5, "Longitudinal " .. math.floor(longitudinal_factor3_ULDLoader*10)/10)
+				if changed then
+					longitudinal_factor3_ULDLoader = newVal2
+					ULDLoader_chg = true
+					CargoULD_chg = true
+				end
+				if imgui.Button("Long. -0.1",79,17) then
+					longitudinal_factor3_ULDLoader = longitudinal_factor3_ULDLoader - 0.1
+					ULDLoader_chg = true
+					CargoULD_chg = true
+				end
+				imgui.SameLine()
+				if imgui.Button("Long. +0.1",79,17) then
+					longitudinal_factor3_ULDLoader = longitudinal_factor3_ULDLoader + 0.1
+					ULDLoader_chg = true
+					CargoULD_chg = true
+				end
+
+
+				if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") then --77F FF/STS loader
+					height_value_cargo_uld_display = get("1-sim/anim/service/mdlmainliftcargo")
+					local changed, height_value_cargo_uld_display = imgui.SliderFloat("H MAIN", height_value_cargo_uld_display, 0, 1, "Main part " .. math.floor(height_value_cargo_uld_display*1000)/1000)
+					if changed then
+						set("1-sim/anim/service/mdlmainliftcargo",height_value_cargo_uld_display)
+
 					end
-					StairsXPJ_chg 	= true
-					StairsXPJ2_chg 	= true
-					--~ StairsXPJ3_chg	= true
+					local newVal3 = get("1-sim/anim/service/mdlfrontliftcargo")
+					local changed, newVal1 = imgui.SliderFloat("H FRT", newVal3, 0, 1, "Front part " .. math.floor(newVal3*1000)/1000)
+					if changed then
+						set("1-sim/anim/service/mdlfrontliftcargo",newVal1)
+					end
+				elseif string.find(Prefilled_CargoDeck_ULDLoaderObject,"ContainerLoader.obj") then --ToLiss loader
+					height_value_cargo_uld_display = get("toliss/anim/container/rearLift")
+					local changed, height_value_cargo_uld_display = imgui.SliderFloat("H MAIN", height_value_cargo_uld_display, 0, 1, "Main part " .. math.floor(height_value_cargo_uld_display*1000)/1000)
+					if changed then
+						set("toliss/anim/container/rearLift",height_value_cargo_uld_display)
+					end
+					local newVal3 = get("toliss/anim/container/forwardLift")
+					local changed, newVal1 = imgui.SliderFloat("H FRT", newVal3, 0, 1, "Front part " .. math.floor(newVal3*1000)/1000)
+					if changed then
+						set("toliss/anim/container/forwardLift",newVal1)
+					end
 				end
-				if protect_StairsXPJ then
-					imgui.SameLine() imgui.TextUnformatted("Protected")
-				end
-				if imgui.IsItemActive() then
+
+				imgui.PopStyleColor()
+				imgui.Separator()
+
+
+			  if show_CargoULD then
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+					  l_changed, l_newval = imgui.Checkbox(" Keep displaying the ULD", show_CargoULD)
+					  if l_changed then
+						show_CargoULD = l_newval
+						CargoULD_chg = true
+					  end
+
+						imgui.PopStyleColor()
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Removes the ULD currently loading on the main deck.")
+						imgui.TextUnformatted("You can otherwise immobilize it by removing the ULD train, and make it reappear by recalling the ULD train.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+			   end
+
+
+			end
+
+
+
+		  end
+		end
+
+
+
+		--[[
+		  l_changed, l_newval = imgui.Checkbox(" Stairs Mark I ", show_Stairs) -- deprecated
+		  if l_changed then
+			show_Stairs = l_newval
+			Stairs_chg = true
+			show_StairsXPJ = false
+			StairsXPJ_chg = true
+			show_StairsH = false
+			StairsH_chg = true
+		  end
+		  ]]
+
+		  if (BeltLoaderFwdPosition > 3 or string.match(AIRCRAFT_PATH,"146")) and not string.match(PLANE_ICAO,"CRJ") and not (string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13")) then
+			  --imgui.SameLine()
+			  if show_auto_stairs then
+				  imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF999999)
+				  l_changed, l_newval = imgui.Checkbox(" Stairs Mk III", show_StairsXPJ)
+				  imgui.PopStyleColor()
+					if imgui.IsItemActive() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
 					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Protect the aircraft.")
+					imgui.TextUnformatted("Currently controlled by the 1L door. (Auto stairs).")
 					imgui.PopStyleColor()
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
-				imgui.PopStyleColor()
-			end
+			  else
 
-			if show_StairsXPJ and show_StairsXPJ2 == false and show_Pax then
-				imgui.SameLine()
-				if walking_direction == "boarding" then
-					imgui.TextUnformatted("(Boarding)")
+				if SGES_stairs_type ~= "Boarding_without_stairs" then
+					l_changed, l_newval = imgui.Checkbox(" Stairs Mk III", show_StairsXPJ)
 				else
-					imgui.TextUnformatted("(Deboarding)")
-				end
-			end
-			if adjust_StairsXPJ then
-				imgui.Separator()
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
-				Adjust_Alternate_Passenger_Attachement_Point_via_sliders()
-				imgui.PopStyleColor()
-				imgui.Separator()
-			end
-		  end
 
-
-
-		  if l_changed then
-			show_StairsH = false
-			StairsH_chg = true
-			if BeltLoaderFwdPosition >= 14 and show_StopSign and not show_VDGS and
-			Prefilled_StairsObject == SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/Stair_maintenance.obj" then
-				-- none
-				show_Stairs = show_Stairs -- easy patch
-				-- the marshaller steps cannot be removed when the marshaller has climb on stairs !
-			else
-				show_Stairs = false
-				Stairs_chg = true
-			end
-			show_StairsXPJ = l_newval
-			StairsXPJ_chg = true
-			option_StairsXPJ_override = l_newval -- once action, absolutely required
-			if show_StairsXPJ2 and show_StairsXPJ then
-				DualBoard = true
-			else
-				DualBoard = false
-				if PaxDoor1L~= nil then PaxDoor1L = target_to_open_the_door-1 end
-			end
-			--also stops or remove the passengers if there is no stairs :
-			if show_StairsXPJ == false and show_StairsXPJ2 == false and show_Pax then
-				show_Pax = l_newval
-				Pax_chg = true
-				if show_Pax then 	initial_pax_start = true		 end
-			end
-			if show_StairsXPJ == false and show_StairsXPJ2 == true then
-				BoardStairsXPJ2 = true
-				BoardStairsXPJ = false
-				StairFinalY = StairFinalY_stairIV
-				StairFinalH = StairFinalH_stairIV
-				StairFinalX = StairFinalX_stairIV
-				InitialPaxHeight = InitialPaxHeight_stairIV
-				-- was missing december 2022 :
-				StairHigherPartX = StairHigherPartX_stairIV
-			end
-
-			-- With BAe-146 ladder deplyed, display sthe stairs away form the fuselage :
-			if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
-				if ladder_state ~= nil and ladder_state == 2 then
-					protect_StairsXPJ = true
-				end
-			end
-
-		  end
-
-		else
-
-
-			if SGES_stairs_type ~= "Boarding_without_stairs" then
-				if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
-					l_changed, l_newval = imgui.Checkbox(" Mobile crane", show_Stairs)
-				elseif SGES_BushMode and IsXPlane12 then
-					l_changed, l_newval = imgui.Checkbox(" Inspection ladder", show_Stairs)
-				else
-					l_changed, l_newval = imgui.Checkbox(" Stairs Mark I", show_Stairs)
-				end
-			  if l_changed then
-				show_Stairs = l_newval
-				Stairs_chg = true
-				show_StairsXPJ = false
-				StairsXPJ_chg = true
-				show_StairsH = false
-				StairsH_chg = true
-			  end
-				if show_Stairs then
-					imgui.SameLine()
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-					if  imgui.SmallButton("*")  then
-						if adjust_StairsXPJ == false then
-							adjust_StairsXPJ = true
-						else
-							adjust_StairsXPJ = false
-						end
-					end
-					imgui.PopStyleColor()
-				end
-			else
-
-
-				--~ if show_StairsXPJ and not show_Stairs then
-					--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
-					--~ -- hides the option a little because it is mutually exclusice with the directo boarding without stairs
-				--~ end
-				l_changed, l_newval = imgui.Checkbox(" Stairs Mark I", show_Stairs)
-				if l_changed then
-					show_Stairs = l_newval
-					Stairs_chg = true
-					show_StairsXPJ = false
-					StairsXPJ_chg = true
-					show_StairsXPJ2 = false
-					StairsXPJ2_chg = true
-					show_StairsH = false
-					StairsH_chg = true
-				end
-
-				--~ if show_StairsXPJ then
-					--~ imgui.PopStyleColor()
-				--~ end
-				if show_Stairs then
-					imgui.SameLine()
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-					if  imgui.SmallButton("*")  then
-						if adjust_StairsXPJ == false then
-							adjust_StairsXPJ = true
-						else
-							adjust_StairsXPJ = false
-						end
-					end
-					imgui.PopStyleColor()
-				end
-
-				--~ if show_Stairs and not show_StairsXPJ then
-					--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
-					--~ -- hides the option a little because it is mutually exclusice with the Stairs Mark I
-				--~ end
-				if show_StairsXPJ then
 					if not SGES_BushMode and Transporting_Jetsetpeople ~= nil and Transporting_Jetsetpeople and show_Cones then
 						if (LATITUDE > 36 and LATITUDE < 55) and (LONGITUDE > -5 and LONGITUDE < 19) or (LATITUDE > 24 and LATITUDE < 44) and (LONGITUDE > -84 and LONGITUDE < -69)  then
-							l_changed, l_newval = imgui.Checkbox(" Board directly (red carpet)", show_StairsXPJ)
+							if show_StairsXPJ then
+								l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
+							else
+								l_changed, l_newval = imgui.Checkbox(" Board directly (red carpet)", show_StairsXPJ)
+							end
 						else
 							l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
 						end
 					else
 						l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
 					end
-				else
-					l_changed, l_newval = imgui.Checkbox(" Direct boarding", show_StairsXPJ)
-				end
-				if imgui.IsItemActive() then
-					-- Click & hold tooltip
-					imgui.BeginTooltip()
-					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Board or deboard without stair.")
-					imgui.PopStyleColor()
-					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-					imgui.PopTextWrapPos()
-					imgui.EndTooltip()
-				end
-				if l_changed then
-					show_Stairs = false
-					Stairs_chg = true
-					show_StairsXPJ = l_newval
-					StairsXPJ_chg = true
-					show_StairsXPJ2 = false
-					StairsXPJ2_chg = true
-					show_StairsH = false
-					StairsH_chg = true
-				end
-				--~ if show_Stairs then
-					--~ imgui.PopStyleColor()
-				--~ end
-			end
 
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Will allow passengers boarding without airport stairs. Please adjust the door coordinates.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+				end
+			  end
 
-
-		  if show_Stairs or (show_StairsXPJ and SGES_stairs_type == "Boarding_without_stairs") then -- Warn
-			if not show_Stairs then
+			  if show_StairsXPJ  then -- Warn
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
 				if  imgui.SmallButton("*")  then
@@ -14729,104 +14514,97 @@ function SGES_script()
 						adjust_StairsXPJ = false
 					end
 				end
-				imgui.PopStyleColor()
-			end
-		  end
-
-			------------------------- intercalation starts
-			if show_StairsXPJ and show_StairsXPJ2 then
-				--~ imgui.SameLine()
-				--~ if walking_direction == "boarding" then
-					--~ l_changed, l_newval = imgui.Checkbox(" Board", BoardStairsXPJ)
-				--~ else
-					--~ l_changed, l_newval = imgui.Checkbox(" Deboard", BoardStairsXPJ)
-				--~ end
-				--~ if l_changed and BoardStairsXPJ2 then
-					--~ BoardStairsXPJ = true
-					--~ BoardStairsXPJ2 = false
-					--~ StairFinalY = StairFinalY_stairIII
-					--~ StairFinalH = StairFinalH_stairIII
-					--~ StairFinalX = StairFinalX_stairIII
-					--~ InitialPaxHeight = InitialPaxHeight_stairIII
-					--~ StairHigherPartX = StairHigherPartX_stairIII
-				--~ end
-			elseif show_StairsXPJ and show_StairsXPJ2 == false and show_Pax then
-				imgui.SameLine()
-
-				if walking_direction == "boarding" then
-					imgui.TextUnformatted("(Boarding)")
-				else
-					imgui.TextUnformatted("(Deboarding)")
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Adjust the door coordinates.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
-			end
-			------------------------- intercalation ends
-
-		  if show_Stairs or (show_StairsXPJ and SGES_stairs_type == "Boarding_without_stairs") then -- Warn
-			if show_Stairs and adjust_StairsXPJ then
-				imgui.Separator()
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-				imgui.TextUnformatted("Move the maintenance stairs.")
-				Adjust_Alternate_Passenger_Attachement_Point_via_sliders("Angle")
 				imgui.PopStyleColor()
-				imgui.Separator()
-			elseif (show_StairsXPJ and SGES_stairs_type == "Boarding_without_stairs") and adjust_StairsXPJ then
-				imgui.Separator()
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-
-				-- special settings
-				-- can be set in the general SGES aircrfat config file !
-				imgui.TextUnformatted("Please adjust the passengers path")
-				Adjust_Alternate_Passenger_Attachement_Point_via_sliders()
-				imgui.PopStyleColor()
-				imgui.Separator()
-			end
-		  end
-		end
-
-
-
-
-
-		if SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" then
-			if PLANE_ICAO == "B732" then
-
-				l_changed, l_newval = imgui.Checkbox(" Stairs 1R (service)", show_StairsXPJ2)
-				if l_changed then
-					show_StairsXPJ2 = l_newval
-					StairsXPJ2_chg = true
+				-- Protect as required the aircraft by moving airstairs far away enough :
+				if SGES_stairs_type ~= "Boarding_without_stairs" and (not show_Pax or protect_StairsXPJ) then
+					imgui.SameLine()
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+					if  imgui.SmallButton("P")  then
+						if protect_StairsXPJ == false then
+							protect_StairsXPJ = true
+							-- and close the door as required in ZSAR :
+							if PaxDoor1Left ~= nil 		and PaxDoor1Left == target_to_open_the_door 		then PaxDoor1Left = target_to_open_the_door-1				end
+							if PaxDoorRearLeft ~= nil 	and PaxDoorRearLeft == target_to_open_the_door 	then	PaxDoorRearLeft = target_to_open_the_door-1 	end
+							show_Pax = false
+							show_Bus = false
+							Pax_chg = true
+							Bus_chg = true
+						else
+							protect_StairsXPJ = false
+						end
+						StairsXPJ_chg 	= true
+						StairsXPJ2_chg 	= true
+						--~ StairsXPJ3_chg	= true
+					end
+					if protect_StairsXPJ then
+						imgui.SameLine() imgui.TextUnformatted("Protected")
+					end
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Protect the aircraft.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+					imgui.PopStyleColor()
 				end
-				-- THE B732 has the stairs at the 1R door ! we can't board passengers to it due to the geometry.
-			else
 
-			  --imgui.SameLine()
-			  l_changed, l_newval = imgui.Checkbox(" Stairs Mk IV", show_StairsXPJ2)
+				if show_StairsXPJ and show_StairsXPJ2 == false and show_Pax then
+					imgui.SameLine()
+					if walking_direction == "boarding" then
+						imgui.TextUnformatted("(Boarding)")
+					else
+						imgui.TextUnformatted("(Deboarding)")
+					end
+				end
+				if adjust_StairsXPJ then
+					imgui.Separator()
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
+					Adjust_Alternate_Passenger_Attachement_Point_via_sliders()
+					imgui.PopStyleColor()
+					imgui.Separator()
+				end
+			  end
+
+
+
 			  if l_changed then
-				show_StairsXPJ2 = l_newval
-				StairsXPJ2_chg = true
+				show_StairsH = false
+				StairsH_chg = true
+				if BeltLoaderFwdPosition >= 14 and show_StopSign and not show_VDGS and
+				Prefilled_StairsObject == SCRIPT_DIRECTORY ..  "Simple_Ground_Equipment_and_Services/Ground_carts/Stair_maintenance.obj" then
+					-- none
+					show_Stairs = show_Stairs -- easy patch
+					-- the marshaller steps cannot be removed when the marshaller has climb on stairs !
+				else
+					show_Stairs = false
+					Stairs_chg = true
+				end
+				show_StairsXPJ = l_newval
+				StairsXPJ_chg = true
+				option_StairsXPJ_override = l_newval -- once action, absolutely required
 				if show_StairsXPJ2 and show_StairsXPJ then
 					DualBoard = true
 				else
 					DualBoard = false
-					if PaxDoorRearLeft~= nil then PaxDoorRearLeft = target_to_open_the_door-1 end
-				end
-			  end
-				if show_StairsXPJ2 == false and show_StairsXPJ == true then
-					BoardStairsXPJ2 = false
-					BoardStairsXPJ = true
-					StairFinalY = StairFinalY_stairIII
-					StairFinalH = StairFinalH_stairIII
-					StairFinalX = StairFinalX_stairIII
-					StairHigherPartX = StairHigherPartX_stairIII
-					InitialPaxHeight = InitialPaxHeight_stairIII
-				end
-				if show_StairsXPJ == false and show_StairsXPJ2 == true then
-					BoardStairsXPJ2 = true
-					BoardStairsXPJ = false
-					StairFinalY = StairFinalY_stairIV
-					StairFinalH = StairFinalH_stairIV
-					StairFinalX = StairFinalX_stairIV
-					StairHigherPartX = StairHigherPartX_stairIV
-					InitialPaxHeight = InitialPaxHeight_stairIV
+					if PaxDoor1Left~= nil then PaxDoor1Left = target_to_open_the_door-1 end
 				end
 				--also stops or remove the passengers if there is no stairs :
 				if show_StairsXPJ == false and show_StairsXPJ2 == false and show_Pax then
@@ -14834,257 +14612,418 @@ function SGES_script()
 					Pax_chg = true
 					if show_Pax then 	initial_pax_start = true		 end
 				end
-			end
-
-
-			--~ if XPLMFindDataRef("sges/airstairs/light") ~= nil and (show_StairsXPJ or show_StairsXPJ2) and not show_Pax then
-				--~ imgui.SameLine()
-				--~ if  imgui.SmallButton("Lights")  then
-					--~ set("sges/airstairs/light",math.abs(get("sges/airstairs/light")-1))
-				--~ end
-			--~ end
-
-		end
-
-
-
-
-		if show_StairsXPJ2 and show_Pax then
-			-- when the stair is already loaded and all bariable already in place :
-			--~ if InitialPaxHeight_stairIV ~= 0 then
-				--~ imgui.SameLine()
-				--~ if walking_direction == "boarding" then
-					--~ l_changed, l_newval = imgui.Checkbox(" Board.", BoardStairsXPJ2)
-				--~ else
-					--~ l_changed, l_newval = imgui.Checkbox(" Deboard.", BoardStairsXPJ2)
-				--~ end
-				--~ if l_changed and BoardStairsXPJ then
-					--~ BoardStairsXPJ2 = l_newval
-					--~ BoardStairsXPJ = false
-					--~ StairFinalY = StairFinalY_stairIV
-					--~ StairFinalH = StairFinalH_stairIV
-					--~ StairFinalX = StairFinalX_stairIV
-					--~ InitialPaxHeight = InitialPaxHeight_stairIV
-					--~ StairHigherPartX = StairHigherPartX_stairIV
-				--~ end
-
-
-				if DualBoard and walking_direction == "boarding" then imgui.SameLine() imgui.TextUnformatted(" (Dual board)")
-				elseif DualBoard then imgui.SameLine() imgui.TextUnformatted(" (Dual deboard)") end
-
-				if not DualBoard and walking_direction == "boarding" then imgui.SameLine() imgui.TextUnformatted(" (Boarding)")
-				elseif not DualBoard then imgui.SameLine() imgui.TextUnformatted(" (Deboarding)") end
-			--~ end
-		end
-
-
-		-- third stairs added 23 th may 2024 :
-		-- theird stairs will NOT be used by passengers, to make it easier
-		if (SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" and BeltLoaderFwdPosition >= 17 and (show_StairsXPJ or (sges_openSAM ~= nil and sges_openSAM[0] == 2)) and show_StairsXPJ2 and StairFinalY_stairIV ~= nil and StairFinalY_stairIII ~= nil) or show_StairsXPJ3 then
-			if SGES_stairs_type ~= "Boarding_without_stairs" then
-				l_changed, l_newval = imgui.Checkbox(" Stairs Mk V", show_StairsXPJ3)
-				  if l_changed then
-					show_StairsXPJ3 = l_newval
-					StairsXPJ3_chg = true
-				  end
-
-
-			end
-			if adjust_StairsXPJ3 == nil then adjust_StairsXPJ3 = false end
-
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-		    if  imgui.SmallButton("¤")  then
-				if adjust_StairsXPJ3 == false then
-					adjust_StairsXPJ3 = true
-				else
-					adjust_StairsXPJ3 = false
-				end
-			end
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Adjust the stairs.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-			imgui.PopStyleColor()
-
-			if show_StairsXPJ3 and adjust_StairsXPJ3 then
-				imgui.Separator()
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-				local changed, newVal1 = imgui.SliderFloat("X MkV", lateral_factor3, -0.5, 10, "Lateral " .. math.floor(lateral_factor3*10)/10)
-				if changed then
-					lateral_factor3 = newVal1
-					StairsXPJ3_chg = true
-				end
-				local changed, newVal2 = imgui.SliderFloat("Z MkV", longitudinal_factor3, -25, StairFinalY_stairIII, "Longitudinal " .. math.floor(longitudinal_factor3*10)/10)
-				if changed then
-					longitudinal_factor3 = newVal2
-					StairsXPJ3_chg = true
-				end
-				if imgui.Button("Long. -0.1",79,17) then
-					longitudinal_factor3 = longitudinal_factor3 - 0.1
-					StairsXPJ3_chg = true
-				end
-				imgui.SameLine()
-				if imgui.Button("Long. +0.1",79,17) then
-					longitudinal_factor3 = longitudinal_factor3 + 0.1
-					StairsXPJ3_chg = true
-				end
-				local changed, newVal3 = imgui.SliderFloat("H MkV", height_factor3, -1.25, 1, "Door height " .. math.floor(height_factor3*100)/100)
-				if changed then
-					height_factor3 = newVal3
-					l_changed = true
-					StairsXPJ3_chg = true
-				end
-				local changed, newVal3 = imgui.SliderFloat("Hdg MkV", sges_gs_plane_head_correction3, -6, 6, "Stairway heading " .. math.floor(sges_gs_plane_head_correction3*100)/100)
-				if changed then
-					sges_gs_plane_head_correction3 = math.floor(newVal3*100)/100
-					l_changed = true
-					StairsXPJ3_chg = true
-				end
-				if imgui.Button("Inverse side",165,20) then
-					sign3 = -sign3
-					heading_factor3 = heading_factor3 + 180
-					StairsXPJ3_chg = true
-				end
-				imgui.TextUnformatted("Please note that the animated \npassengers can't use this way.")
-				imgui.PopStyleColor()
-				imgui.Separator()
-			end
-		end
-
-		if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
-			--~ imgui.SameLine() -- clutter management !
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			if imgui.Button("Stairs",50,20) then
-				ZIBOToggleStairs()
-			end
-			imgui.PopStyleColor(2)
-
-
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("ZIBO or LevelUp aircraft stairs.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-		if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			if imgui.Button("Option to toggle stairs",25,20) then
-				ZIBOToggleStairsOption()
-			end
-			imgui.PopStyleColor(2)
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Toggle the presence of aircraft airstairs in this ZIBO or LevelUp model.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-
-		imgui.Columns(2)
-
-		if not boarding_from_the_terminal then
-			if LATITUDE > 38.79 and LATITUDE < 38.90 and ((LONGITUDE > -77.037 and LONGITUDE < -77.035) or (LONGITUDE > -76.88 and LONGITUDE < -76.86) )  then
-				l_changed, l_newval = imgui.Checkbox(" Limousine", show_Bus) -- At the White house
-			elseif IsPassengerPlane == 0 then
-				l_changed, l_newval = imgui.Checkbox(" ULD train", show_Bus)
-			elseif SGES_BushMode and IsXPlane12 then
-				l_changed, l_newval = imgui.Checkbox(" Pax car", show_Bus)
-			else
-				l_changed, l_newval = imgui.Checkbox(" Bus", show_Bus)
-			end
-			  if l_changed then
-				show_Bus = l_newval
-				Bus_chg = true
-				boarding_from_the_terminal = false
-				if l_newval then boarding_from_the_terminal = false end
-				option_StairsXPJ_override = l_newval
-				if SGES_stairs_type == "Boarding_without_stairs" then
-					show_StairsXPJ = l_newval
-					StairsXPJ_chg = true
-					show_Stairs = false
-					Stairs_chg = true
-					if not l_newval then terminate_passenger_action = true end
+				if show_StairsXPJ == false and show_StairsXPJ2 == true then
+					BoardStairsXPJ2 = true
+					BoardStairsXPJ = false
+					StairFinalY = StairFinalY_stairIV
+					StairFinalH = StairFinalH_stairIV
+					StairFinalX = StairFinalX_stairIV
+					InitialPaxHeight = InitialPaxHeight_stairIV
+					-- was missing december 2022 :
+					StairHigherPartX = StairHigherPartX_stairIV
 				end
 
-					if not IsXPlane12 then
-						if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				-- With BAe-146 ladder deplyed, display sthe stairs away form the fuselage :
+				if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
+					if ladder_state ~= nil and ladder_state == 2 then
+						protect_StairsXPJ = true
 					end
+				end
 
 			  end
-		end
 
-		if not SGES_BushMode and IsPassengerPlane == 1 and (boarding_from_the_terminal or (StairsXPJ_instance[0] ~= nil or StairsXPJ2_instance[0] ~= nil)) and (not show_Bus or boarding_from_the_terminal) then
-			if not boarding_from_the_terminal then imgui.SameLine() end
+			else
 
-			if not boarding_from_the_terminal then imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D) end
-			l_changed, l_newval = imgui.Checkbox(" Terminal", boarding_from_the_terminal)
-			if not boarding_from_the_terminal then imgui.PopStyleColor() end
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Pax walk without bus to or from the terminal building.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
+
+				if SGES_stairs_type ~= "Boarding_without_stairs" then
+					if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
+						l_changed, l_newval = imgui.Checkbox(" Mobile crane", show_Stairs)
+					elseif SGES_BushMode and IsXPlane12 then
+						l_changed, l_newval = imgui.Checkbox(" Inspection ladder", show_Stairs)
+					else
+						l_changed, l_newval = imgui.Checkbox(" Stairs Mark I", show_Stairs)
+					end
+				  if l_changed then
+					show_Stairs = l_newval
+					Stairs_chg = true
+					show_StairsXPJ = false
+					StairsXPJ_chg = true
+					show_StairsH = false
+					StairsH_chg = true
+				  end
+					if show_Stairs then
+						imgui.SameLine()
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+						if  imgui.SmallButton("*")  then
+							if adjust_StairsXPJ == false then
+								adjust_StairsXPJ = true
+							else
+								adjust_StairsXPJ = false
+							end
+						end
+						imgui.PopStyleColor()
+					end
+				else
+
+
+					--~ if show_StairsXPJ and not show_Stairs then
+						--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+						--~ -- hides the option a little because it is mutually exclusice with the directo boarding without stairs
+					--~ end
+					l_changed, l_newval = imgui.Checkbox(" Stairs Mark I", show_Stairs)
+					if l_changed then
+						show_Stairs = l_newval
+						Stairs_chg = true
+						show_StairsXPJ = false
+						StairsXPJ_chg = true
+						show_StairsXPJ2 = false
+						StairsXPJ2_chg = true
+						show_StairsH = false
+						StairsH_chg = true
+					end
+
+					--~ if show_StairsXPJ then
+						--~ imgui.PopStyleColor()
+					--~ end
+					if show_Stairs then
+						imgui.SameLine()
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+						if  imgui.SmallButton("*")  then
+							if adjust_StairsXPJ == false then
+								adjust_StairsXPJ = true
+							else
+								adjust_StairsXPJ = false
+							end
+						end
+						imgui.PopStyleColor()
+					end
+
+					--~ if show_Stairs and not show_StairsXPJ then
+						--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+						--~ -- hides the option a little because it is mutually exclusice with the Stairs Mark I
+					--~ end
+					if show_StairsXPJ then
+						if not SGES_BushMode and Transporting_Jetsetpeople ~= nil and Transporting_Jetsetpeople and show_Cones then
+							if (LATITUDE > 36 and LATITUDE < 55) and (LONGITUDE > -5 and LONGITUDE < 19) or (LATITUDE > 24 and LATITUDE < 44) and (LONGITUDE > -84 and LONGITUDE < -69)  then
+								l_changed, l_newval = imgui.Checkbox(" Board directly (red carpet)", show_StairsXPJ)
+							else
+								l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
+							end
+						else
+							l_changed, l_newval = imgui.Checkbox(" Board directly", show_StairsXPJ)
+						end
+					else
+						l_changed, l_newval = imgui.Checkbox(" Direct boarding", show_StairsXPJ)
+					end
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Board or deboard without stair.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+					if l_changed then
+						show_Stairs = false
+						Stairs_chg = true
+						show_StairsXPJ = l_newval
+						StairsXPJ_chg = true
+						show_StairsXPJ2 = false
+						StairsXPJ2_chg = true
+						show_StairsH = false
+						StairsH_chg = true
+					end
+					--~ if show_Stairs then
+						--~ imgui.PopStyleColor()
+					--~ end
+				end
+
+
+
+			  if show_Stairs or (show_StairsXPJ and SGES_stairs_type == "Boarding_without_stairs") then -- Warn
+				if not show_Stairs then
+					imgui.SameLine()
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+					if  imgui.SmallButton("*")  then
+						if adjust_StairsXPJ == false then
+							adjust_StairsXPJ = true
+						else
+							adjust_StairsXPJ = false
+						end
+					end
+					imgui.PopStyleColor()
+				end
+			  end
+
+				------------------------- intercalation starts
+				if show_StairsXPJ and show_StairsXPJ2 then
+					--~ imgui.SameLine()
+					--~ if walking_direction == "boarding" then
+						--~ l_changed, l_newval = imgui.Checkbox(" Board", BoardStairsXPJ)
+					--~ else
+						--~ l_changed, l_newval = imgui.Checkbox(" Deboard", BoardStairsXPJ)
+					--~ end
+					--~ if l_changed and BoardStairsXPJ2 then
+						--~ BoardStairsXPJ = true
+						--~ BoardStairsXPJ2 = false
+						--~ StairFinalY = StairFinalY_stairIII
+						--~ StairFinalH = StairFinalH_stairIII
+						--~ StairFinalX = StairFinalX_stairIII
+						--~ InitialPaxHeight = InitialPaxHeight_stairIII
+						--~ StairHigherPartX = StairHigherPartX_stairIII
+					--~ end
+				elseif show_StairsXPJ and show_StairsXPJ2 == false and show_Pax then
+					imgui.SameLine()
+
+					if walking_direction == "boarding" then
+						imgui.TextUnformatted("(Boarding)")
+					else
+						imgui.TextUnformatted("(Deboarding)")
+					end
+				end
+				------------------------- intercalation ends
+
+			  if show_Stairs or (show_StairsXPJ and SGES_stairs_type == "Boarding_without_stairs") then -- Warn
+				if show_Stairs and adjust_StairsXPJ then
+					imgui.Separator()
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+					imgui.TextUnformatted("Move the maintenance stairs.")
+					Adjust_Alternate_Passenger_Attachement_Point_via_sliders("Angle")
+					imgui.PopStyleColor()
+					imgui.Separator()
+				elseif (show_StairsXPJ and SGES_stairs_type == "Boarding_without_stairs") and adjust_StairsXPJ then
+					imgui.Separator()
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+
+					-- special settings
+					-- can be set in the general SGES aircrfat config file !
+					imgui.TextUnformatted("Please adjust the passengers path")
+					Adjust_Alternate_Passenger_Attachement_Point_via_sliders()
+					imgui.PopStyleColor()
+					imgui.Separator()
+				end
+			  end
 			end
-			if l_changed then
-				show_Bus = l_newval
-				if l_newval then boarding_from_the_terminal = l_newval end
-				Bus_chg = true
+
+
+
+
+
+			if SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" then
+				if PLANE_ICAO == "B732" then
+
+					l_changed, l_newval = imgui.Checkbox(" Stairs 1R (service)", show_StairsXPJ2)
+					if l_changed then
+						show_StairsXPJ2 = l_newval
+						StairsXPJ2_chg = true
+					end
+					-- THE B732 has the stairs at the 1R door ! we can't board passengers to it due to the geometry.
+				else
+
+				  --imgui.SameLine()
+				  l_changed, l_newval = imgui.Checkbox(" Stairs Mk IV", show_StairsXPJ2)
+				  if l_changed then
+					show_StairsXPJ2 = l_newval
+					StairsXPJ2_chg = true
+					if show_StairsXPJ2 and show_StairsXPJ then
+						DualBoard = true
+					else
+						DualBoard = false
+						if PaxDoorRearLeft~= nil then PaxDoorRearLeft = target_to_open_the_door-1 end
+					end
+				  end
+					if show_StairsXPJ2 == false and show_StairsXPJ == true then
+						BoardStairsXPJ2 = false
+						BoardStairsXPJ = true
+						StairFinalY = StairFinalY_stairIII
+						StairFinalH = StairFinalH_stairIII
+						StairFinalX = StairFinalX_stairIII
+						StairHigherPartX = StairHigherPartX_stairIII
+						InitialPaxHeight = InitialPaxHeight_stairIII
+					end
+					if show_StairsXPJ == false and show_StairsXPJ2 == true then
+						BoardStairsXPJ2 = true
+						BoardStairsXPJ = false
+						StairFinalY = StairFinalY_stairIV
+						StairFinalH = StairFinalH_stairIV
+						StairFinalX = StairFinalX_stairIV
+						StairHigherPartX = StairHigherPartX_stairIV
+						InitialPaxHeight = InitialPaxHeight_stairIV
+					end
+					--also stops or remove the passengers if there is no stairs :
+					if show_StairsXPJ == false and show_StairsXPJ2 == false and show_Pax then
+						show_Pax = l_newval
+						Pax_chg = true
+						if show_Pax then 	initial_pax_start = true		 end
+					end
+				end
+
+
+				--~ if XPLMFindDataRef("sges/airstairs/light") ~= nil and (show_StairsXPJ or show_StairsXPJ2) and not show_Pax then
+					--~ imgui.SameLine()
+					--~ if  imgui.SmallButton("Lights")  then
+						--~ set("sges/airstairs/light",math.abs(get("sges/airstairs/light")-1))
+					--~ end
+				--~ end
+
 			end
-		end
 
 
-		if LATITUDE > 38.79 and LATITUDE < 38.90 and ((LONGITUDE > -77.037 and LONGITUDE < -77.035) or (LONGITUDE > -76.88 and LONGITUDE < -76.86) )  then
-			l_changed, l_newval = imgui.Checkbox(" Protection", show_Catering) -- At the White house
-		elseif SGES_BushMode and IsXPlane12 and sges_military == 0 and sges_military_default == 0 then
-			l_changed, l_newval = imgui.Checkbox(" Clutter", show_Catering)
-		else
-			l_changed, l_newval = imgui.Checkbox(" Catering", show_Catering)
 
-			if PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "DH8D" then
+
+			if show_StairsXPJ2 and show_Pax then
+				-- when the stair is already loaded and all bariable already in place :
+				--~ if InitialPaxHeight_stairIV ~= 0 then
+					--~ imgui.SameLine()
+					--~ if walking_direction == "boarding" then
+						--~ l_changed, l_newval = imgui.Checkbox(" Board.", BoardStairsXPJ2)
+					--~ else
+						--~ l_changed, l_newval = imgui.Checkbox(" Deboard.", BoardStairsXPJ2)
+					--~ end
+					--~ if l_changed and BoardStairsXPJ then
+						--~ BoardStairsXPJ2 = l_newval
+						--~ BoardStairsXPJ = false
+						--~ StairFinalY = StairFinalY_stairIV
+						--~ StairFinalH = StairFinalH_stairIV
+						--~ StairFinalX = StairFinalX_stairIV
+						--~ InitialPaxHeight = InitialPaxHeight_stairIV
+						--~ StairHigherPartX = StairHigherPartX_stairIV
+					--~ end
+
+
+					if DualBoard and walking_direction == "boarding" then imgui.SameLine() imgui.TextUnformatted(" (Dual board)")
+					elseif DualBoard then imgui.SameLine() imgui.TextUnformatted(" (Dual deboard)") end
+
+					if not DualBoard and walking_direction == "boarding" then imgui.SameLine() imgui.TextUnformatted(" (Boarding)")
+					elseif not DualBoard then imgui.SameLine() imgui.TextUnformatted(" (Deboarding)") end
+				--~ end
+			end
+
+
+			-- third stairs added 23 th may 2024 :
+			-- theird stairs will NOT be used by passengers, to make it easier
+			if (SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" and BeltLoaderFwdPosition >= 17 and (show_StairsXPJ or (sges_openSAM ~= nil and sges_openSAM[0] == 2)) and show_StairsXPJ2 and StairFinalY_stairIV ~= nil and StairFinalY_stairIII ~= nil) or show_StairsXPJ3 then
+				if SGES_stairs_type ~= "Boarding_without_stairs" then
+					l_changed, l_newval = imgui.Checkbox(" Stairs Mk V", show_StairsXPJ3)
+					  if l_changed then
+						show_StairsXPJ3 = l_newval
+						StairsXPJ3_chg = true
+					  end
+
+
+				end
+				if adjust_StairsXPJ3 == nil then adjust_StairsXPJ3 = false end
+
 				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+				if  imgui.SmallButton("¤")  then
+					if adjust_StairsXPJ3 == false then
+						adjust_StairsXPJ3 = true
+					else
+						adjust_StairsXPJ3 = false
+					end
+				end
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Adjust the stairs.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+				imgui.PopStyleColor()
 
-				imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 12)
-				_, SGES_Embraer_catering_is_small = imgui.Checkbox(" (small)", SGES_Embraer_catering_is_small)
-				imgui.PopStyleVar()
+				if show_StairsXPJ3 and adjust_StairsXPJ3 then
+					imgui.Separator()
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+					local changed, newVal1 = imgui.SliderFloat("X MkV", lateral_factor3, -0.5, 10, "Lateral " .. math.floor(lateral_factor3*10)/10)
+					if changed then
+						lateral_factor3 = newVal1
+						StairsXPJ3_chg = true
+					end
+					local changed, newVal2 = imgui.SliderFloat("Z MkV", longitudinal_factor3, -25, StairFinalY_stairIII, "Longitudinal " .. math.floor(longitudinal_factor3*10)/10)
+					if changed then
+						longitudinal_factor3 = newVal2
+						StairsXPJ3_chg = true
+					end
+					if imgui.Button("Long. -0.1",79,17) then
+						longitudinal_factor3 = longitudinal_factor3 - 0.1
+						StairsXPJ3_chg = true
+					end
+					imgui.SameLine()
+					if imgui.Button("Long. +0.1",79,17) then
+						longitudinal_factor3 = longitudinal_factor3 + 0.1
+						StairsXPJ3_chg = true
+					end
+					local changed, newVal3 = imgui.SliderFloat("H MkV", height_factor3, -1.25, 1, "Door height " .. math.floor(height_factor3*100)/100)
+					if changed then
+						height_factor3 = newVal3
+						l_changed = true
+						StairsXPJ3_chg = true
+					end
+					local changed, newVal3 = imgui.SliderFloat("Hdg MkV", sges_gs_plane_head_correction3, -6, 6, "Stairway heading " .. math.floor(sges_gs_plane_head_correction3*100)/100)
+					if changed then
+						sges_gs_plane_head_correction3 = math.floor(newVal3*100)/100
+						l_changed = true
+						StairsXPJ3_chg = true
+					end
+					if imgui.Button("Inverse side",165,20) then
+						sign3 = -sign3
+						heading_factor3 = heading_factor3 + 180
+						StairsXPJ3_chg = true
+					end
+					imgui.TextUnformatted("Please note that the animated \npassengers can't use this way.")
+					imgui.PopStyleColor()
+					imgui.Separator()
+				end
+			end
+
+			if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
+				--~ imgui.SameLine() -- clutter management !
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				if imgui.Button("Stairs",50,20) then
+					ZIBOToggleStairs()
+				end
+				imgui.PopStyleColor(2)
+
 
 				if imgui.IsItemHovered() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 14)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Variant of the catering service.")
+					imgui.TextUnformatted("ZIBO or LevelUp aircraft stairs.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+			end
+			if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				if imgui.Button("Option to toggle stairs",25,20) then
+					ZIBOToggleStairsOption()
+				end
+				imgui.PopStyleColor(2)
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Toggle the presence of aircraft airstairs in this ZIBO or LevelUp model.")
 					imgui.PopStyleColor()
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
@@ -15092,101 +15031,253 @@ function SGES_script()
 				end
 			end
 
-		end
-	  if l_changed then
-		show_Catering = l_newval
-		Catering_chg = true
-	  end
+			imgui.Columns(2)
 
-		if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
-			l_changed, l_newval = imgui.Checkbox(" Weapons", show_Cones)
-		elseif SGES_BushMode and IsXPlane12 then
-			l_changed, l_newval = imgui.Checkbox(" Barils", show_Cones)
-		else
-			l_changed, l_newval = imgui.Checkbox(" Cones", show_Cones)
-		end
-	  if l_changed then
-		show_Cones = l_newval
-		Cones_chg = true
-		show_TargetMarker = false -- we cancel the nose wheel position marker upon chocks selection
-		TargetMarker_chg = true
-	  end
-
-
-
-
-
-		-- TOLISS CHOCKS
-		-- added april 2022
-		--	if show_Chocks and PLANE_ICAO == "A319" or PLANE_ICAO == "A321" or PLANE_ICAO == "A346" then
-		--		imgui.SameLine()
-		--		if  imgui.Button("OFF",40,20)  then
-		--			set("AirbusFBW/Chocks",0)
-		--			show_Chocks = false
-		--			Chocks_chg = true
-		--		end
-		--	end
-
-
-		if UseXplaneDefaultObject then
-			l_changed, l_newval = imgui.Checkbox(" Misc.", show_People1)
-		else
-			l_changed, l_newval = imgui.Checkbox(" People", show_People1)
-		end
-		if l_changed then
-			show_People1 = l_newval
-			People1_chg = true
-			show_People2 = l_newval
-			People2_chg = true
-			show_People3 = l_newval
-			People3_chg = true
-			show_People4 = l_newval
-			People4_chg = true
-		end
-		if not SGES_BushMode and (sges_military == 1 or sges_military_default == 1) and BeltLoaderFwdPosition < 6 and show_Chocks then
-			if imgui.SmallButton("Rearm") then
-				command_once("sim/weapons/re_arm_aircraft")
-				set("sim/cockpit/weapons/guns_armed",1)
-				show_Catering = true
-				Catering_chg = true
-			end
-		elseif SGES_mirror == 1 then
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFC9C9C9)
-			--~ imgui.RadioButton(" Mirrored",true)
-			imgui.TextUnformatted("Mirrored (info!)")
-			imgui.PopStyleColor()
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 14)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Passengers will use the starboard side. In this mode, some animations are lost, others are simplified.\nPlease use the developper mode to cancel the mirror and board on port side as normal.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-
-	--------------------------------------------------------------------------------
-	imgui.NextColumn()
-
-		if UseXplaneDefaultObject == false then
-			if show_Pax or (show_Bus and (show_StairsXPJ or show_StairsXPJ2) and Bus_chg == false) then
-			--imgui.SameLine()
-				if IsPassengerPlane == 0 then
-					l_changed, l_newval = imgui.Checkbox(" Crew", show_Pax)
+			if not boarding_from_the_terminal then
+				if LATITUDE > 38.79 and LATITUDE < 38.90 and ((LONGITUDE > -77.037 and LONGITUDE < -77.035) or (LONGITUDE > -76.88 and LONGITUDE < -76.86) )  then
+					l_changed, l_newval = imgui.Checkbox(" Limousine", show_Bus) -- At the White house
+				elseif IsPassengerPlane == 0 then
+					l_changed, l_newval = imgui.Checkbox(" ULD train", show_Bus)
+				elseif SGES_BushMode and IsXPlane12 then
+					l_changed, l_newval = imgui.Checkbox(" Pax car", show_Bus)
 				else
-					if not terminate_passenger_action then imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-					else imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					l_changed, l_newval = imgui.Checkbox(" Bus", show_Bus)
+				end
+				  if l_changed then
+					show_Bus = l_newval
+					Bus_chg = true
+					boarding_from_the_terminal = false
+					if l_newval then boarding_from_the_terminal = false end
+					option_StairsXPJ_override = l_newval
+					if SGES_stairs_type == "Boarding_without_stairs" then
+						show_StairsXPJ = l_newval
+						StairsXPJ_chg = true
+						show_Stairs = false
+						Stairs_chg = true
+						if not l_newval then terminate_passenger_action = true end
 					end
-					if show_Pax then
-						l_changed, l_newval = imgui.Checkbox("", show_Pax)
+
+						if not IsXPlane12 then
+							if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+						end
+
+				  end
+			end
+
+			if not SGES_BushMode and IsPassengerPlane == 1 and (boarding_from_the_terminal or (StairsXPJ_instance[0] ~= nil or StairsXPJ2_instance[0] ~= nil)) and (not show_Bus or boarding_from_the_terminal) then
+				if not boarding_from_the_terminal then imgui.SameLine() end
+
+				if not boarding_from_the_terminal then imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D) end
+				l_changed, l_newval = imgui.Checkbox(" Terminal", boarding_from_the_terminal)
+				if not boarding_from_the_terminal then imgui.PopStyleColor() end
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Pax walk without bus to or from the terminal building.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+				if l_changed then
+					show_Bus = l_newval
+					if l_newval then boarding_from_the_terminal = l_newval end
+					Bus_chg = true
+				end
+			end
+
+
+			if LATITUDE > 38.79 and LATITUDE < 38.90 and ((LONGITUDE > -77.037 and LONGITUDE < -77.035) or (LONGITUDE > -76.88 and LONGITUDE < -76.86) )  then
+				l_changed, l_newval = imgui.Checkbox(" Protection", show_Catering) -- At the White house
+			elseif SGES_BushMode and IsXPlane12 and sges_military == 0 and sges_military_default == 0 then
+				l_changed, l_newval = imgui.Checkbox(" Clutter", show_Catering)
+			else
+				l_changed, l_newval = imgui.Checkbox(" Catering", show_Catering)
+
+				if PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "DH8D" then
+					imgui.SameLine()
+
+					imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 12)
+					_, SGES_Embraer_catering_is_small = imgui.Checkbox(" (small)", SGES_Embraer_catering_is_small)
+					imgui.PopStyleVar()
+
+					if imgui.IsItemHovered() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 14)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Variant of the catering service.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+				end
+
+			end
+		  if l_changed then
+			show_Catering = l_newval
+			Catering_chg = true
+		  end
+
+			if SGES_BushMode and IsXPlane12 and (sges_military == 1 or sges_military_default == 1) then
+				l_changed, l_newval = imgui.Checkbox(" Weapons", show_Cones)
+			elseif SGES_BushMode and IsXPlane12 then
+				l_changed, l_newval = imgui.Checkbox(" Barils", show_Cones)
+			else
+				l_changed, l_newval = imgui.Checkbox(" Cones", show_Cones)
+			end
+		  if l_changed then
+			show_Cones = l_newval
+			Cones_chg = true
+			show_TargetMarker = false -- we cancel the nose wheel position marker upon chocks selection
+			TargetMarker_chg = true
+		  end
+
+
+
+
+
+			-- TOLISS CHOCKS
+			-- added april 2022
+			--	if show_Chocks and PLANE_ICAO == "A319" or PLANE_ICAO == "A321" or PLANE_ICAO == "A346" then
+			--		imgui.SameLine()
+			--		if  imgui.Button("OFF",40,20)  then
+			--			set("AirbusFBW/Chocks",0)
+			--			show_Chocks = false
+			--			Chocks_chg = true
+			--		end
+			--	end
+
+
+			if UseXplaneDefaultObject then
+				l_changed, l_newval = imgui.Checkbox(" Misc.", show_People1)
+			else
+				l_changed, l_newval = imgui.Checkbox(" People", show_People1)
+			end
+			if l_changed then
+				show_People1 = l_newval
+				People1_chg = true
+				show_People2 = l_newval
+				People2_chg = true
+				show_People3 = l_newval
+				People3_chg = true
+				show_People4 = l_newval
+				People4_chg = true
+			end
+			if not SGES_BushMode and (sges_military == 1 or sges_military_default == 1) and BeltLoaderFwdPosition < 6 and show_Chocks then
+				if imgui.SmallButton("Rearm") then
+					command_once("sim/weapons/re_arm_aircraft")
+					set("sim/cockpit/weapons/guns_armed",1)
+					show_Catering = true
+					Catering_chg = true
+				end
+			elseif SGES_mirror == 1 then
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFC9C9C9)
+				--~ imgui.RadioButton(" Mirrored",true)
+				imgui.TextUnformatted("Mirrored (info!)")
+				imgui.PopStyleColor()
+				if imgui.IsItemHovered() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 14)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Passengers will use the starboard side. In this mode, some animations are lost, others are simplified.\nPlease use the developper mode to cancel the mirror and board on port side as normal.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+			end
+
+		--------------------------------------------------------------------------------
+		imgui.NextColumn()
+
+			if UseXplaneDefaultObject == false then
+				if show_Pax or (show_Bus and (show_StairsXPJ or show_StairsXPJ2) and Bus_chg == false) then
+				--imgui.SameLine()
+					if IsPassengerPlane == 0 then
+						l_changed, l_newval = imgui.Checkbox(" Crew", show_Pax)
 					else
-						l_changed, l_newval = imgui.Checkbox(" Passengers", show_Pax)
+						if not terminate_passenger_action then imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+						else imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						end
+						if show_Pax then
+							l_changed, l_newval = imgui.Checkbox("", show_Pax)
+						else
+							l_changed, l_newval = imgui.Checkbox(" Passengers", show_Pax)
+						end
+						if imgui.IsItemHovered() and show_Pax then
+							-- Click & hold tooltip
+							imgui.BeginTooltip()
+							-- This function configures the wrapping inside the toolbox and thereby its width
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 13)
+							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+							imgui.TextUnformatted("Cycle between boarding and deboarding.")
+							imgui.PopStyleColor()
+							-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+							imgui.PopTextWrapPos()
+							imgui.EndTooltip()
+						end
+						if show_Pax then
+							imgui.SameLine()
+							if  imgui.SmallButton("Passengers")  then
+								terminate_passenger_action = true
+							end
+							if imgui.IsItemActive() then
+								-- Click & hold tooltip
+								imgui.BeginTooltip()
+								-- This function configures the wrapping inside the toolbox and thereby its width
+								imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+								imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+								imgui.TextUnformatted("Conclude progressively the (de)boarding.")
+								imgui.PopStyleColor()
+								-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+								imgui.PopTextWrapPos()
+								imgui.EndTooltip()
+							end
+						end
+						imgui.PopStyleColor()
 					end
-					if imgui.IsItemHovered() and show_Pax then
+				  if l_changed then
+					 if l_newval == false then
+						show_Pax = l_newval
+						if protect_StairsXPJ then show_Pax = false end
+						Pax_chg = true
+						terminate_passenger_action = false
+						--~ if show_Pax then terminate_passenger_action = true -- 15-7-2023 : make the disappearance progressive only
+						--~ else -- safety exit
+							--~ show_Pax = l_newval
+							--~ Pax_chg = true
+						--~ end
+					 elseif (show_StairsXPJ or show_StairsXPJ2) then
+						show_Pax = l_newval
+						if protect_StairsXPJ then show_Pax = false end
+						Pax_chg = true
+						terminate_passenger_action = false
+						initial_pax_start = true
+						baggage_pass = 0
+
+
+					 end
+				  end
+				elseif show_Pax or show_Baggage then
+					--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+					--~ l_changed, l_newval = imgui.Checkbox(" Load/unload", false)
+					if  imgui.SmallButton("Load/unload")  then
+						baggage_pass = 0
+						if walking_direction == "deboarding" then walking_direction = "boarding" else walking_direction = "deboarding" end
+						BeltLoader_chg = true -- this steps allow the inversion of the animated baggages
+						Baggage_chg = true
+					end
+					imgui.PopStyleColor()
+					if imgui.IsItemHovered() then
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
@@ -15198,481 +15289,575 @@ function SGES_script()
 						imgui.PopTextWrapPos()
 						imgui.EndTooltip()
 					end
-					if show_Pax then
-						imgui.SameLine()
-						if  imgui.SmallButton("Passengers")  then
-							terminate_passenger_action = true
-						end
-						if imgui.IsItemActive() then
-							-- Click & hold tooltip
-							imgui.BeginTooltip()
-							-- This function configures the wrapping inside the toolbox and thereby its width
-							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-							imgui.TextUnformatted("Conclude progressively the (de)boarding.")
-							imgui.PopStyleColor()
-							-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-							imgui.PopTextWrapPos()
-							imgui.EndTooltip()
-						end
+					--~ if l_changed then
+						--~ baggage_pass = 0
+						--~ if walking_direction == "deboarding" then walking_direction = "boarding" else walking_direction = "deboarding" end
+						--~ BeltLoader_chg = true -- this steps allow the inversion of the animated baggages
+						--~ Baggage_chg = true
+					--~ end
+				else imgui.TextUnformatted("") -- return line
+				end
+			end
+
+
+			--[[
+			if show_StairsXPJ and show_StairsXPJ2 and (show_Pax or (show_Bus and (show_StairsXPJ or show_StairsXPJ2) and Bus_chg == false))then
+				-- when the stair is already loaded and all bariable already in place :
+				if InitialPaxHeight_stairIV ~= 0 then
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+					--imgui.SameLine()
+					if walking_direction == "boarding" then
+						l_changed, l_newval = imgui.Checkbox(" both stairs", DualBoard)
+					else
+						l_changed, l_newval = imgui.Checkbox(" both stairs", DualBoard)
+					end
+					if l_changed then
+						DualBoard = l_newval
 					end
 					imgui.PopStyleColor()
 				end
-			  if l_changed then
-				 if l_newval == false then
-					show_Pax = l_newval
-					if protect_StairsXPJ then show_Pax = false end
-					Pax_chg = true
-					terminate_passenger_action = false
-					--~ if show_Pax then terminate_passenger_action = true -- 15-7-2023 : make the disappearance progressive only
-					--~ else -- safety exit
-						--~ show_Pax = l_newval
-						--~ Pax_chg = true
-					--~ end
-				 elseif (show_StairsXPJ or show_StairsXPJ2) then
-					show_Pax = l_newval
-					if protect_StairsXPJ then show_Pax = false end
-					Pax_chg = true
-					terminate_passenger_action = false
-					initial_pax_start = true
-					baggage_pass = 0
+			end
+			]]
 
+			--~ if  imgui.SmallButton("FORCE PB")  then
+				--~ show_WingWalkers = false
+				--~ PB_chg = true
+				--~ remove_wingwalkers()
+			--~ end
 
-				 end
-			  end
-			elseif show_Pax or show_Baggage then
-				--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-				--~ l_changed, l_newval = imgui.Checkbox(" Load/unload", false)
-				if  imgui.SmallButton("Load/unload")  then
-					baggage_pass = 0
-					if walking_direction == "deboarding" then walking_direction = "boarding" else walking_direction = "deboarding" end
-					BeltLoader_chg = true -- this steps allow the inversion of the animated baggages
-					Baggage_chg = true
+			if show_PB and show_WingWalkers and Baggage_instance[3] ~= nil and Baggage_instance[4] ~= nil and not show_Baggage then --IAS24 start
+				if (sges_current_time % 2 == 0) then
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+				else
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+				end
+				if  imgui.SmallButton("CANCEL WALKERS")  then
+					show_WingWalkers = false
+					PB_chg = true
+					remove_wingwalkers()
 				end
 				imgui.PopStyleColor()
 				if imgui.IsItemHovered() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 13)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Cycle between boarding and deboarding.")
+					imgui.TextUnformatted("Remove the wing walkers.")
+					imgui.TextUnformatted("The pushback continues.")
 					imgui.PopStyleColor()
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
-				--~ if l_changed then
-					--~ baggage_pass = 0
-					--~ if walking_direction == "deboarding" then walking_direction = "boarding" else walking_direction = "deboarding" end
-					--~ BeltLoader_chg = true -- this steps allow the inversion of the animated baggages
-					--~ Baggage_chg = true
-				--~ end
-			else imgui.TextUnformatted("") -- return line
-			end
-		end
+			end  --IAS24 ends
 
-
-		--[[
-		if show_StairsXPJ and show_StairsXPJ2 and (show_Pax or (show_Bus and (show_StairsXPJ or show_StairsXPJ2) and Bus_chg == false))then
-			-- when the stair is already loaded and all bariable already in place :
-			if InitialPaxHeight_stairIV ~= 0 then
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-				--imgui.SameLine()
-				if walking_direction == "boarding" then
-					l_changed, l_newval = imgui.Checkbox(" both stairs", DualBoard)
+			if UseXplaneDefaultObject == false then
+				--~ imgui.SameLine()
+				if not PRM_is_catering then
+				  l_changed, l_newval = imgui.Checkbox(" PRM", show_PRM)
+					if l_changed then
+						show_PRM = l_newval
+						PRM_chg = true
+					end
+					if show_PRM and PRM_instance[0] ~= nil and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1 and UseXplane1214DefaultObject then
+							imgui.SameLine()
+						  l_changed, l_newval = imgui.Checkbox(" Amb", get_hospital_ambulance)
+							if l_changed then
+								get_hospital_ambulance = l_newval
+								if get_hospital_ambulance and Stored_CateringObject == nil then
+									Stored_CateringObject = Prefilled_CateringObject
+								end
+								_,PRM_instance[0],rampservicerefPRM = common_unload("PRM",PRM_instance[0],rampservicerefPRM)
+								_,PRM_instance[1],rampservicerefPRM2 = common_unload("PRMHighPart",PRM_instance[1],rampservicerefPRM2)
+								PRM_chg = true
+								if not get_hospital_ambulance and Stored_CateringObject ~= nil then
+									Prefilled_CateringObject = Stored_CateringObject -- Important to reset !
+									Prefilled_CateringHighPartObject = Prefilled_LightObject
+								end
+								PRM_chg = true
+							end
+					elseif not show_PRM and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 0 then
+						get_hospital_ambulance = false
+					end
 				else
-					l_changed, l_newval = imgui.Checkbox(" both stairs", DualBoard)
-				end
-				if l_changed then
-					DualBoard = l_newval
-				end
-				imgui.PopStyleColor()
-			end
-		end
-		]]
-
-		--~ if  imgui.SmallButton("FORCE PB")  then
-			--~ show_WingWalkers = false
-			--~ PB_chg = true
-			--~ remove_wingwalkers()
-		--~ end
-
-		if show_PB and show_WingWalkers and Baggage_instance[3] ~= nil and Baggage_instance[4] ~= nil and not show_Baggage then --IAS24 start
-			if (sges_current_time % 2 == 0) then
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-			else
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
-			end
-			if  imgui.SmallButton("CANCEL WALKERS")  then
-				show_WingWalkers = false
-				PB_chg = true
-				remove_wingwalkers()
-			end
-			imgui.PopStyleColor()
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Remove the wing walkers.")
-				imgui.TextUnformatted("The pushback continues.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end  --IAS24 ends
-
-		if UseXplaneDefaultObject == false then
-			--~ imgui.SameLine()
-			if not PRM_is_catering then
-			  l_changed, l_newval = imgui.Checkbox(" PRM", show_PRM)
+				  l_changed, l_newval = imgui.Checkbox(" Cater.", show_PRM)
 				if l_changed then
 					show_PRM = l_newval
 					PRM_chg = true
-				end
-				if show_PRM and PRM_instance[0] ~= nil and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1 and UseXplane1214DefaultObject then
-						imgui.SameLine()
-					  l_changed, l_newval = imgui.Checkbox(" Amb", get_hospital_ambulance)
-						if l_changed then
-							get_hospital_ambulance = l_newval
-							if get_hospital_ambulance and Stored_CateringObject == nil then
-								Stored_CateringObject = Prefilled_CateringObject
-							end
-							_,PRM_instance[0],rampservicerefPRM = common_unload("PRM",PRM_instance[0],rampservicerefPRM)
-							_,PRM_instance[1],rampservicerefPRM2 = common_unload("PRMHighPart",PRM_instance[1],rampservicerefPRM2)
-							PRM_chg = true
-							if not get_hospital_ambulance and Stored_CateringObject ~= nil then
-								Prefilled_CateringObject = Stored_CateringObject -- Important to reset !
-								Prefilled_CateringHighPartObject = Prefilled_LightObject
-							end
-							PRM_chg = true
-						end
-				elseif not show_PRM and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 0 then
 					get_hospital_ambulance = false
 				end
-			else
-			  l_changed, l_newval = imgui.Checkbox(" Cater.", show_PRM)
-			if l_changed then
-				show_PRM = l_newval
-				PRM_chg = true
-				get_hospital_ambulance = false
-			end
-			end
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Persons with Reduced Mobility boarding.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		  end
-
-			if SecondStairsFwdPosition ~= -30 then
-			-- only offer the catering truck instead of the PRM when the PRM is not the small car
-				imgui.SameLine()
-				if imgui.SmallButton("/") then
-					if PRM_is_catering then PRM_is_catering = false else PRM_is_catering = true end
 				end
-			end
-			--imgui.TextUnformatted("") -- return line
-
-		  if sges_gs_gnd_spd[0] < 5 or show_Chocks then
-			--~ imgui.SameLine() -- added 30 december 2020
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-
-			if wetness == 1 then
-			  l_changed, l_newval = imgui.Checkbox(" Dock lines", show_Chocks)
-			elseif IsXPlane1220 and UseXplane1220Chocks then
-			  l_changed, l_newval = imgui.Checkbox(" XP chocks", show_Chocks)
 				if imgui.IsItemActive() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
 					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-					imgui.TextUnformatted("Laminar Research chocks (only after after X-Plane 12.2).")
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Persons with Reduced Mobility boarding.")
+					imgui.PopStyleColor()
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
-			else
-			  l_changed, l_newval = imgui.Checkbox(" Chocks", show_Chocks)
-			end
-			imgui.PopStyleColor()
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Active chocks allowing you to release the parking brake.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-			if l_changed then
-				show_Chocks = l_newval
-				Chocks_chg = true -- use SGES chocks
-				show_TargetMarker = false -- we cancel the nose wheel position marker upon chocks selection
-				TargetMarker_chg = true
-				show_StopSign = false
-				StopSign_chg = true
-				force_factor_forced = -0.02
+			  end
 
-				if UseXplane1220Chocks and not IsXPlane1220 then
-					UseXplane1220Chocks = false -- we cannot use the xplane chocks before XP12.2, so even if the ACFT says we prefer XP chocks, we must force that disabled.
-					print("[Ground Equipment " .. version_text_SGES .. "] This very aircraft has been configured by you to use the Laminar Research native chocks published after X-Plane 12.2. However it seems you are using an older version of X-Plane. We are reversing for this session to the use of SGES chocks instead of X-Plane chocks. Allright !")
-				elseif IsXPlane1220 and UseXplane1220Chocks then
-					if l_newval then command_once("sim/flight_controls/install_chocks")
-					else command_once("sim/flight_controls/remove_chocks")
+				if SecondStairsFwdPosition ~= -30 then
+				-- only offer the catering truck instead of the PRM when the PRM is not the small car
+					imgui.SameLine()
+					if imgui.SmallButton("/") then
+						if PRM_is_catering then PRM_is_catering = false else PRM_is_catering = true end
 					end
 				end
-				if show_Chocks and IsToLiSs and not UseXplane1220Chocks then -- add ToLiss chocks
-					set("AirbusFBW/Chocks",1)
-				elseif 			   IsToLiSs then -- remove ToLiss chocks
-					set("AirbusFBW/Chocks",0)
-					print("rmove toliss chocks")
+				--imgui.TextUnformatted("") -- return line
+
+			  if sges_gs_gnd_spd[0] < 5 or show_Chocks then
+				--~ imgui.SameLine() -- added 30 december 2020
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+
+				if wetness == 1 then
+				  l_changed, l_newval = imgui.Checkbox(" Dock lines", show_Chocks)
+				elseif IsXPlane1220 and UseXplane1220Chocks then
+				  l_changed, l_newval = imgui.Checkbox(" XP chocks", show_Chocks)
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.TextUnformatted("Laminar Research chocks (only after after X-Plane 12.2).")
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+				else
+				  l_changed, l_newval = imgui.Checkbox(" Chocks", show_Chocks)
 				end
-				if show_Chocks and IsSimcoders then -- toggle simcoders chocks
-					command_once("simcoders/rep/walkaround/static_elements/toggle")
-					command_once("sim/flight_controls/door_open_1")
-					command_once("sim/flight_controls/door_open_2")
-				elseif 			   IsSimcoders then -- toggle simcoders chocks
-					command_once("simcoders/rep/walkaround/static_elements/toggle")
-					command_once("sim/flight_controls/door_close_1")
-					command_once("sim/flight_controls/door_close_2")
+				imgui.PopStyleColor()
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Active chocks allowing you to release the parking brake.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
-				if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh") and not UseXplane1220Chocks  then
+				if l_changed then
+					show_Chocks = l_newval
+					Chocks_chg = true -- use SGES chocks
+					show_TargetMarker = false -- we cancel the nose wheel position marker upon chocks selection
+					TargetMarker_chg = true
+					show_StopSign = false
+					StopSign_chg = true
+					force_factor_forced = -0.02
+
+					if UseXplane1220Chocks and not IsXPlane1220 then
+						UseXplane1220Chocks = false -- we cannot use the xplane chocks before XP12.2, so even if the ACFT says we prefer XP chocks, we must force that disabled.
+						print("[Ground Equipment " .. version_text_SGES .. "] This very aircraft has been configured by you to use the Laminar Research native chocks published after X-Plane 12.2. However it seems you are using an older version of X-Plane. We are reversing for this session to the use of SGES chocks instead of X-Plane chocks. Allright !")
+					elseif IsXPlane1220 and UseXplane1220Chocks then
+						if l_newval then command_once("sim/flight_controls/install_chocks")
+						else command_once("sim/flight_controls/remove_chocks")
+						end
+					end
+					if show_Chocks and IsToLiSs and not UseXplane1220Chocks then -- add ToLiss chocks
+						set("AirbusFBW/Chocks",1)
+					elseif 			   IsToLiSs then -- remove ToLiss chocks
+						set("AirbusFBW/Chocks",0)
+						print("rmove toliss chocks")
+					end
+					if show_Chocks and IsSimcoders then -- toggle simcoders chocks
+						command_once("simcoders/rep/walkaround/static_elements/toggle")
+						command_once("sim/flight_controls/door_open_1")
+						command_once("sim/flight_controls/door_open_2")
+					elseif 			   IsSimcoders then -- toggle simcoders chocks
+						command_once("simcoders/rep/walkaround/static_elements/toggle")
+						command_once("sim/flight_controls/door_close_1")
+						command_once("sim/flight_controls/door_close_2")
+					end
+					if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh") and not UseXplane1220Chocks  then
+						ZIBOToggleChocks()
+					end
+					if not IsXPlane12 then
+						if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+					end
+
+				end
+			end
+
+
+			if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				--~ imgui.SetWindowFontScale(0.9)
+				if imgui.Button("Cho",30,20) then
 					ZIBOToggleChocks()
 				end
-				if not IsXPlane12 then
-					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				--~ imgui.SetWindowFontScale(1)
+				imgui.PopStyleColor(2)
+
+
+				if imgui.IsItemHovered() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("ZIBO/LevelUp chocks and cones.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
-
-			end
-		end
-
-
-		if string.match(PLANE_ICAO,"B73") and string.find(PLANE_AUTHOR,"Unruh")  then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			--~ imgui.SetWindowFontScale(0.9)
-			if imgui.Button("Cho",30,20) then
-				ZIBOToggleChocks()
-			end
-			--~ imgui.SetWindowFontScale(1)
-			imgui.PopStyleColor(2)
-
-
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("ZIBO/LevelUp chocks and cones.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		elseif PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") and not UseXplane1220Chocks then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			--~ imgui.SetWindowFontScale(0.9)
-			if imgui.Button("Cho",30,20) then
-				if show_Chocks then
-					set("B742/INT_PA/set_gear_chokes",1)
-					if not UseXplane1220Chocks then
-						show_Chocks = false -- replace XP chocks by Felis chocks
+			elseif PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") and not UseXplane1220Chocks then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				--~ imgui.SetWindowFontScale(0.9)
+				if imgui.Button("Cho",30,20) then
+					if show_Chocks then
+						set("B742/INT_PA/set_gear_chokes",1)
+						if not UseXplane1220Chocks then
+							show_Chocks = false -- replace XP chocks by Felis chocks
+							Chocks_chg = true
+						end
+					else
+						set("B742/INT_PA/set_gear_chokes",0)
+					end
+				end
+				--~ imgui.SetWindowFontScale(1)
+				imgui.PopStyleColor(2)
+				if imgui.IsItemHovered() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Felis B742 chocks.\nIf SGES chocks are already on, this will replace them by Felis ones")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+			elseif PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
+				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
+				--~ imgui.SetWindowFontScale(0.9)
+				if imgui.Button("Cho",30,20) then
+					if show_Chocks then
+						command_once("CL650/hand_signals/chocks_in")
+						show_Chocks = false -- replace XP chocks by Hot Start chocks
 						Chocks_chg = true
+						if IsXPlane1220 and UseXplane1220Chocks then
+							command_once("sim/flight_controls/remove_chocks")
+						end
+					else
+						command_once("CL650/hand_signals/chocks_out")
 					end
-				else
-					set("B742/INT_PA/set_gear_chokes",0)
+				end
+				--~ imgui.SetWindowFontScale(1)
+				imgui.PopStyleColor(2)
+				if imgui.IsItemHovered() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("CL650 chocks.\nIf SGES chocks are already on, this will replace them by Hot Start ones.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
 			end
-			--~ imgui.SetWindowFontScale(1)
-			imgui.PopStyleColor(2)
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Felis B742 chocks.\nIf SGES chocks are already on, this will replace them by Felis ones")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		elseif PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
-			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			--~ imgui.SetWindowFontScale(0.9)
-			if imgui.Button("Cho",30,20) then
-				if show_Chocks then
-					command_once("CL650/hand_signals/chocks_in")
-					show_Chocks = false -- replace XP chocks by Hot Start chocks
-					Chocks_chg = true
-					if IsXPlane1220 and UseXplane1220Chocks then
-						command_once("sim/flight_controls/remove_chocks")
-					end
-				else
-					command_once("CL650/hand_signals/chocks_out")
+
+
+		  --~ imgui.SameLine() -- added april 2021
+			if sges_gs_gnd_spd[0] < 30 and math.abs(BeltLoaderFwdPosition) < 6 and (sges_military == 1 or sges_military_default == 1)  then
+				l_changed, l_newval = imgui.Checkbox(" Handler", show_Ponev)
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("If on a flight deck, shows an aircraft Handling Officer.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+				if l_changed then
+					show_Ponev = l_newval
+					Ponev_chg = true
 				end
 			end
-			--~ imgui.SetWindowFontScale(1)
-			imgui.PopStyleColor(2)
-			if imgui.IsItemHovered() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("CL650 chocks.\nIf SGES chocks are already on, this will replace them by Hot Start ones.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
 
 
-	  --~ imgui.SameLine() -- added april 2021
-		if sges_gs_gnd_spd[0] < 30 and math.abs(BeltLoaderFwdPosition) < 6 and (sges_military == 1 or sges_military_default == 1)  then
-			l_changed, l_newval = imgui.Checkbox(" Handler", show_Ponev)
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("If on a flight deck, shows an aircraft Handling Officer.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-			if l_changed then
-				show_Ponev = l_newval
-				Ponev_chg = true
-			end
-		end
-
-
-	  --~ imgui.SameLine() -- added april 2021
-	  if show_TargetSelfPushback == false or show_PB then
-		  l_changed, l_newval = imgui.Checkbox(" PB", show_PB)
-			  if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Here's a nice & simple Push-back. You must turn OFF the Parking Brake to be able to move. See the dedicated manual for more.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		  if l_changed then
-			show_Chocks = false
-			Chocks_chg = true
-			if IsToLiSs then -- remove ToLiss chocks
-				set("AirbusFBW/Chocks",0)
-			end
-			show_PB = l_newval
-			Go_PB = l_newval
-			if Go_PB then pushback_manual = false
-			else pushback_manual = true force_factor_forced = -0.02 end
-			PB_chg = true
-
-
-			if not IsXPlane12 then
-				if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
-			end
-
-			if show_PB == false then
-				set("sim/flightmodel/position/Rrad",0)
-				math.randomseed(os.time()) -- this is for the decision to quit left or right in the departing animation -- IAS24
-				randomView = math.random()  -- this is for the decision to quit left or right in the departing animation -- IAS24
-			end
-			--~ show_Light = l_newval
-			--~ Light_chg = true
-		  end
-		  if show_PB then
-			  imgui.SameLine() -- added april 2021
-			  l_changed, l_newval = imgui.Checkbox("Go", Go_PB)
+		  --~ imgui.SameLine() -- added april 2021
+		  if show_TargetSelfPushback == false or show_PB then
+			  l_changed, l_newval = imgui.Checkbox(" PB", show_PB)
 				  if imgui.IsItemActive() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
 					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("If 'GO', then as soon as the parking brake is released, the push-back is pushing you backward. Otherwise you control it manually with the joystick.")
+					imgui.TextUnformatted("Here's a nice & simple Push-back. You must turn OFF the Parking Brake to be able to move. See the dedicated manual for more.")
 					imgui.PopStyleColor()
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
 			  if l_changed then
+				show_Chocks = false
+				Chocks_chg = true
+				if IsToLiSs then -- remove ToLiss chocks
+					set("AirbusFBW/Chocks",0)
+				end
+				show_PB = l_newval
 				Go_PB = l_newval
 				if Go_PB then pushback_manual = false
 				else pushback_manual = true force_factor_forced = -0.02 end
+				PB_chg = true
+
+
+				if not IsXPlane12 then
+					if SGES_sound and l_newval == true then	play_sound(Engine_sound) elseif SGES_sound and l_newval == false and show_Bus == false and show_Cart == false and show_GPU == false and show_FireVehicle == false and show_Deice == false and show_PB == false and show_FUEL == false and show_ASU == false then stop_sound(Engine_sound) end
+				end
+
+				if show_PB == false then
+					set("sim/flightmodel/position/Rrad",0)
+					math.randomseed(os.time()) -- this is for the decision to quit left or right in the departing animation -- IAS24
+					randomView = math.random()  -- this is for the decision to quit left or right in the departing animation -- IAS24
+				end
+				--~ show_Light = l_newval
+				--~ Light_chg = true
 			  end
-		   elseif sges_gs_gnd_spd[0] < 20 and BeltLoaderFwdPosition < 5 and (sges_military == 1 or sges_military_default == 1) then -- speed is 15 when on the XP12 carrier
-				imgui.SameLine()
-				  if imgui.Button("Push",35,17) then
-							if SGES_pushTurn_ratio == nil then SGES_pushTurn_ratio = 0 end -- TEMPO, dataref is loaded in the subscript for pushback
-							set("sim/flightmodel/position/Rrad",-SGES_pushTurn_ratio/2) -- change the heading before applying coordinates translations
-							coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], 0, -1, sges_gs_plane_head[0])
-							set("sim/flightmodel/position/local_x",g_shifted_x)
-							set("sim/flightmodel/position/local_z",g_shifted_z)
+			  if show_PB then
+				  imgui.SameLine() -- added april 2021
+				  l_changed, l_newval = imgui.Checkbox("Go", Go_PB)
+					  if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("If 'GO', then as soon as the parking brake is released, the push-back is pushing you backward. Otherwise you control it manually with the joystick.")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+				  if l_changed then
+					Go_PB = l_newval
+					if Go_PB then pushback_manual = false
+					else pushback_manual = true force_factor_forced = -0.02 end
 				  end
+			   elseif sges_gs_gnd_spd[0] < 20 and BeltLoaderFwdPosition < 5 and (sges_military == 1 or sges_military_default == 1) then -- speed is 15 when on the XP12 carrier
+					imgui.SameLine()
+					  if imgui.Button("Push",35,17) then
+								if SGES_pushTurn_ratio == nil then SGES_pushTurn_ratio = 0 end -- TEMPO, dataref is loaded in the subscript for pushback
+								set("sim/flightmodel/position/Rrad",-SGES_pushTurn_ratio/2) -- change the heading before applying coordinates translations
+								coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], 0, -1, sges_gs_plane_head[0])
+								set("sim/flightmodel/position/local_x",g_shifted_x)
+								set("sim/flightmodel/position/local_z",g_shifted_z)
+					  end
+						 if imgui.IsItemActive() then
+							-- Click & hold tooltip
+							imgui.BeginTooltip()
+							-- This function configures the wrapping inside the toolbox and thereby its width
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+							imgui.TextUnformatted("A single push backward, usefull for aircraft carrier operations. You can rotate with the joystick.")
+							imgui.PopStyleColor()
+							-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+							imgui.PopTextWrapPos()
+							imgui.EndTooltip()
+						end
+
+			   end
+
+
+			if show_PB and Go_PB then
+				imgui.SameLine()
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
+				if  imgui.SmallButton("f")  then
+					if adjust_Strength == false then
+						adjust_Strength = true
+					else
+						adjust_Strength = false
+					end
+				end
+
+				imgui.PopStyleColor()
+				if show_PB and adjust_Strength then
+					 local changed, newVal7 = imgui.SliderFloat("PB", force_factor_forced, 0.03, -0.1, "- Force +")
+					if changed then
+						force_factor_forced = newVal7
+					end
 					 if imgui.IsItemActive() then
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
 						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-						imgui.TextUnformatted("A single push backward, usefull for aircraft carrier operations. You can rotate with the joystick.")
+						imgui.TextUnformatted("If the tug cannot push you, increase the force. Otherwise, please keep the cursor aligned with the reference.")
 						imgui.PopStyleColor()
+						--~ imgui.TextUnformatted("Otherwise, please keep the cursor aligned with the reference.")
 						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 						imgui.PopTextWrapPos()
 						imgui.EndTooltip()
 					end
+					imgui.PushStyleColor(imgui.constant.Col.Text,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
+					imgui.PushStyleColor(imgui.constant.Col.SliderGrab,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
+					imgui.PushStyleColor(imgui.constant.Col.SliderGrabActive,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
+					imgui.PushStyleColor(imgui.constant.Col.FrameBg,  0xFF444444)
+					imgui.PushStyleColor(imgui.constant.Col.FrameBgHovered,  0xFF444444)
+					imgui.PushStyleColor(imgui.constant.Col.FrameBgActive,  0xFF444444)
+					local slider_text = "| | | | | | |"
+					if SGES_override_engine_forces == 0 then slider_text = "Override OFF " end
 
-		   end
-
-
-		if show_PB and Go_PB then
-			imgui.SameLine()
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
-		    if  imgui.SmallButton("f")  then
-				if adjust_Strength == false then
-					adjust_Strength = true
-				else
-					adjust_Strength = false
+					imgui.PushStyleVar(imgui.constant.Col.Text, 0.75)
+					local changed, _ = imgui.SliderFloat("Ref", -0.02, 0.03, -0.1, slider_text)
+					imgui.PopStyleVar()
+					if changed then
+						force_factor_forced = -0.02
+					end
+					imgui.PopStyleColor(6)
 				end
+
 			end
 
-			imgui.PopStyleColor()
-			if show_PB and adjust_Strength then
-				 local changed, newVal7 = imgui.SliderFloat("PB", force_factor_forced, 0.03, -0.1, "- Force +")
-				if changed then
-					force_factor_forced = newVal7
+			--elseif show_TargetSelfPushback then
+
+				--imgui.TextUnformatted("")
+			end
+
+
+			-- SELF PUSHBACK COMMAND
+
+
+			if show_TargetSelfPushback and show_PB == false and SGES_parkbrake < 1 then
+			  --imgui.SameLine() -- added april 2021
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+			  if  imgui.Button("Start PB",70,18)  then
+				show_Chocks = false
+				Chocks_chg = true
+				if IsToLiSs then -- remove ToLiss chocks
+					set("AirbusFBW/Chocks",0)
+				end
+				show_PB = true
+				Go_PB = true
+				pushback_manual = false
+				SGES_startPB_time = os.time()
+				PB_chg = true
+				final_heading = false
+
+				-- clean also other vehicles :
+
+
+				if SGES_sound then
+					play_sound(Starting_PB_sound)
+				end
+				show_Bus = false
+				Bus_chg = true
+				show_FireVehicle = false
+				FireVehicle_chg = true
+				if PLANE_ICAO == string.match(PLANE_ICAO,"CRJ") then command_once("crj700/tablet/menu/settings/hot_external_power_command")
+				elseif IsToLiss == false then
+					show_GPU = false
+					GPU_chg = true
+				end
+				show_RearBeltLoader = false
+				RearBeltLoader_chg = true
+				show_FUEL = false
+				FUEL_chg = true
+				show_Cleaning = false
+				Cleaning_chg = true
+				show_PRM = false
+				PRM_chg = true
+				show_Forklift = false
+				Forklift_chg = true
+				show_BeltLoader = false
+				BeltLoader_chg = true
+				show_Cart = false
+				Cart_chg = true
+				show_ULDLoader = false
+				ULDLoader_chg = true
+				show_Stairs = false
+				Stairs_chg = true
+				show_StairsH = false
+				StairsH_chg = true
+				show_Catering = false
+				Catering_chg = true
+				show_Cones = false
+				Cones_chg = true
+				show_Pax = false
+				Pax_chg = true
+				--~ show_People1 = false
+				--~ People1_chg = true
+				show_People2 = false
+				People2_chg = true
+				show_People3 = false
+				People3_chg = true
+				show_People4 = false
+				People4_chg = true
+				show_Deice = false
+				Deice_chg = true
+				show_Light = false
+				Light_chg = true
+				show_StairsXPJ = false
+				StairsXPJ_chg = true
+				show_StairsXPJ2 = false
+				StairsXPJ2_chg = true
+				show_StairsXPJ3 = false --IAS24
+				StairsXPJ3_chg = true --IAS24
+				show_ASU = false
+				show_ACU = false
+				ASU_chg = true
+				show_Baggage = false
+				Baggage_chg = true
+
+				--ensure aim is ok :
+				show_TargetSelfPushback = true
+				TargetSelfPushback_chg = true
+				end
+				imgui.PopStyleColor()
+			end
+
+		  -- SELF PUSHBACK COMMAND
+
+
+			if show_PB == false and SGES_parkbrake > 0.8 and (math.abs(BeltLoaderFwdPosition) >= 5 or string.match(PLANE_ICAO,"AT") or string.match(PLANE_ICAO,"B4") or string.match(PLANE_ICAO,"RJ")) and IsXPlane12 then
+			--if show_PB == false and SGES_parkbrake > 0.8 and IsXPlane12 then -- LINE FOR TESTS ONLY
+				if show_PB == false and show_TargetSelfPushback == true then imgui.Checkbox(" PB", false) end
+				imgui.SameLine()
+				l_changed, l_newval = imgui.Checkbox("Aim", show_TargetSelfPushback)
+				if l_changed then
+					show_TargetSelfPushback = l_newval
+					TargetSelfPushback_chg = true
+					pushback_manual = false
+					service_object_physicsTargetSelfPushback(SPB_distance,SPB_orientation)
+					if l_newval then -- allow to see the pushback marker behind the aircraft
+						--~ local psi=get("sim/cockpit/misc/compass_indicated")+180
+						--~ -- correct negative or more than 360 degrees values :
+						--~ if psi > 360 then
+							--~ psi = psi - 360
+						--~ end
+						--~ if psi < 0 then
+							--~ psi = psi + 360
+						--~ end
+						set("sim/graphics/view/pilots_head_psi",180)--+get("sim/flightmodel/position/magnetic_variation"))
+						set("sim/graphics/view/pilots_head_the",-70)  -- pitch
+						set("sim/graphics/view/pilots_head_phi",0) -- roll
+						set("sim/graphics/view/pilots_head_y",150) -- altitude
+						--command_once("sim/view/free_camera")
+					end
 				end
 				 if imgui.IsItemActive() then
 					-- Click & hold tooltip
@@ -15680,175 +15865,16 @@ function SGES_script()
 					-- This function configures the wrapping inside the toolbox and thereby its width
 					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("If the tug cannot push you, increase the force. Otherwise, please keep the cursor aligned with the reference.")
+					imgui.TextUnformatted("1/ Aim at your desired position at the end of the pushback with parking brake set. 2/ Release the parking brake to continue. 3/ Click on 'Start PB'. 4/ Wait for the pushback to complete. Note : to pause the pushback at any time, set the parking brake.")
 					imgui.PopStyleColor()
-					--~ imgui.TextUnformatted("Otherwise, please keep the cursor aligned with the reference.")
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
 					imgui.EndTooltip()
 				end
-				imgui.PushStyleColor(imgui.constant.Col.Text,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
-				imgui.PushStyleColor(imgui.constant.Col.SliderGrab,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
-				imgui.PushStyleColor(imgui.constant.Col.SliderGrabActive,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
-				imgui.PushStyleColor(imgui.constant.Col.FrameBg,  0xFF444444)
-				imgui.PushStyleColor(imgui.constant.Col.FrameBgHovered,  0xFF444444)
-				imgui.PushStyleColor(imgui.constant.Col.FrameBgActive,  0xFF444444)
-				local slider_text = "| | | | | | |"
-				if SGES_override_engine_forces == 0 then slider_text = "Override OFF " end
-
-				imgui.PushStyleVar(imgui.constant.Col.Text, 0.75)
-				local changed, _ = imgui.SliderFloat("Ref", -0.02, 0.03, -0.1, slider_text)
-				imgui.PopStyleVar()
-				if changed then
-					force_factor_forced = -0.02
-				end
-				imgui.PopStyleColor(6)
 			end
+		imgui.Columns(1)
+	end -- ATIS_window_requested
 
-		end
-
-		--elseif show_TargetSelfPushback then
-
-			--imgui.TextUnformatted("")
-		end
-
-
-		-- SELF PUSHBACK COMMAND
-
-
-		if show_TargetSelfPushback and show_PB == false and SGES_parkbrake < 1 then
-		  --imgui.SameLine() -- added april 2021
-			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-		  if  imgui.Button("Start PB",70,18)  then
-			show_Chocks = false
-			Chocks_chg = true
-			if IsToLiSs then -- remove ToLiss chocks
-				set("AirbusFBW/Chocks",0)
-			end
-			show_PB = true
-			Go_PB = true
-			pushback_manual = false
-			SGES_startPB_time = os.time()
-			PB_chg = true
-			final_heading = false
-
-			-- clean also other vehicles :
-
-
-			if SGES_sound then
-				play_sound(Starting_PB_sound)
-			end
-			show_Bus = false
-			Bus_chg = true
-			show_FireVehicle = false
-			FireVehicle_chg = true
-			if PLANE_ICAO == string.match(PLANE_ICAO,"CRJ") then command_once("crj700/tablet/menu/settings/hot_external_power_command")
-			elseif IsToLiss == false then
-				show_GPU = false
-				GPU_chg = true
-			end
-			show_RearBeltLoader = false
-			RearBeltLoader_chg = true
-			show_FUEL = false
-			FUEL_chg = true
-			show_Cleaning = false
-			Cleaning_chg = true
-			show_PRM = false
-			PRM_chg = true
-			show_Forklift = false
-			Forklift_chg = true
-			show_BeltLoader = false
-			BeltLoader_chg = true
-			show_Cart = false
-			Cart_chg = true
-			show_ULDLoader = false
-			ULDLoader_chg = true
-			show_Stairs = false
-			Stairs_chg = true
-			show_StairsH = false
-			StairsH_chg = true
-			show_Catering = false
-			Catering_chg = true
-			show_Cones = false
-			Cones_chg = true
-			show_Pax = false
-			Pax_chg = true
-			--~ show_People1 = false
-			--~ People1_chg = true
-			show_People2 = false
-			People2_chg = true
-			show_People3 = false
-			People3_chg = true
-			show_People4 = false
-			People4_chg = true
-			show_Deice = false
-			Deice_chg = true
-			show_Light = false
-			Light_chg = true
-			show_StairsXPJ = false
-			StairsXPJ_chg = true
-			show_StairsXPJ2 = false
-			StairsXPJ2_chg = true
-			show_StairsXPJ3 = false --IAS24
-			StairsXPJ3_chg = true --IAS24
-			show_ASU = false
-			show_ACU = false
-			ASU_chg = true
-			show_Baggage = false
-			Baggage_chg = true
-
-			--ensure aim is ok :
-			show_TargetSelfPushback = true
-			TargetSelfPushback_chg = true
-			end
-			imgui.PopStyleColor()
-		end
-
-	  -- SELF PUSHBACK COMMAND
-
-
-		if show_PB == false and SGES_parkbrake > 0.8 and (math.abs(BeltLoaderFwdPosition) >= 5 or string.match(PLANE_ICAO,"AT") or string.match(PLANE_ICAO,"B4") or string.match(PLANE_ICAO,"RJ")) and IsXPlane12 then
-		--if show_PB == false and SGES_parkbrake > 0.8 and IsXPlane12 then -- LINE FOR TESTS ONLY
-			if show_PB == false and show_TargetSelfPushback == true then imgui.Checkbox(" PB", false) end
-			imgui.SameLine()
-			l_changed, l_newval = imgui.Checkbox("Aim", show_TargetSelfPushback)
-			if l_changed then
-				show_TargetSelfPushback = l_newval
-				TargetSelfPushback_chg = true
-				pushback_manual = false
-				service_object_physicsTargetSelfPushback(SPB_distance,SPB_orientation)
-				if l_newval then -- allow to see the pushback marker behind the aircraft
-					--~ local psi=get("sim/cockpit/misc/compass_indicated")+180
-					--~ -- correct negative or more than 360 degrees values :
-					--~ if psi > 360 then
-						--~ psi = psi - 360
-					--~ end
-					--~ if psi < 0 then
-						--~ psi = psi + 360
-					--~ end
-					set("sim/graphics/view/pilots_head_psi",180)--+get("sim/flightmodel/position/magnetic_variation"))
-					set("sim/graphics/view/pilots_head_the",-70)  -- pitch
-					set("sim/graphics/view/pilots_head_phi",0) -- roll
-					set("sim/graphics/view/pilots_head_y",150) -- altitude
-					--command_once("sim/view/free_camera")
-				end
-			end
-			 if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("1/ Aim at your desired position at the end of the pushback with parking brake set. 2/ Release the parking brake to continue. 3/ Click on 'Start PB'. 4/ Wait for the pushback to complete. Note : to pause the pushback at any time, set the parking brake.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
-		end
-
-
-	imgui.Columns(1)
 	--------------------------------------------------------------------------------
 
 
@@ -17416,45 +17442,9 @@ function SGES_script()
 			if not show_ArrestorSystem and not adjust_Strength then
 				imgui.Separator()
 
-				if sges_airport_ID ~= nil then
-					--~ if  imgui.Button(sges_airport_ID,35,20)  then
-					imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
-					if  imgui.Button("WT",20,20)  then
-						-- actualize the curr position
-						local weather_x,weather_z,_ = local_to_latlon(sges_gs_plane_x[0],0,sges_gs_plane_z[0])
-						open_that_sges_url("https://earth.nullschool.net/fr/#current/wind/isobaric/1000hPa/overlay=precip_3hr/equirectangular/loc=" .. weather_z .. "," .. weather_x)
-						--~ open_that_sges_url("https://aviationweather.gov/gfa/?tab=obs&center=" .. weather_x .. "," .. weather_z .. "&zoom=6&pop=yes&tab=obs")
-						--~ open_that_sges_url("http://skyvector.com/?ll=" .. weather_x .. "," .. weather_z .. "&chart=304&zoom=3")
-						_,sges_airport_ID = sges_nearest_airport_type(sges_big_airport,sges_current_time,"ZZZZ") -- force search with ZZZZ
-						--~ if sges_airport_ID ~= nil and not string.find(sges_airport_ID,"X") == 1 then
-							if aviationweather_source_us then
-								open_that_sges_url("https://aviationweather.gov/data/metar/?ids=" .. sges_airport_ID .. "&taf=1")
-							elseif aviationweather_source_eu then
-								open_that_sges_url("https://api.met.no/weatherapi/tafmetar/1.0/tafmetar.txt?icao=" .. sges_airport_ID)
-							elseif aviationweather_source_es then
-								open_that_sges_url("https://www.ogimet.com/display_metars2.php?lang=en&tipo=ALL&ord=REV&nil=SI&fmt=txt&nil=NO&lugar=" .. sges_airport_ID)
-							end
-						--~ end
-					end
-					imgui.PopStyleVar()
-					if imgui.IsItemActive() then
-						-- Click & hold tooltip
-						imgui.BeginTooltip()
-						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-						imgui.TextUnformatted("Request weather at nearest airport.")
-						imgui.PopStyleColor()
-						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-						imgui.PopTextWrapPos()
-						imgui.EndTooltip()
-					end
-					imgui.SameLine()
-				end
-
 				if XPLMFindDataRef("bp/connected") ~= nil then -- when the plugin is here, offer a button to it.
 				--~ imgui.SameLine()
-				if  imgui.Button("BPB",38,20)  then
+				if  imgui.Button("BPB",35,20)  then
 					command_once("BetterPushback/start")
 
 					show_Chocks = false
@@ -17504,7 +17494,7 @@ function SGES_script()
 
 
 			if XPLMFindDataRef("bp/connected") ~= nil then imgui.SameLine() end
-			if  imgui.Button("Jetway",54,20)  then
+			if  imgui.Button("Jetway",50,20)  then
 				command_once("sim/ground_ops/jetway")
 				show_StairsXPJ = false
 				StairsXPJ_chg = true
@@ -19419,8 +19409,9 @@ function SGES_script()
 
 				imgui.PushStyleColor(imgui.constant.Col.CheckMark,  imgui.ColorConvertFloat4ToU32(0.690, 0.565, 0.0, 1.0))
 				imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 12)
+				imgui.TextUnformatted("METAR website is in ")
 				imgui.Bullet()   imgui.SameLine()
-				l_changed, l_newval = imgui.Checkbox(" METAR source is in the USA", aviationweather_source_us)
+				l_changed, l_newval = imgui.Checkbox(" the USA", aviationweather_source_us)
 				if l_changed then
 					aviationweather_source_us = l_newval
 					aviationweather_source_eu = not l_newval
@@ -19428,7 +19419,7 @@ function SGES_script()
 					Buttonstring = "Save the changes"
 				end
 				imgui.Bullet()   imgui.SameLine()
-				l_changed, l_newval = imgui.Checkbox(" METAR source is in Norway", aviationweather_source_eu)
+				l_changed, l_newval = imgui.Checkbox(" Norway", aviationweather_source_eu)
 				if l_changed then
 					aviationweather_source_eu = l_newval
 					aviationweather_source_us = not l_newval
@@ -19445,7 +19436,7 @@ function SGES_script()
 					imgui.EndTooltip()
 				end
 				imgui.Bullet()   imgui.SameLine()
-				l_changed, l_newval = imgui.Checkbox(" METAR source is in Spain", aviationweather_source_es)
+				l_changed, l_newval = imgui.Checkbox(" Spain", aviationweather_source_es)
 				if l_changed then
 					aviationweather_source_es = l_newval
 					aviationweather_source_us = not l_newval
@@ -19787,6 +19778,151 @@ function SGES_script()
 
 			end
 
+			-------------------------------------------------- ------------------ --------------------------
+			-------------------------------------------------- ------------------ --------------------------
+				if ATIS_window_requested == nil then ATIS_window_requested = false end
+				if ATIS_window_requested then
+				imgui.Separator()
+
+
+
+					imgui.TextUnformatted("www.hoppie.nl © Hoppenbrouwers")
+
+					-- Variable persistante
+					if hoppie_logon == nil or not hoppie_logon then hoppie_logon = "" end
+					if SGES_hoppie_logon ~= nil and SGES_hoppie_logon ~= "" then
+						hoppie_logon = SGES_hoppie_logon -- Hoppie logon code
+					end
+
+					-- Champ texte masqué
+					local changed, new_logon = imgui.InputText(
+						"Logon",
+						hoppie_logon,
+						32,
+						imgui.constant.InputTextFlags.Password
+					)
+
+					if changed then
+						hoppie_logon = new_logon
+						TL_hoppie_logon = hoppie_logon -- save that in the persistent options
+						-- print("Logon modifié :", hoppie_logon)  -- debug si besoin
+					end
+
+
+					if hop_netw_index_NEW == nil then hop_netw_index_NEW = 1 end
+
+				--~ function draw_hoppie_atis_window()
+					--~ imgui.Begin("ATIS Hoppie")
+
+					-- Champ hop_icao
+					local changed, new_hop_icao = imgui.InputText("Airf.", hop_icao, 8)
+					if changed then hop_icao = new_hop_icao:upper() end
+					-- Choix position
+					changed, hop_netw_index = imgui.Combo("Src", hop_netw_index, table.concat(hop_networks, "\0"))
+					if changed then  hop_netw_index_NEW = hop_netw_index + 1 end
+						--~ inforeqnetwk = hop_networks[hop_netw_index]
+
+					if hop_netw_index_NEW ~= nil and hop_networks[hop_netw_index_NEW] == "ivaoatis" then
+						changed, hop_pos_index = imgui.Combo("Pos", hop_pos_index, table.concat(hop_positions, "\0"))
+						if changed then hop_pos_index_NEW = hop_pos_index + 1 end
+					end
+					-- special FF777v2 helper :
+					if string.find(PLANE_AUTHOR,"FlightFactor") and XPLMFindDataRef("1-sim/cduL/display/symbols") ~= nil and
+					FFcallsign ~= nil and FFcallsign ~= "" and not string.find(FFcallsign,"-----") then
+						imgui.Button(FFcallsign)
+						imgui.SameLine()
+						imgui.TextUnformatted("Check CDU FLT NO = EFB !")
+					elseif string.find(PLANE_AUTHOR,"FlightFactor") and XPLMFindDataRef("1-sim/cduL/display/symbols") ~= nil then
+						imgui.TextUnformatted("777 callsign: CDU-Left RTE FLT NO.")
+					end
+					---------------------------
+					if imgui.Button("Nearest") then
+						_, _, _, _, _, _, hop_icao, _ = XPLMGetNavAidInfo( XPLMFindNavAid( nil, nil, LATITUDE, LONGITUDE, nil, xplm_Nav_Airport) )
+					end
+					-- Bouton
+					imgui.SameLine()
+					if imgui.Button("Request ATIS") and hop_netw_index_NEW ~= nil then
+						inforeqnetwk = hop_networks[hop_netw_index_NEW]
+						--~ print(inforeqnetwk)
+						if hop_pos_index_NEW == nil then hop_pos_index_NEW = 1 end
+						local pos = hop_positions[hop_pos_index_NEW]
+						hop_atis_result = get_hoppie_atis_sges(hoppie_logon, inforeqnetwk, hop_icao, pos)
+						if string.find(PLANE_AUTHOR,"Gliding") or (string.find(PLANE_ICAO,"B77") and string.find(PLANE_AUTHOR,"FlightFactor")) then
+							sges_send_hoppie_acars(hop_icao,hop_atis_result)
+						end
+					end
+
+					imgui.SameLine()
+					if imgui.Button("METAR") then
+						taf_line = get_last_taf_line(hop_icao)
+						if string.find(PLANE_AUTHOR,"Gliding") or (string.find(PLANE_ICAO,"B77") and string.find(PLANE_AUTHOR,"FlightFactor")) then
+							if taf_line ~= "No data" then
+								sges_send_hoppie_acars(hop_icao,taf_line)
+							end
+						end
+					end
+
+					imgui.SameLine()
+					if sges_airport_ID ~= nil then
+						--~ if  imgui.Button(sges_airport_ID,35,20)  then
+						if  imgui.Button("WT",20,20)  then
+							-- actualize the curr position
+							local weather_x,weather_z,_ = local_to_latlon(sges_gs_plane_x[0],0,sges_gs_plane_z[0])
+							open_that_sges_url("https://earth.nullschool.net/fr/#current/wind/isobaric/1000hPa/overlay=precip_3hr/equirectangular/loc=" .. weather_z .. "," .. weather_x)
+							--~ open_that_sges_url("https://aviationweather.gov/gfa/?tab=obs&center=" .. weather_x .. "," .. weather_z .. "&zoom=6&pop=yes&tab=obs")
+							--~ open_that_sges_url("http://skyvector.com/?ll=" .. weather_x .. "," .. weather_z .. "&chart=304&zoom=3")
+							_,sges_airport_ID = sges_nearest_airport_type(sges_big_airport,sges_current_time,"ZZZZ") -- force search with ZZZZ
+							--~ if sges_airport_ID ~= nil and not string.find(sges_airport_ID,"X") == 1 then
+								if aviationweather_source_us then
+									open_that_sges_url("https://aviationweather.gov/data/metar/?ids=" .. sges_airport_ID .. "&taf=1")
+								elseif aviationweather_source_eu then
+									open_that_sges_url("https://api.met.no/weatherapi/tafmetar/1.0/tafmetar.txt?icao=" .. sges_airport_ID)
+								elseif aviationweather_source_es then
+									open_that_sges_url("https://www.ogimet.com/display_metars2.php?lang=en&tipo=ALL&ord=REV&nil=SI&fmt=txt&nil=NO&lugar=" .. sges_airport_ID)
+								end
+							--~ end
+						end
+						if imgui.IsItemActive() then
+							-- Click & hold tooltip
+							imgui.BeginTooltip()
+							-- This function configures the wrapping inside the toolbox and thereby its width
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+							imgui.TextUnformatted("Request weather at nearest airport.")
+							imgui.PopStyleColor()
+							-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+							imgui.PopTextWrapPos()
+							imgui.EndTooltip()
+						end
+					end
+
+
+					-- Affichage résultat
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 18)
+					if hop_atis_result ~= nil and hop_atis_result ~= "" then
+						imgui.PushStyleColor(imgui.constant.Col.Text,  imgui.ColorConvertFloat4ToU32(0.6, 0.9, 0.6, 1.0))
+						imgui.TextUnformatted(hop_atis_result)
+						imgui.PopStyleColor()
+					else
+						imgui.TextUnformatted("Requires 'curl' installed.")
+					end
+					if taf_line ~= nil and taf_line ~= "" then
+						imgui.PushStyleColor(imgui.constant.Col.Text,  imgui.ColorConvertFloat4ToU32(0.6, 0.9, 0.6, 1.0))
+						imgui.TextUnformatted("api.met.no : " .. taf_line)
+						imgui.PopStyleColor()
+					end
+					imgui.PopTextWrapPos()
+
+					--~ imgui.End()
+				--~ end
+
+				--~ do_every_frame("draw_hoppie_atis_window()")
+
+					imgui.TreePop()
+				end
+
+			-------------------------------------------------- ------------------ --------------------------
+			-------------------------------------------------- ------------------ --------------------------
 
 			-------------------------------------------------- aircraft specifics --------------------------
 			-- displayed in both XP11 and XP12 !
