@@ -186,7 +186,7 @@ function prepare_special_vehicles_for_aircraft()
 
 	-- /////////////////////////////////////////// --
 	--# BUSH Planes
-	if PLANE_ICAO == "KODI" or PLANE_ICAO == "DV20" or PLANE_ICAO == "C208" or PLANE_ICAO == "DH2T" or PLANE_ICAO == "DH3T" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8B" or PLANE_ICAO == "DC3" or PLANE_ICAO == "C47" or PLANE_ICAO == "PC6P" or string.match(PLANE_ICAO,"BN2") or PLANE_ICAO == "C337" or PLANE_ICAO == "PA18" or (PLANE_ICAO == "C172" and string.find(SGES_Author,"Thranda")) or string.match(AIRCRAFT_PATH, "Do228") or PLANE_ICAO == "D328" or AIRCRAFT_FILENAME == "AW109SP.acf" or PLANE_ICAO == "BE33" or PLANE_ICAO == "Alouette" or PLANE_ICAO == "AS350" or PLANE_ICAO == "EC30" then
+	if PLANE_ICAO == "KODI" or PLANE_ICAO == "DV20" or PLANE_ICAO == "C208" or PLANE_ICAO == "DH2T" or PLANE_ICAO == "DH3T" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8B" or PLANE_ICAO == "DC3" or PLANE_ICAO == "C47" or PLANE_ICAO == "PC6P" or string.match(PLANE_ICAO,"BN2") or PLANE_ICAO == "C337" or PLANE_ICAO == "PA18" or (PLANE_ICAO == "C172" and string.find(SGES_Author,"Thranda")) or string.match(AIRCRAFT_PATH, "Do228") or PLANE_ICAO == "D328" or AIRCRAFT_FILENAME == "AW109SP.acf" or PLANE_ICAO == "BE33" or PLANE_ICAO == "Alouette" or PLANE_ICAO == "AS350" or PLANE_ICAO == "EC30" or (PLANE_ICAO == "BE35"  and string.find(SGES_Author,"Thranda") ) then
 		SGES_BushMode = true
 	else
 		SGES_BushMode = false

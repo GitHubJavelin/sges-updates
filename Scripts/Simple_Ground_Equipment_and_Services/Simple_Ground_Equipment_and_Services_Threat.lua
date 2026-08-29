@@ -750,17 +750,18 @@ end
 
 IndustrialFire_ref = ffi.new("char *[7]")
 function load_TargetFire(i)
-	if IndustrialFire_instance[i] == nil and i-21 > 0 then
+	if IndustrialFire_instance[i] == nil and i-21 >= 0 then
+	--~ , in Simple_Ground_Equipment_and_Services_Threat.lua line 753, the condition i-21 > 0 should be i-21 >= 0. This causes smoke to never load when weapon index is 0 which is the most common case. (so says pauloalt on June 2026)
 		Sam_button_text = "Destroyed"
 		print("[Ground Equipment " .. version_text_SGES .. "] Loading the fire instance #" .. i .. " because the weapon " .. i-21 .. " has reached a target.")
-		local industrial_fire_sges = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/FlameGround.obj"
+		local industrial_fire_sges = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/FlameGround.obj"
 		if IsXPlane12 then
 			math.randomseed(os.time())
 			randomWord = math.random()
 			if randomWord >= 0.25 then
-				industrial_fire_sges = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/FlameGround_XP12.obj"
+				industrial_fire_sges = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/FlameGround_XP12.obj"
 			else
-				industrial_fire_sges = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/FlameGround_XP12_extended.obj"
+				industrial_fire_sges = SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/FlameGround_XP12_extended.obj"
 			end
 		end
 		XPLM.XPLMLoadObjectAsync(industrial_fire_sges,

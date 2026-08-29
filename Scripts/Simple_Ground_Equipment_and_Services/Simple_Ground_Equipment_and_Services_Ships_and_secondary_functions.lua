@@ -930,6 +930,212 @@ end
 create_command("Simple_Ground_Equipment_and_Services/Ejection_seat/eject", "Eject (press three times to confirm ejection)", "eject_confirm()", "", "")
 
 
+--########################################
+--# HOPPIE IVAO ATIS FUNCTIONS           #
+--########################################
+
+function set_hoppie_atis_sges()
+	if hop_icao == nil then
+		print("[Ground Equipment " .. version_text_SGES .. "] HOPPIE ACARS initial setup")
+		hop_icao = "LFMN"
+		if NearestAirport ~= nil then
+			hop_icao = NearestAirport
+		else
+			_, _, _, _, _, _, hop_icao, _ = XPLMGetNavAidInfo(XPLMFindNavAid( nil, nil, LATITUDE, LONGITUDE, nil, xplm_Nav_Airport))
+		end
+		hop_pos_index = 0
+		hop_positions = {"TWR", "APP", "DEP","DEL", "GND", "CTR", "N_CTR", "S_CTR", "E_CTR", "W_CTR", "NE_CTR", "NW_CTR", "SE_CTR", "SW_CTR"}
+		hop_netw_index = 0
+		hop_networks = {"ivaoatis", "vatatis", "peatis"}
+		if SGES_hoppie_logon ~= nil then
+			hoppie_logon = SGES_hoppie_logon -- Hoppie logon code
+		--~ elseif TL_hoppie_logon ~= nil and TL_hoppie_logon ~= "" then
+			--~ hoppie_logon = TL_hoppie_logon -- Hoppie logon code from Speedy Copilot for ToLiss for initial setup! We can transfer it if we already ave it somewhere !
+			--~ SGES_hoppie_logon = hoppie_logon
+		end
+		hop_atis_result = "" -- Hoppie ATIS INIT
+	end
+end
+set_hoppie_atis_sges()
+
+function get_hoppie_atis_sges(hoppie_logon, netwrk, hop_icao, position)
+	if SGES_hoppie_logon == nil or (SGES_hoppie_logon ~= nil and hoppie_logon ~= SGES_hoppie_logon) then
+		SGES_hoppie_logon = hoppie_logon -- store that code to disk
+		WriteToDisk_SGES_USER_CONFIG()
+		print("[Ground Equipment " .. version_text_SGES .. "] HOPPIE ACARS LOGON CODE updated")
+	end
+
+	local zulud = os.date("!%H%MZ")
+	local cmd = string.format(
+		"curl -s 'https://www.hoppie.nl/acars/system/connect.html?logon=%s&from=S%s&to=SERVER&type=inforeq&packet=%s%%20%s'",
+		hoppie_logon, zulud, netwrk, hop_icao
+	)
+	local cmdB = string.format(
+		"curl -s 'https://www.hoppie.nl/acars/system/connect.html?logon=%s&from=S%s&to=SERVER&type=inforeq&packet=%s%%20%s-%s'",
+		hoppie_logon, zulud, netwrk, hop_icao, position
+	)
+	if netwrk ~= nil and netwrk == "ivaoatis" then
+		cmd = cmdB
+	end
+	--~ print("[Ground Equipment " .. version_text_SGES .. "]  curl -s 'https://www.hoppie.nl/acars/ (...) " .. string.sub(cmd, -30))
+	local handle = io.popen(cmd)
+	local result = string.sub(string.sub(handle:read("*a"), 17),1, -3)
+	handle:close()
+	--~ print("[Ground Equipment " .. version_text_SGES .. "]  " .. result)
+	return result
+end
+
+taf_line = ""
+function get_last_taf_line(hop_icao)
+    local url = string.format(
+        "https://api.met.no/weatherapi/tafmetar/1.0/tafmetar.txt?icao=%s",
+        hop_icao
+    )
+
+    local cmd = string.format("curl -s '%s'", url)
+    local handle = io.popen(cmd)
+    if not handle then return "ERR: no curl" end
+
+    local data = handle:read("*a")
+    handle:close()
+
+    -- extraire la dernière ligne non vide
+    local last = nil
+    for line in data:gmatch("[^\r\n]+") do
+        if line:match("%S") then
+            last = line
+        end
+    end
+
+    return last or "No data"
+end
+if string.find(PLANE_AUTHOR,"Gliding") or (string.find(PLANE_ICAO,"B77") and string.find(PLANE_AUTHOR,"FlightFactor")) then
+	function FlightFactor777_callsign_searchdog()
+		if cduLdisplaysymbols == nil then dataref("cduLdisplaysymbols","1-sim/cduL/display/symbols","readonly") end
+		if string.find(cduLdisplaysymbols,"FLT NO") then
+		      --~ RTE 1         1/2  ORIGIN             DESTLPPD                LFMN RUNWAY           FLT NO-----                KLM123 ROUTE
+		      -- we need to extract "KLM123" from this string
+			FFcallsign = string.match(cduLdisplaysymbols, "(%S+)%s+ROUTE")
+			-----
+			if not string.find(FFcallsign,"-----") then
+			end
+		end
+	end
+	if string.find(PLANE_AUTHOR,"FlightFactor") and XPLMFindDataRef("1-sim/cduL/display/symbols") ~= nil then
+		do_often("FlightFactor777_callsign_searchdog()")
+	end
+
+	--~ local function wrap_text(s, width)
+		--~ width = width or 60
+		--~ return (s:gsub("(%S[%S ]-)%s*$", function(chunk)
+			--~ local out = {}
+			--~ for line in chunk:gmatch(".{" .. width .. "}") do
+				--~ out[#out+1] = line
+			--~ end
+			--~ local rest = chunk:sub(#table.concat(out) + 1)
+			--~ if #rest > 0 then out[#out+1] = rest end
+			--~ return table.concat(out, "\n")
+		--~ end))
+	--~ end
+
+
+	function sges_send_hoppie_acars(orig,message,destination)
+		-- ORIGINAL CODE IDEA : RackhamRPL, with authorisation
+		--~ print("[Ground Equipment " .. version_text_SGES .. "] Trying to send the information via HOPPIE ACARS")
+		if hoppie_logon == "" then
+			xpjavelin_acars_status_msg   = "Hoppie: no logon configured"
+			print("[Ground Equipment " .. version_text_SGES .. "] Didn't sent the information. " .. xpjavelin_acars_status_msg)
+			return
+		end
+		local callsign = "TEST"
+		-- Let's find the current user callsign, for self sending data
+		-- ToLiss if using a dataref :
+		if string.find(PLANE_AUTHOR,"Gliding") and XPLMFindDataRef("toliss_airbus/init/flight_no") ~= nil then
+			callsign = get("toliss_airbus/init/flight_no")
+		else
+			callsign = "none"
+		end
+		-- Flight Factor 777v2 if using a dataref :
+		if string.find(PLANE_AUTHOR,"FlightFactor") and XPLMFindDataRef("1-sim/cduL/display/symbols") ~= nil and FFcallsign ~= nil and FFcallsign ~= "" and not string.find(FFcallsign,"-----") then
+			print("[Ground Equipment " .. version_text_SGES .. "] For ACARS, used the CDU FLT NO " .. FFcallsign)
+			callsign = FFcallsign
+		end
+
+		-- Or overwrite when the destination is something else :
+		if destination ~= nil and destination ~= "" then
+			callsign = destination
+		end
+
+		if callsign == "" or callsign == "none" then
+			xpjavelin_acars_status_msg   = "Hoppie: no callsign"
+			print("[Ground Equipment " .. version_text_SGES .. "] Didn't sent the information via HOPPIE ACARS : " .. xpjavelin_acars_status_msg)
+			return
+		end
+
+		--~ local from        = callsign:sub(1, 3) .. "OPS"
+		local from        = "SERVER"
+		--~ if orig ~= "" then
+			--~ from = orig .. "_AUTO"
+		--~ end
+		local to          = callsign
+		local is_telex    = (slm_hoppie_msgtype == "telex")
+		local raw_content = message
+		--~ raw_content = "BE ADVISED .... THANKS."
+		--~ raw_content = wrap_text(raw_content, 40)
+		local packet, msg_type
+		if is_telex then
+			packet   = raw_content:gsub("@", ""):gsub("\n", "%%0A")
+			msg_type = "telex"
+		else
+			packet   = "/data2/313//NE/" .. raw_content:gsub("\n", "%%0A")
+			msg_type = "cpdlc"
+		end
+
+		local ok_http, http = pcall(require, "socket.http")
+		if not ok_http then
+			xpjavelin_acars_status_msg   = "Hoppie: socket.http unavailable"
+			slm_acars_status_time  = os.clock()
+			print("[Ground Equipment " .. version_text_SGES .. "] Didn't sent the information via HOPPIE ACARS : " .. xpjavelin_acars_status_msg)
+			return
+		end
+		local ok_ltn12, ltn12 = pcall(require, "ltn12")
+		if not ok_ltn12 then
+			xpjavelin_acars_status_msg   = "Hoppie: ltn12 unavailable"
+			print("[Ground Equipment " .. version_text_SGES .. "] Didn't sent the information via HOPPIE ACARS : " .. xpjavelin_acars_status_msg)
+			return
+		end
+
+		local payload = string.format("logon=%s&from=%s&to=%s&type=%s&packet=%s",
+			hoppie_logon, from, to, msg_type, packet)
+
+		--~ local payload_safe = string.format("logon=%s&from=%s&to=%s&type=%s&packet=%s",
+			--~ "LOGON", from, to, msg_type, packet)
+
+		--~ print("[Ground Equipment " .. version_text_SGES .. "] " .. payload_safe)
+
+		local response_chunks = {}
+		http.TIMEOUT = 5
+		local _, code = http.request{
+			url    = "https://www.hoppie.nl/acars/system/connect.html",
+			method = "POST",
+			headers = {
+				["Content-Type"]   = "application/x-www-form-urlencoded",
+				["Content-Length"] = tostring(#payload),
+			},
+			source = ltn12.source.string(payload),
+			sink   = ltn12.sink.table(response_chunks),
+		}
+		local body = table.concat(response_chunks)
+
+		if body and body:match("^ok") then
+			print("[Ground Equipment " .. version_text_SGES .. "] Sent the information via HOPPIE ACARS. OK !")
+		else
+			local reason = (body and body:match("^error (.+)") or tostring(code or "no response"))
+			print("[Ground Equipment " .. version_text_SGES .. "] Didn't sent the information via HOPPIE ACARS : " .. reason)
+		end
+	end
+--~ https://www.hoppie.nl/acars/system/callsign.html?network=IVAO&callsign=SERVER
+end
 
 --------------------------------------------------------------------------------
 

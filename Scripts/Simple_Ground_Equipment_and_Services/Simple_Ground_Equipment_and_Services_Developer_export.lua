@@ -106,6 +106,11 @@ function WriteToDisk_SGES_USER_CONFIG()
 	SGES_FileNameExport = SCRIPT_DIRECTORY .. "Simple_Ground_Equipment_and_Services/aircraft_optional_profiles/SGES_USER_CONFIG.lua"
 	file = io.open(SGES_FileNameExport, "w")
 	file:write("\n--USER OPTIONS if different than default value-----\n\n")
+
+	if SGES_hoppie_logon ~= nil then
+		file:write('SGES_hoppie_logon = "' .. SGES_hoppie_logon .. '"\n\n')
+	end
+
 	if aviationweather_source_us ~= nil and aviationweather_source_us and aviationweather_source_eu ~= nil and aviationweather_source_es ~= nil then -- default is Europe
 		file:write("\naviationweather_source_us = true")
 	    file:write("\naviationweather_source_eu = false")

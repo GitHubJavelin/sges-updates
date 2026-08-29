@@ -63,6 +63,8 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "A345" then BeltLoaderFwdPosition = 20.6   SecondStairsFwdPosition = 11.5      airstart_unit_factor = 19		custom_fuel_pump_finalX = -10.5  custom_fuel_pump_finalY = -0.5
     elseif PLANE_ICAO == "A346" then BeltLoaderFwdPosition = 28.5 	SecondStairsFwdPosition = 14.2		airstart_unit_factor = 22		BeltLoaderRearPosition = -17		custom_fuel_pump_finalX = -10.50  custom_fuel_pump_finalY = -0.5
     elseif PLANE_ICAO == "A306" then BeltLoaderFwdPosition = 14 	SecondStairsFwdPosition = -17.5	custom_fuel_pump_finalX = 13.50  custom_fuel_pump_finalY = -1
+    elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then
+			BeltLoaderFwdPosition = 11  	SecondStairsFwdPosition = -12.5	custom_fuel_pump_finalX = 13.50  custom_fuel_pump_finalY = -1
     elseif PLANE_ICAO == "A310" then BeltLoaderFwdPosition = 11  	SecondStairsFwdPosition = -12.5	custom_fuel_pump_finalX = 13.50  custom_fuel_pump_finalY = -1
     elseif PLANE_ICAO == "A3ST" then BeltLoaderFwdPosition = 17		custom_fuel_pump_finalX = 13.50  custom_fuel_pump_finalY = -1
     elseif PLANE_ICAO == "IL96" then BeltLoaderFwdPosition = 14  	SecondStairsFwdPosition = -11.0
@@ -124,9 +126,9 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "HAWK" then BeltLoaderFwdPosition = -2  sges_refuel_port_elev = 0
     elseif PLANE_ICAO == "M346" then  BeltLoaderFwdPosition = 2  sges_refuel_port_lateral = -0.6  sges_refuel_port_longitudinal = 17.8 sges_refuel_port_elev = 1
 
-	elseif PLANE_ICAO == "F35"   then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- F-35 Lightning II
-	elseif string.match(PLANE_ICAO, "F-35")   then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- AOA XP12 F-35 Lightning II
-	elseif PLANE_ICAO == "VF35"  then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- Variant of F-35
+	elseif PLANE_ICAO == "F35" and not string.find(SGES_Author,"Thranda")   then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- F-35 Lightning II
+	elseif string.match(PLANE_ICAO, "F-35")  and not string.find(SGES_Author,"Thranda") then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- AOA XP12 F-35 Lightning II
+	elseif PLANE_ICAO == "VF35"  and not string.find(SGES_Author,"Thranda")  then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- Variant of F-35
 	elseif PLANE_ICAO == "SU57"  then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- Sukhoi Su-57
 	elseif PLANE_ICAO == "J20"   then  BeltLoaderFwdPosition = 2  SecondStairsFwdPosition = -30 -- Chengdu J-20
     elseif PLANE_ICAO == "F15" then  BeltLoaderFwdPosition = -2 sges_refuel_port_lateral = 1.75 sges_refuel_port_longitudinal = 12  sges_refuel_port_elev = 0.1 -- sges_tank_to_refuel = 5
@@ -178,6 +180,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif string.match(PLANE_ICAO, "P28") then BeltLoaderFwdPosition = 1.7 -- All Piper 28 types
     elseif string.match(PLANE_ICAO, "BN2") then BeltLoaderFwdPosition = -5 -- All BN2 Islander types
     elseif PLANE_ICAO == "B350" then BeltLoaderFwdPosition = -4 -- Beechcraft King Air 350
+    elseif PLANE_ICAO == "BE35" then BeltLoaderFwdPosition = -3.7 custom_fuel_finalX = -7 custom_fuel_finalY = 7 custom_fuel_pump_finalX = -7 custom_fuel_pump_finalY = 7 SGES_mirror = 1 sges_ahr = 0 -- V35 Bonanza
     elseif PLANE_ICAO == "BE76" then BeltLoaderFwdPosition = -4 -- Beechcraft Duchess 76
     elseif PLANE_ICAO == "BE58" then BeltLoaderFwdPosition = -4 --  Laminar XP12 Beechcraft 58
     elseif PLANE_ICAO == "SR22" then BeltLoaderFwdPosition = -4 --  Laminar XP12 Cirrus SR22
@@ -266,6 +269,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "A319" then vertical_door_position = -2.05 deltaDoorX = 6.66
 	elseif PLANE_ICAO == "A318" then vertical_door_position = -1.9 deltaDoorX = 6.7
     elseif PLANE_ICAO == "A306" then vertical_door_position = -2.4 deltaDoorX = 7.9
+    elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then vertical_door_position = -2.4 deltaDoorX = 8
     elseif PLANE_ICAO == "A310" then vertical_door_position = -2.0 deltaDoorX = 8.65
     elseif PLANE_ICAO == "A332" then vertical_door_position = -1.9 deltaDoorX = 7.6
     --elseif PLANE_ICAO == "A333" then vertical_door_position = -2.1 deltaDoorX = 7.7 -- XP11 freeware model
@@ -371,6 +375,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "B779" then vertical_door_position2 = -3.0 deltaDoorX2 = 9.9	sges_gs_plane_head_correction2 = -0.2
     elseif PLANE_ICAO == "B788" then vertical_door_position2 = -1.1 deltaDoorX2 = 8.65 	sges_gs_plane_head_correction2 = -1	longitudinal_factor3 = 0 height_factor3 = 0 lateral_factor3 = 0
     elseif PLANE_ICAO == "B789" then vertical_door_position2 = -1.1 deltaDoorX2 = 8.6 sges_gs_plane_head_correction2 = -0.4	longitudinal_factor3 = 23.7 height_factor3 = 0 lateral_factor3 = 0
+    elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then vertical_door_position2 = -2 deltaDoorX2 = 8.05 sges_gs_plane_head_correction2 = -0.7
     elseif PLANE_ICAO == "A310" then vertical_door_position2 = -2.1 deltaDoorX2 = 8.7 sges_gs_plane_head_correction2 = -0.2
     elseif PLANE_ICAO == "A306" then vertical_door_position2 = -1.8 deltaDoorX2 = 8.7 sges_gs_plane_head_correction2 = -0.2
 	elseif PLANE_ICAO == "A346" then vertical_door_position2 = -3.5 deltaDoorX2 = 8.2		longitudinal_factor3 = -23.3 height_factor3 = 1.2
@@ -399,10 +404,18 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
 	-- we also work the dataref regarding the X-Plane aircraft model author
     if SGES_Author == nil then dataref("SGES_Author","sim/aircraft/view/acf_author","readonly") end --[[important]]
 
+	--~ Door indexes across the fleet
+	--~ AirbusFBW/PaxDoorModeArray	A321 	A346	A339	A319/A320
+	--~ PaxDoorRearLeft				6		2		6		2
+	--~ ServiceDoor2R				7		7		7		3
     if PLANE_ICAO == "A321"     and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0 	target_to_open_the_door = 2 index_to_open_the_second_door = 6 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
     elseif PLANE_ICAO == "A21N"     and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0 	target_to_open_the_door = 2 index_to_open_the_second_door = 6 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
     elseif (PLANE_ICAO == "A320" or PLANE_ICAO == "A20N") and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0	target_to_open_the_door = 2 index_to_open_the_second_door = 2 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
-    elseif PLANE_ICAO == "A319" and SGES_Author == "Gliding Kiwi" then 			dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray" 				index_to_open_the_door = 0	target_to_open_the_door = 2 index_to_open_the_second_door = 2 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
+    elseif PLANE_ICAO == "A319" and SGES_Author == "Gliding Kiwi" then
+   		dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray"
+   		index_to_open_the_door = 0
+   		target_to_open_the_door = 2
+   		index_to_open_the_second_door = 2 -- TOLISS -- possible confrontation with Speedy Copilot for ToLiSs plugin which loads first the door reference
     elseif PLANE_ICAO == "A339" and SGES_Author == "GlidingKiwi" then
 		dataref_to_open_the_door = "AirbusFBW/PaxDoorModeArray"
 		index_to_open_the_door = 0
