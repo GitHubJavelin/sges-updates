@@ -1,0 +1,24 @@
+A
+1000
+ACF_SOUNDS
+# SGES Canon sounds
+# This needs to be call Master Bank to work in X-Plane 12, but the GUID must be different than other MAster banks used by other objects. To do so, avoid starting from an existing project to create a new sound bank, or create a new Bank, move every FMOD events in it, then rename it Master Bank, to force FMOD to distribute it with a different GUI !
+
+DISABLE_LEGACY_ALERT_SOUNDS
+
+
+BEGIN_SOUND_ATTACHMENT
+	EVENT_NAME /Canons1
+	EVENT_ALLOWED_FOR_AI
+	VEH_XYZ 0 0 0
+	EVENT_START_COND sim/graphics/view/view_elevation_agl_mtrs[*] <= 4000
+	EVENT_END_COND sim/graphics/view/view_elevation_agl_mtrs[*] > 4000
+END_SOUND_ATTACHMENT
+
+BEGIN_SOUND_ATTACHMENT
+	EVENT_NAME /Bullet
+	EVENT_ALLOWED_FOR_AI
+	VEH_XYZ 0 1000 0
+	EVENT_START_COND sim/graphics/view/view_elevation_agl_mtrs[*] <= 1200
+	EVENT_END_COND sim/graphics/view/view_elevation_agl_mtrs[*] > 1200
+END_SOUND_ATTACHMENT

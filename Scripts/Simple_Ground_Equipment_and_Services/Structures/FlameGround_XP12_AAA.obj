@@ -1,0 +1,7 @@
+I
+800
+OBJ
+
+PARTICLE_SYSTEM ../MisterX_Lib/Fire/particles/fire_of_battle.pss
+EMITTER		Battlefire_Emitter_AAA		0 0 0		0.0 0.0 0.0 # Flak in the sky
+EMITTER		Battlefire_Emitter_AAA		100.0 100.0 100		0.0 0.0 0.0 # Flak in the sky

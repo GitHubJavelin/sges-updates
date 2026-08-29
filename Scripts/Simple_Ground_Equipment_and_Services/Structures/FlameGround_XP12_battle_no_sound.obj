@@ -2,6 +2,10 @@ I
 800
 OBJ
 
+#TEXTURE ../MisterX_Lib/textures/Van_opponent.png
+#TEXTURE_NORMAL	../Ground_carts/Van_Mil_normal.png
+#NORMAL_METALNESS
+#BLEND_GLASS
 POINT_COUNTS	0	0	0	0
 ATTR_LOD 0 3000
 
@@ -9,3 +13,6 @@ PARTICLE_SYSTEM ../MisterX_Lib/Fire/particles/fire_of_battle.pss
 EMITTER		Battlefire_Emitter		0.0 0.0 0		0.0 0.0 0.0
 EMITTER		Battlefire_Emitter_2		0.0 0.0 0		0.0 0.0 0.0 # The ennemy
 EMITTER		Battlefire_Emitter_middle		0.0 0.0 0		0.0 0.0 0.0 # The no man's land
+
+
+

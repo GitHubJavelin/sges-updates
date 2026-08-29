@@ -1,0 +1,17 @@
+{ca4ac85e-fbec-4b22-97b9-66daae25b51f} bank:/Master Bank
+{5257e88a-8a97-0760-11f0-ec245fd6b387} bank:/Master Bank.strings
+{9f08114d-36ec-44cc-b8bf-b2babda09f9e} bus:/
+{7f7c05a4-e05a-4d44-94fe-d4691147a9b7} bus:/Master
+{e3492bec-f854-4fbb-b2bc-23586269032e} bus:/Master/Copilot
+{a5a85a81-afd5-4425-9dc2-6e50f7776e6a} bus:/Master/Exterior Processed
+{06db5351-0b2f-4648-b97a-a33b40a00e11} bus:/Master/Exterior Processed/Aircraft
+{b6c156f1-9861-405c-a622-92b2ab8010a7} bus:/Master/Exterior Processed/Environment
+{8dbbc9d7-a954-4ed0-b1f1-f8111b03cbd1} bus:/Master/Exterior Unprocessed
+{751f5066-4651-4afb-a410-4cb9db0894c9} bus:/Master/Interior
+{d8526059-b27c-4eae-9b14-a1ee1cb3dfa1} bus:/Master/Radios
+{77575f3b-b9cd-4bff-9056-637cff744a14} bus:/Master/UI
+{daf2e482-6ed7-4b88-9f61-0c5871baded5} event:/Bullet
+{05ed1473-c5fd-44cf-9bc1-4032716d1d4c} event:/Canons1
+{34bcbe47-e426-4dec-b748-3650270929ce} event:/M16
+{acaa5b82-4be1-4d15-9274-11239d1c0910} event:/Siren
+{f13550b6-db93-4d55-ad6f-f0f67588f43a} parameter:/Distance
