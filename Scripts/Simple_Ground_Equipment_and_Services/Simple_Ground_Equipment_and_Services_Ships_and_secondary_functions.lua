@@ -208,7 +208,7 @@ function execute_DYNAMIC_service_objects()
 		--~ end
 		if show_Chocks and sges_gs_gnd_spd[0] < 20 then
 			show_PB = false
-			chg_PB = true
+			PB_chg = true
 			if not UseXplane1220Chocks then
 
 				if (SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1 and (SGES_Throttle[0] >= 20  or sges_gs_plane_y_agl[0] > 1)) then

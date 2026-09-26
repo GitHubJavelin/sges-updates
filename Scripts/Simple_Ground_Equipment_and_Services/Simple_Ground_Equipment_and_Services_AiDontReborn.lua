@@ -67,14 +67,14 @@ function load_IndustrialFire(i)
 	if IndustrialFire_instance[i] == nil and math.floor(plane_x["plane" .. i][0]) ~= 0 then
 		print("[Ground Equipment " .. version_text_SGES .. "] Loading IndustrialFire_instance[" .. i .. "] because the adversary " .. i+1 .. " reached the Earth.")
 			if IsXPlane12 then --force industrial fire, instead of wildfire. Best way to do this is to NOT use the prefilled fire object.
-				XPLM.XPLMLoadObjectAsync(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/FlameGround_XP12.obj",
+				XPLM.XPLMLoadObjectAsync(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/FlameGround_XP12.obj",
 				function(inObject, inRefcon)
 					IndustrialFire_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
 					IndustrialFire_ref[i] = inObject
 				end,
 				inRefcon )
 			else -- X-Plane 11 variant of the fire.
-				XPLM.XPLMLoadObjectAsync(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/FlameGround.obj",
+				XPLM.XPLMLoadObjectAsync(SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/FlameGround.obj",
 				function(inObject, inRefcon)
 					IndustrialFire_instance[i] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
 					IndustrialFire_ref[i] = inObject

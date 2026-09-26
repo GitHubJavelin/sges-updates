@@ -304,6 +304,9 @@ if IsXPlane12 and AIRCRAFT_FILENAME == "Q4XP.acf" then
 end
 -- /////////////////////////////////////////// --
 
+
+
+
 -- /////////////////////////////////////////// --
 -- Personnal variant of the PC-12
 --~ if string.match(PLANE_ICAO,"PC12") and string.match(AIRCRAFT_FILENAME,"Thranda_PC12") and  XPLMFindDataRef("thranda/cockpit/animations/windowmanip") ~= nil then

@@ -83,8 +83,7 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "CRJ7" then BeltLoaderFwdPosition = 5.7	airstart_unit_factor = -1 --Deltawing CRJ-700
     elseif PLANE_ICAO == "CRJ9" or PLANE_ICAO == "CRJ900" then BeltLoaderFwdPosition = 6.7	airstart_unit_factor = -1 --Deltawing CRJ-900
     elseif PLANE_ICAO == "SF34" then BeltLoaderFwdPosition = 5
-    elseif PLANE_ICAO == "QX" then BeltLoaderFwdPosition = 3 -- MetroLiner Passenger by "Starvingpilot"
-    elseif PLANE_ICAO == "AMF" then BeltLoaderFwdPosition = 3 -- MetroLiner Freight by "Starvingpilot"
+    elseif PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then BeltLoaderFwdPosition = 3 targetDoorX_alternate = -0.3 targetDoorZ_alternate = -4.7 targetDoorH_alternate = 1.65 -- MetroLiner Passenger by "Starvingpilot"
     elseif PLANE_ICAO == "DH8D" then BeltLoaderFwdPosition = 6.30  targetDoorX_alternate = 0.001 	targetDoorZ_alternate = 0.01 	targetDoorH_alternate = 0.1 custom_fuel_pump_finalX = -7 custom_fuel_pump_finalY = -1.50 -- Q400
     elseif PLANE_ICAO == "DH8C" then BeltLoaderFwdPosition = 5.1 BeltLoaderFwdPosition = 3.8 	-- Q300 old value then new value
     elseif string.match(PLANE_ICAO,"DH8A")  then BeltLoaderFwdPosition = 3.30 	-- Q300 old value then new value
