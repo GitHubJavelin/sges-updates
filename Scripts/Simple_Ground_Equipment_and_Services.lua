@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "80.1"
+version_text_SGES = "81"
 --------------------------------------------------------------------------------
 --[[
 
@@ -174,6 +174,12 @@ function SGES_script()
 		else
 			IsXPlane1241 = false
 		end
+		if SGES_xplane_internal_version >= 124410 then
+			IsXPlane1244 = true
+			xpversionobjects = "12.4.4"
+		else
+			IsXPlane1244 = false
+		end
 		if xpversionobjects ~= 11 then
 			print("[Ground Equipment " .. version_text_SGES .. "] Utilizing 3D objects introduced in X-Plane " .. xpversionobjects)
 		end
@@ -184,7 +190,13 @@ function SGES_script()
 	----------------------------------------------------------------------------
 	----------------------------------------------------------------------------
 
+	if file_exists(XPlane_Ramp_Equipment_directory  .. "heli_dolly_2_white.obj") then
+		heliDollyObject =        		XPlane_Ramp_Equipment_directory  .. "heli_dolly_2_white.obj"
+	end
 
+	if IsXPlane1244 then
+		AccessiblePassengerBoardingRampsObject =        XPlane_Ramp_Equipment_directory .. "boarding_ramp_2.obj" -- tempo value, but essential to discriminate
+	end
 
 	IsSimcoders = false
 	if XPLMFindDataRef("simcoders/rep/landinggear/tires/show_chocks_2") ~= nil then
@@ -408,6 +420,7 @@ function SGES_script()
 	local rampserviceref4 = ffi.new("XPLMObjectRef")            -- for the ground service
 	local rampserviceref4L = ffi.new("XPLMObjectRef")            -- for the ground service
 	local rampserviceref5 = ffi.new("XPLMObjectRef")            -- for the ground service
+	local rampservicerefBulk = ffi.new("XPLMObjectRef")            -- for the ground service
 	local rampserviceref6 = ffi.new("XPLMObjectRef")            -- for the ground service
 	local rampserviceref7 = ffi.new("XPLMObjectRef")            -- for the ground service
 	local rampserviceref7L = ffi.new("XPLMObjectRef")            -- for the ground service
@@ -437,6 +450,7 @@ function SGES_script()
 	local rampserviceref200 = ffi.new("XPLMObjectRef")            -- for the ground light
 	local rampserviceref300 = ffi.new("XPLMObjectRef")            -- for the custom stairs
 	local rampserviceref301 = ffi.new("XPLMObjectRef")            -- for the custom stairs
+	rampserviceref301b = ffi.new("XPLMObjectRef")            -- for the custom stairs
 	local rampserviceref302 = ffi.new("XPLMObjectRef")            -- for the custom stairs
 	local rampserviceref303 = ffi.new("XPLMObjectRef")            -- for the custom stairs
 	rampserviceref304 = ffi.new("XPLMObjectRef")            -- for the custom stairs
@@ -501,9 +515,9 @@ function SGES_script()
 	local GPU_instance = ffi.new("XPLMInstanceRef[1]")
 	local FUEL_instance = ffi.new("XPLMInstanceRef[2]")
 	local Cleaning_instance = ffi.new("XPLMInstanceRef[2]")
-	local BeltLoader_instance = ffi.new("XPLMInstanceRef[3]")   -- one more for the associated cart -- one more for rear Loader
+	local BeltLoader_instance = ffi.new("XPLMInstanceRef[4]")   -- one more for the associated cart -- one more for rear Loader
 	local Stairs_instance = ffi.new("XPLMInstanceRef[1]")
-	local StairsXPJ_instance = ffi.new("XPLMInstanceRef[2]")
+	local StairsXPJ_instance = ffi.new("XPLMInstanceRef[3]")
 	local StairsXPJ2_instance = ffi.new("XPLMInstanceRef[2]")
 	local StairsXPJ3_instance = ffi.new("XPLMInstanceRef[2]")
 	local Bus_instance = ffi.new("XPLMInstanceRef[2]")
@@ -669,6 +683,7 @@ function SGES_script()
 	vertical_door_position2 = -799 	-- initial value before config file loading
 	height_factor3 = 0
 	longitudinal_factor3 = 0
+	bulkloader_longitudinal_factor = 0
 	lateral_factor3 = 0
 	-- USE SOME ENGINE SOUND WITH SGES SERVICES ?
 	SGES_sound = true -- set that to false to remove sounds -- only applicable to X-Plane 11 -- initial value before config file loading
@@ -1015,10 +1030,6 @@ function SGES_script()
 		Dayonly_truck_tanker_01 =       		XPlane12_Common_Vehicules_directory  .. "truck_tanker_01.obj"
 		Dayonly_deicing_truck_01 =       		XPlane12_Common_Vehicules_directory  .. "../../snow_equipment/aircraft_deicing_truck_1.obj"
 	end
-
-
-
-
 
 
 	--local XPlane_objects_directory = SCRIPT_DIRECTORY .. "../../../default scenery/sim objects/apt_vehicles/" -- do not edit
@@ -1488,6 +1499,8 @@ function SGES_script()
 	end
 
 	Stored_Prefilled_BeltLoaderObject = Prefilled_BeltLoaderObject
+	BulkLoaderObject = Stored_Prefilled_BeltLoaderObject
+	Stored_BulkLoaderObject = BulkLoaderObject
 
 	print("[Ground Equipment " .. version_text_SGES .. "] Ground Equipment script " .. version_text_SGES .. " is loading datarefs. ==0==.")
 
@@ -1702,6 +1715,7 @@ function SGES_script()
 	or AIRCRAFT_FILENAME == "AW109SP.acf" and PLANE_AUTHOR == "X-Trident"
 	or PLANE_ICAO == "ASB" -- Breguet deux ponts
 	or string.match(PLANE_ICAO,"GLF")
+	or PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" -- metroliner
 	then
 		SGES_stairs_type = "Boarding_without_stairs"
 	end
@@ -1812,6 +1826,7 @@ function SGES_script()
 	Baggage_chg = false
 	CargoULD_chg = false
 	Helicopters_chg = false
+	BulkLoader_chg = false
 
 	show_CargoULD = false
 	Cami_de_Bellis_authorized = true
@@ -1823,6 +1838,8 @@ function SGES_script()
 	show_ACU =  false
 	show_Helicopters = false
 	show_WingWalkers = true --IAS24
+	show_Ramp = false
+	Ramp_chg = false
 	--wingwalkers_chg = false --IAS24
 
 	pax1_disapp = false -- used to circumvent the unability in LUA to test multiple table values at the same time when progressively shutting down the (de)boarding
@@ -1859,6 +1876,7 @@ function SGES_script()
 	show_Cleaning =  false
 	show_BeltLoader =  false
 	show_RearBeltLoader = false
+	show_BulkLoader = false
 	show_Cart =  false
 	hide_temporarily_cart = false
 	show_Stairs =  false
@@ -1895,7 +1913,7 @@ function SGES_script()
 	show_Forklift = false
 	adjust_StairsXPJ = false
 	option_StairsXPJ = false
-	protect_StairsXPJ = false
+	protect_the_aircraft = false
 	stairs_authorized = true
 	option_StairsXPJ_override = false
 	adjust_BeltLoader = false
@@ -1980,6 +1998,7 @@ function SGES_script()
 		PRM_chg = true
 		Ponev_chg = true
 		AAR_chg = true
+		BulkLoader_chg = true
 	end
 
 	--~ function SGES_mouse_wheel_action(value_by_wheel)
@@ -2341,6 +2360,7 @@ function SGES_script()
 	StairsXPJ_1_show_only_once = true
 	StairsXPJ3_0_show_only_once = true
 	StairsXPJ3_1_show_only_once = true
+	StairsXPJ_2_show_only_once = true
 	Deice_0_show_only_once = true
 	Deice_1_show_only_once = true
 	Deice_2_show_only_once = true
@@ -2368,7 +2388,7 @@ function SGES_script()
 	final_heading = false
 	ATIS_window_requested = false
 
-	distance_to_fuselage = 0 -- belt loader
+	distance_to_fuselage = 0.5 -- belt loader
 	TargetSelfPushbackX_stored = 0
 	TargetSelfPushbackZ_stored = 0
 	CargoDeck_ULDLoaderObject = "high_variant" -- regular variant
@@ -2724,35 +2744,6 @@ function SGES_script()
 	  end
 	end
 
-
-
-	function service_object_physics_GPU()
-
-	  if GPU_chg == true then
-		  if show_GPU then
-			if string.match(PLANE_AUTHOR,"Thranda") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then
-				print("[Ground Equipment " .. version_text_SGES .. "] Displaying only the Thranda external power unit, not SGES GPU.")
-				GPU_chg = false
-			else-- load the visual GPU only when not already the Thranda planes GPU (XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil)
-			  load_GPU()
-			 end
-		  else
-			  GPU_chg,GPU_instance[0],rampserviceref1 = common_unload("GPU",GPU_instance[0],rampserviceref1)
-			  --unload_GPU()
-		  end
-		  if GPU_instance[0] ~= nil then
-			local x = -5
-			local z = BeltLoaderFwdPosition + 10
-			if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
-				GPU_chg = false
-			else
-				-- send it :
-				GPU_chg = draw_static_object(x,z,-55,GPU_instance[0],"GPU")
-			end
-		  end
-	  end
-	end
-
 	function service_object_physics_Fuel()
 
 	  if FUEL_chg == true then
@@ -2771,113 +2762,65 @@ function SGES_script()
 					-- only manual is important, or we have to test the ground denivelation
 				end
 		  elseif FUEL_instance[0] ~= nil and FuelFinalY ~= nil and FuelFinalX ~= nil then
-			if Fuel_heading_correcting_factor == nil then Fuel_heading_correcting_factor = -27 end
+				if Fuel_heading_correcting_factor == nil then Fuel_heading_correcting_factor = -27 end
 
-			if Prefilled_FuelObject == XPlane_Ramp_Equipment_directory   .. "../Dynamic_Vehicles/fuelHydDisp_truck.obj" then
-				-- Watch your steps in load_FUEL() !
-				FUEL_chg,FUEL_instance[0],rampserviceref2,FuelFinalX,FuelFinalY = Common_draw_departing_vehicles(FuelFinalX,FuelFinalY,FUEL_instance[0],"Hydrant",rampserviceref2,Fuel_heading_correcting_factor)
+				if Prefilled_FuelObject == XPlane_Ramp_Equipment_directory   .. "../Dynamic_Vehicles/fuelHydDisp_truck.obj" then
+					-- Watch your steps in load_FUEL() !
+					FUEL_chg,FUEL_instance[0],rampserviceref2,FuelFinalX,FuelFinalY = Common_draw_departing_vehicles(FuelFinalX,FuelFinalY,FUEL_instance[0],"Hydrant",rampserviceref2,Fuel_heading_correcting_factor)
 
-				if show_Cart and Fuel_heading_correcting_factor > 8 and hide_temporarily_cart == false then -- if on the starboard side :
-					print("[Ground Equipment " .. version_text_SGES .. "]  Hydrant dispenser : \"move the baggage cart out of the way please !\"")
-					-- need to remove temporarily the bagage cart :
-					show_Cart = false
-					Cart_chg = true
-					hide_temporarily_cart = true
-				elseif show_Bus and Fuel_heading_correcting_factor < -8 and hide_temporarily_cart == false then -- if on the port side :
-					print("[Ground Equipment " .. version_text_SGES .. "]  Hydrant dispenser : \"move the port side vehicles out of the way please !\"")
-					-- need to remove temporarily the bus :
-					show_Bus = false
-					Bus_chg = true
-					show_Pax = false
-					Pax_chg = true
-					hide_temporarily_cart = true
-					walking_direction_changed_armed = false -- VERY important FALSE
+					if show_Cart and Fuel_heading_correcting_factor > 8 and hide_temporarily_cart == false then -- if on the starboard side :
+						print("[Ground Equipment " .. version_text_SGES .. "]  Hydrant dispenser : \"move the baggage cart out of the way please !\"")
+						-- need to remove temporarily the bagage cart :
+						show_Cart = false
+						Cart_chg = true
+						hide_temporarily_cart = true
+					elseif show_Bus and Fuel_heading_correcting_factor < -8 and hide_temporarily_cart == false then -- if on the port side :
+						print("[Ground Equipment " .. version_text_SGES .. "]  Hydrant dispenser : \"move the port side vehicles out of the way please !\"")
+						-- need to remove temporarily the bus :
+						show_Bus = false
+						Bus_chg = true
+						show_Pax = false
+						Pax_chg = true
+						hide_temporarily_cart = true
+						walking_direction_changed_armed = false -- VERY important FALSE
+					end
+
+				else
+					if FUEL_instance[1] ~= nil then
+						_,FUEL_instance[1],rampserviceref2FK,_,_ = Common_draw_departing_vehicles(FuelFinalX,FuelFinalY,FUEL_instance[1],"FUELKIT",rampserviceref2FK,Fuel_heading_correcting_factor)
+					end
+					FUEL_chg,FUEL_instance[0],rampserviceref2,FuelFinalX,FuelFinalY = Common_draw_departing_vehicles(FuelFinalX,FuelFinalY,FUEL_instance[0],"FUEL",rampserviceref2,Fuel_heading_correcting_factor)
 				end
 
-			else
-				if FUEL_instance[1] ~= nil then
-					_,FUEL_instance[1],rampserviceref2FK,_,_ = Common_draw_departing_vehicles(FuelFinalX,FuelFinalY,FUEL_instance[1],"FUELKIT",rampserviceref2FK,Fuel_heading_correcting_factor)
-				end
-				FUEL_chg,FUEL_instance[0],rampserviceref2,FuelFinalX,FuelFinalY = Common_draw_departing_vehicles(FuelFinalX,FuelFinalY,FUEL_instance[0],"FUEL",rampserviceref2,Fuel_heading_correcting_factor)
-			end
-
-			-- reset
-			fuel_currentX = nil
-			fuel_currentY = nil
+				-- reset
+				fuel_currentX = nil
+				fuel_currentY = nil
 		  else
-			if FUEL_instance[1] ~= nil then
-				_,FUEL_instance[1],rampserviceref2FK = common_unload("FUELKIT",FUEL_instance[1],rampserviceref2FK)
-			end
-			_,FUEL_instance[0],rampserviceref2 = common_unload("FUEL",FUEL_instance[0],rampserviceref2)
-			FUEL_chg = false
-			fuel_currentX = nil
-			fuel_currentY = nil
+				if FUEL_instance[1] ~= nil then
+					_,FUEL_instance[1],rampserviceref2FK = common_unload("FUELKIT",FUEL_instance[1],rampserviceref2FK)
+				end
+				_,FUEL_instance[0],rampserviceref2 = common_unload("FUEL",FUEL_instance[0],rampserviceref2)
+				FUEL_chg = false
+				fuel_currentX = nil
+				fuel_currentY = nil
 		  end
 		  if FUEL_instance[0] ~= nil and show_FUEL  then
 			  draw_FUEL()
 		  end
 		  if FUEL_instance[0] ~= nil and FuelTruck_is_deer  then
-			if SGES_deer_run_cycle == nil then
-				SGES_deer_run_cycle = create_dataref_table("sges/sim/graphics/animation/deer/deer_run_cycle", "FloatArray")
-				SGES_deer_run_cycle[0] = -1
-			end
-			if SGES_deer_run_cycle[0] < 1 then
-				SGES_deer_run_cycle[0] = SGES_deer_run_cycle[0] + 0.02
-			elseif SGES_deer_run_cycle[0] >= 1 then
-				SGES_deer_run_cycle[0] = -1
-			end
+				if SGES_deer_run_cycle == nil then
+					SGES_deer_run_cycle = create_dataref_table("sges/sim/graphics/animation/deer/deer_run_cycle", "FloatArray")
+					SGES_deer_run_cycle[0] = -1
+				end
+				if SGES_deer_run_cycle[0] < 1 then
+					SGES_deer_run_cycle[0] = SGES_deer_run_cycle[0] + 0.02
+				elseif SGES_deer_run_cycle[0] >= 1 then
+					SGES_deer_run_cycle[0] = -1
+				end
 		  end
 	  end
-
 	end
-	function service_object_physics_Cleaning()
-	  if Cleaning_chg == true then
-		  if show_Cleaning then
-			  load_Cleaning()
-		  --~ elseif Cleaning_instance[0] ~= nil and CleaningFinalX ~= nil then
-			    --~ Cleaning_chg,Cleaning_instance[0],rampserviceref4,CleaningFinalX,CleaningFinalX = Common_draw_departing_vehicles(CleaningFinalX,CleaningFinalX,Cleaning_instance[0],"Cleaning",rampserviceref4,10)
-				--~ -- reset
-				--~ CleaningFinalX = nil
-				--~ CleaningFinalX = nil
-		  else
-			 Cleaning_chg,Cleaning_instance[0],rampserviceref4 = common_unload("Cleaning",Cleaning_instance[0],rampserviceref4)
-			 _,Cleaning_instance[1],rampserviceref4L = common_unload("CleaningLight",Cleaning_instance[1],rampserviceref4L)
-			 --unload_Cleaning()
-		  end
-		  if Cleaning_instance[0] ~= nil and show_Cleaning then
-			local x = 8
-			local z = -2.35*math.abs(BeltLoaderFwdPosition)
-			if show_FireVehicleAhead == false then -- normal use of the truck on parking stand
-				objpos_value[0].roll = 0
-				objpos_value[0].pitch = 0
-				if SecondStairsFwdPosition ~= - 30 and SecondStairsFwdPosition < -12 then -- if SecondStairsFwdPosition is defined in the aircraft config
-					z = SecondStairsFwdPosition - 9
-				end
-				-- then peculiarities :
-				if PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" then
-					x = -4.5*math.abs(BeltLoaderFwdPosition)
-				elseif PLANE_ICAO == "A346" then
-					x = 10
-					z = -0.5*math.abs(BeltLoaderFwdPosition)
-				end
-				-- with an X-Plane 12.1.4 vehicle, I need to back it a little bit
-				if string.find(Prefilled_CleaningTruckObject,"airsideops")	then
-					z = z - 5
-				end
 
-			else -- use the object as if on the crash site, usefull for me as a simmer helicopter flyer
-				x = -1
-				z = DistanceToCrashSite+20
-				objpos_value[0].roll = 20
-				objpos_value[0].pitch = -5
-			end
-			-- send it :
-			Cleaning_chg = draw_static_object(x,z,15,Cleaning_instance[0],"Cleaning")
-			if Cleaning_instance[1] ~= nil then _ = draw_static_object(x,z,15,Cleaning_instance[1],"CleaningLight") end
-		  end
-	  end
-
-	end
 	function service_object_physics_Beltloader()
 	  if BeltLoader_chg == true then
 			if show_BeltLoader then
@@ -2945,7 +2888,7 @@ function SGES_script()
 					else
 						x = targetDoorX+6.5	z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
 					end
-				elseif PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" then
+				elseif PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
 					ULDLoaderFwdPositionFactor = -1.6
 					h = 90
 					if UseXplaneDefaultObject == true then
@@ -3064,9 +3007,6 @@ function SGES_script()
 				end
 			end
 	  end
-	end
-
-	function service_object_physics_RearBeltloader()
 	  if RearBeltLoader_chg == true then
 		  if show_RearBeltLoader then
 			if PLANE_ICAO ~= "SF34" and not string.match(PLANE_ICAO,"CRJ") and not string.match(PLANE_ICAO,"DH8A")  and PLANE_ICAO ~= "DH8D" and PLANE_ICAO ~= "DH8C" and PLANE_ICAO ~= "QX" and  PLANE_ICAO ~= "AMF"  and  PLANE_ICAO ~= "GLF650ER" and not plane_has_cargo_hold_on_the_left_hand_side then
@@ -3133,7 +3073,165 @@ function SGES_script()
 				end
 			end
 	  end
+
+
+	  if BulkLoader_chg == true and (BeltLoaderRearPosition ~= nil or (heliDollyObject ~= nil and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1)) then
+			if show_BulkLoader then
+				load_BulkLoader()
+				if show_Catering then
+					show_Catering = false
+					Catering_chg = true
+				end
+				if config_helper then print("[Ground Equipment " .. version_text_SGES .. "] SGES has loaded the bulk loader.") end
+			else
+				BulkLoader_chg,BeltLoader_instance[3],rampservicerefBulk =  common_unload("BulkLoader",BeltLoader_instance[3],rampservicerefBulk)
+				if config_helper then print("[Ground Equipment " .. version_text_SGES .. "] SGES has unloaded the bulk loader.") end
+			end
+
+			if BeltLoader_instance[3] ~= nil then
+				--draw_BeltLoader()
+				local x = (-0.8*(targetDoorX + 8.6)) -- tempo; updated below
+				local z = -10 -- tempo
+				local h = -83 -- tempo
+				local nature = "BulkLoader"
+				if bulkloader_longitudinal_factor == nil then bulkloader_longitudinal_factor = 0 end
+
+				if BulkLoaderObject == XPlane_Ramp_Equipment_directory   .. "Tug660_Up_1.obj" then
+					h= 97
+					x = (-0.55*(targetDoorX + 8.6))
+				    z = BeltLoaderRearPosition - 3.60
+				elseif BulkLoaderObject == heliDollyObject then -- when this object is used as heli dolly under helicopters conditions
+					h= 97
+				    z = 150 -- watch it ! terrain is probed there, do not change that value !
+					x = 0
+					nature = "heliDolly"
+				elseif BeltLoaderRearPosition ~= nil then
+					x = (-0.8*(targetDoorX + 8.6))
+					z = BeltLoaderRearPosition - 4
+					h = -83
+				end
+
+				if config_helper then print("[Ground Equipment " .. version_text_SGES .. "] Drawing for the bulk loader.") end
+
+				if distance_to_fuselage ~= 0 then x = x + 0.5 * distance_to_fuselage end
+
+				BulkLoader_chg 		= draw_static_object(x,z + bulkloader_longitudinal_factor,h,BeltLoader_instance[3],nature)
+				--~ BulkLoader_chg =  false
+			end
+		end
+	  if ULDLoader_chg == true then
+		  if show_ULDLoader then
+			load_ULDLoader()
+			if PLANE_ICAO == "B77L" and string.find(SGES_Author,"FlightFactor") and sges_EngineState[0] < 10 then
+				if XPLMFindDataRef("1-sim/anim/doorCargo") ~= nil  then set("1-sim/anim/doorCargo",0.85) end
+				if XPLMFindDataRef("1-sim/anim/cargoDoorBar") ~= nil  then set("1-sim/anim/cargoDoorBar",1) end -- 1 removes it ! 0 displays the barrier !
+				if XPLMFindDataRef("1-sim/anim/doorFwd") ~= nil  then set("1-sim/anim/doorFwd",1) end
+				if XPLMFindDataRef("1-sim/anim/doorAft") ~= nil  then set("1-sim/anim/doorAft",1) end
+			end
+		  else
+			if PLANE_ICAO == "B77L" and string.find(SGES_Author,"FlightFactor") then
+				if XPLMFindDataRef("1-sim/anim/doorCargo") ~= nil  then set("1-sim/anim/doorCargo",0) end
+				if XPLMFindDataRef("1-sim/anim/cargoDoorBar") ~= nil  then set("1-sim/anim/cargoDoorBar",0) end -- 1 removes it ! 0 displays the barrier !
+				if XPLMFindDataRef("1-sim/anim/doorFwd") ~= nil  then set("1-sim/anim/doorFwd",0) end
+				if XPLMFindDataRef("1-sim/anim/doorAft") ~= nil  then set("1-sim/anim/doorAft",0) end
+			end
+			show_CargoULD = false
+			CargoULD_chg = true
+			-- apply this directly :
+			CargoULD_chg,Baggage_instance[5],rampservicerefBaggage5 = common_unload("CargoULD",Baggage_instance[5],rampservicerefBaggage5)
+
+			-- then
+			ULDLoader_chg,ULDLoader_instance[0],rampserviceref72 = common_unload("ULDLoader",ULDLoader_instance[0],rampserviceref72)
+
+			--unload_ULDLoader()
+		  end
+
+
+		  if ULDLoader_instance[0] ~= nil then
+			if PLANE_ICAO == "A321" then ULDLoaderFwdPositionFactor = 0.72
+			elseif PLANE_ICAO == "A320" then ULDLoaderFwdPositionFactor = 1.0
+			elseif PLANE_ICAO == "A20N" then ULDLoaderFwdPositionFactor = 1.0
+			elseif PLANE_ICAO == "A346" then ULDLoaderFwdPositionFactor = 0.5
+			elseif PLANE_ICAO == "A306" then ULDLoaderFwdPositionFactor = 0.96
+			elseif PLANE_ICAO == "MD11" then ULDLoaderFwdPositionFactor = 1.45
+			elseif PLANE_ICAO == "B722" then ULDLoaderFwdPositionFactor = 1.13
+			elseif PLANE_ICAO == "B738" then ULDLoaderFwdPositionFactor = 0.95
+			elseif PLANE_ICAO == "B748" then ULDLoaderFwdPositionFactor = -0.53
+			elseif PLANE_ICAO == "B742" then ULDLoaderFwdPositionFactor = -0.67 lateral_factor_ULDLoader = -1.2
+			elseif PLANE_ICAO == "B744" then ULDLoaderFwdPositionFactor = -0.7
+			elseif PLANE_ICAO == "B762" then ULDLoaderFwdPositionFactor = 0.95
+			elseif PLANE_ICAO == "B763" then ULDLoaderFwdPositionFactor = 0.9
+			elseif PLANE_ICAO == "B772" then ULDLoaderFwdPositionFactor = 1
+			elseif PLANE_ICAO == "B773" then ULDLoaderFwdPositionFactor = 1
+			elseif PLANE_ICAO == "B77L" then ULDLoaderFwdPositionFactor = -0.66
+			elseif PLANE_ICAO == "B752" then ULDLoaderFwdPositionFactor = 1.15
+			elseif PLANE_ICAO == "SF34" then ULDLoaderFwdPositionFactor = -1.1
+			elseif PLANE_ICAO == "B462" then ULDLoaderFwdPositionFactor = 1.03
+			elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then ULDLoaderFwdPositionFactor = 0.95
+			else ULDLoaderFwdPositionFactor = 1.1 end
+			-- then :
+			local x = targetDoorX+10
+			if PLANE_ICAO == "MD11" then x = targetDoorX+9 end
+			if PLANE_ICAO == "B752" then x = targetDoorX+9.5 end
+			if PLANE_ICAO == "B763" then x = targetDoorX+8 end
+			if PLANE_ICAO == "A306" then x = targetDoorX+8 end
+			if PLANE_ICAO == "B722" then x = targetDoorX+9.5 end
+			if PLANE_ICAO == "B77L" then x = targetDoorX+8.75 end
+			if string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then x = targetDoorX+11 end
+			local z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
+			local h = 90
+			if UseXplaneDefaultObject == true then
+				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], targetDoorX+15, ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition, sges_gs_plane_head[0] )
+				if PLANE_ICAO == "A310" then			x = targetDoorX-7.5				y = 11				h = -90
+				elseif PLANE_ICAO == "A3ST" then			x = targetDoorX-7.5				y = -12.8			h = -90
+				end
+			else
+				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], targetDoorX+10, ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition, sges_gs_plane_head[0] )
+				if PLANE_ICAO == "A310" then			x = targetDoorX-3.5				y = 11				h = -90
+				elseif PLANE_ICAO == "A3ST" then			x = targetDoorX-3.5				y = -11.8			h = -90
+				end
+
+				if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cargo_loader_ch70w") then
+					x = x + 3
+				end
+				-- doesn't work for big airplanes so I add :
+				if  BeltLoaderFwdPosition >= ULDthresholdx  and string.find(Prefilled_CargoDeck_ULDLoaderObject,"cargo_loader_ch70w") then
+					x = x + 3
+				end
+
+				if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") or string.find(Prefilled_CargoDeck_ULDLoaderObject,"ContainerLoader.obj") then --77F FF/STS
+					if reuse_lateral_factor == nil then reuse_lateral_factor = 1.7 end
+					x = x + reuse_lateral_factor
+					print("[Ground Equipment " .. version_text_SGES .. "] Adjusting the location of the special animated cargo loader : " .. reuse_lateral_factor .. " for the " .. PLANE_ICAO ..".")
+				end
+
+			end
+
+			if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) and IsPassengerPlane == 0 then
+				x = x - 0.9
+				-- definitively change linked cones for a single cone to not disturb the ULD loader on main cargo deck
+				if Linked_cones ~= Prefilled_ConeObject then
+					Cones_chg,Cones_instance[1],rampserviceref3 = common_unload("BAe146QTCones",Cones_instance[1],rampserviceref3)
+					Linked_cones = Prefilled_ConeObject
+					Cones_chg =  true
+				end
+			end
+			x = x + lateral_factor_ULDLoader
+			z = z + longitudinal_factor3_ULDLoader
+			uld_x = x
+			if CargoDeck_ULDLoaderObject == "highly_high_variant" and string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") then --77F FF/STS
+				uld_x = x + 4.5
+			elseif CargoDeck_ULDLoaderObject == "highly_high_variant_toliss" and string.find(Prefilled_CargoDeck_ULDLoaderObject,"ContainerLoader.obj") then -- Toliss cargo loader
+				uld_x = x + 1
+				h = h + 180
+			end
+			uld_x_stored = uld_x
+			uld_z = z
+			ULDLoader_chg = draw_static_object(x,z,h,ULDLoader_instance[0],"ULD Loader")
+		  end
+	  end
 	end
+
 
 	function service_object_physics_XPlane_stairs()
 	  if Stairs_chg == true then
@@ -3201,14 +3299,19 @@ function SGES_script()
 				Bus_chg,Bus_instance[0],rampserviceref7,BusFinalX,BusFinalY = Common_draw_departing_vehicles(BusFinalX,BusFinalY,Bus_instance[0],"Bus",rampserviceref7,15)
 			end
 			-- reset
+			currentXbus = nil
+			currentYbus = nil
 			currentX = nil
 			currentY = nil
 		  else
 			Bus_chg,Bus_instance[0],rampserviceref7 = common_unload("Bus",Bus_instance[0],rampserviceref7)
 			_,Bus_instance[1],rampserviceref7L = common_unload("BusLight",Bus_instance[1],rampserviceref7L)
 			-- reset
+			currentXbus = nil
+			currentYbus = nil
 			currentX = nil
 			currentY = nil
+			if config_helper ~= nil and config_helper then print("[Ground Equipment " .. version_text_SGES .. "] Bus object unloaded.") end
 		  end
 		  if show_Bus and Bus_instance[0] ~= nil then
 			  draw_Bus()
@@ -3217,162 +3320,221 @@ function SGES_script()
 
 	end
 
-	function service_object_physics_Catering()
-	  if Catering_chg == true then
-		  if show_Catering then
-			if show_Chocks and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104 chocks
-				set("Colimata/F104_A_SW_DOORS_gun_front_i",1)
-				set("Colimata/F104_A_SW_DOORS_avionics_i",1)
-				set("Colimata/F104_A_SW_DOORS_electrics_i",1)
-				set("Colimata/F104_A_SW_GROUND_pins_i",1)
-			end
-			if Catering_instance[0] == nil and PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" then				command_once("FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door")				end
 
-
-			if dataref_to_open_the_door ~= nil then
-				if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
-					if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
-						if get("XCrafts/doors/front_service") == 0 then -- open the door if closed
-							command_once("XCrafts/ERJ/service_door")
-						end
+	function service_object_physics_Catering_Cleaning()
+		if Cleaning_chg == true then -- also used in flight as accidented vehicle
+			  if show_Cleaning then
+				  load_Cleaning()
+			  --~ elseif Cleaning_instance[0] ~= nil and CleaningFinalX ~= nil then
+					--~ Cleaning_chg,Cleaning_instance[0],rampserviceref4,CleaningFinalX,CleaningFinalX = Common_draw_departing_vehicles(CleaningFinalX,CleaningFinalX,Cleaning_instance[0],"Cleaning",rampserviceref4,10)
+					--~ -- reset
+					--~ CleaningFinalX = nil
+					--~ CleaningFinalX = nil
+			  else
+				 Cleaning_chg,Cleaning_instance[0],rampserviceref4 = common_unload("Cleaning",Cleaning_instance[0],rampserviceref4)
+				 _,Cleaning_instance[1],rampserviceref4L = common_unload("CleaningLight",Cleaning_instance[1],rampserviceref4L)
+				 --unload_Cleaning()
+			  end
+			  if Cleaning_instance[0] ~= nil and show_Cleaning then
+				local x = 8
+				local z = -2.35*math.abs(BeltLoaderFwdPosition)
+				if show_FireVehicleAhead == false then -- normal use of the truck on parking stand
+					objpos_value[0].roll = 0
+					objpos_value[0].pitch = 0
+					if SecondStairsFwdPosition ~= - 30 and SecondStairsFwdPosition < -12 then -- if SecondStairsFwdPosition is defined in the aircraft config
+						z = SecondStairsFwdPosition - 9
 					end
-				elseif dataref_to_open_the_door == "AirbusFBW/PaxDoorModeArray" then -- toliss
-					if PLANE_ICAO == "A319" then set_array(dataref_to_open_the_door,3,target_to_open_the_door) end
-					if PLANE_ICAO == "A320" or PLANE_ICAO == "A20N" then set_array(dataref_to_open_the_door,3,target_to_open_the_door) end
-					if PLANE_ICAO == "A321" or PLANE_ICAO == "A21N" then set_array(dataref_to_open_the_door,7,target_to_open_the_door) end
-					if PLANE_ICAO == "A339" then set_array(dataref_to_open_the_door,7,target_to_open_the_door) end
-					if PLANE_ICAO == "A346" then set_array(dataref_to_open_the_door,7,target_to_open_the_door) end
-				end
-			end
-
-
-			load_Catering()
-		  else
-
-			if Catering_instance[0] ~= nil and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104 chocks
-				set("Colimata/F104_A_SW_DOORS_gun_front_i",0)
-				set("Colimata/F104_A_SW_DOORS_gun_rear_i",0)
-				set("Colimata/F104_A_SW_DOORS_avionics_i",0)
-				set("Colimata/F104_A_SW_DOORS_electrics_i",0)
-			end
-			if Catering_instance[0] ~= nil and PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" then				command_once("FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door")				end
-
-
-			if dataref_to_open_the_door ~= nil then
-				if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
-					if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
-						if get("XCrafts/doors/front_service") == 1 then -- close the door if open
-							command_once("XCrafts/ERJ/service_door")
-						end
+					-- then peculiarities :
+					if PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
+						x = -4.5*math.abs(BeltLoaderFwdPosition)
+					elseif PLANE_ICAO == "A346" then
+						x = 10
+						z = -0.5*math.abs(BeltLoaderFwdPosition)
 					end
-				elseif dataref_to_open_the_door == "AirbusFBW/PaxDoorModeArray" then -- toliss
-					if PLANE_ICAO == "A319" then set_array(dataref_to_open_the_door,3,target_to_open_the_door-1) end
-					if PLANE_ICAO == "A320" or PLANE_ICAO == "A20N" then set_array(dataref_to_open_the_door,3,target_to_open_the_door-1) end
-					if PLANE_ICAO == "A321" or PLANE_ICAO == "A21N" then set_array(dataref_to_open_the_door,7,target_to_open_the_door-1) end
-					if PLANE_ICAO == "A339" then set_array(dataref_to_open_the_door,7,target_to_open_the_door-1) end
-					if PLANE_ICAO == "A346" then set_array(dataref_to_open_the_door,7,target_to_open_the_door-1) end
+					-- with an X-Plane 12.1.4 vehicle, I need to back it a little bit
+					if string.find(Prefilled_CleaningTruckObject,"airsideops")	then
+						z = z - 5
+					end
+
+				else -- use the object as if on the crash site, usefull for me as a simmer helicopter flyer
+					x = -1
+					z = DistanceToCrashSite+20
+					objpos_value[0].roll = 20
+					objpos_value[0].pitch = -5
 				end
+				-- send it :
+				Cleaning_chg = draw_static_object(x,z,15,Cleaning_instance[0],"Cleaning")
+				if Cleaning_instance[1] ~= nil then _ = draw_static_object(x,z,15,Cleaning_instance[1],"CleaningLight") end
 			end
+		end
+		-----------------------------------------------------------------------
+		if sges_gs_gnd_spd[0] < 4 and Catering_chg == true then
+			  if show_Catering then
+				if show_Chocks and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104 chocks
+					set("Colimata/F104_A_SW_DOORS_gun_front_i",1)
+					set("Colimata/F104_A_SW_DOORS_avionics_i",1)
+					set("Colimata/F104_A_SW_DOORS_electrics_i",1)
+					set("Colimata/F104_A_SW_GROUND_pins_i",1)
+				end
+				if Catering_instance[0] == nil and PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" then				command_once("FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door")				end
 
-			Catering_chg,Catering_instance[0],rampserviceref8 = common_unload("Catering",Catering_instance[0],rampserviceref8)
-			Catering_chg,Catering_instance[1],rampserviceref8h = common_unload("CateringHighPart",Catering_instance[1],rampserviceref8h)
-			Catering_chg,Catering_instance[2],rampserviceref8hE = common_unload("CateringElevator",Catering_instance[2],rampserviceref8hE)
-			--unload_Catering()
-			CatObject = nil
-			if CateringHighPart_is_night_lighting ~= nil then CateringHighPart_is_night_lighting = nil end
-		  end
-		  if Catering_instance[0] ~= nil then
-			local x = -targetDoorX-deltaDoorX-1
-			local z = -1.35*math.abs(BeltLoaderFwdPosition)
 
-			if SecondStairsFwdPosition ~= - 30 and SecondStairsFwdPosition < -6 then -- if SecondStairsFwdPosition is defined in the aircraft config
-				z = SecondStairsFwdPosition
-			end
+				if dataref_to_open_the_door ~= nil then
+					if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
+						if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
+							if get("XCrafts/doors/front_service") == 0 then -- open the door if closed
+								command_once("XCrafts/ERJ/service_door")
+							end
+						end
+					elseif dataref_to_open_the_door == "AirbusFBW/PaxDoorModeArray" then -- toliss
+						if PLANE_ICAO == "A319" then set_array(dataref_to_open_the_door,3,target_to_open_the_door) end
+						if PLANE_ICAO == "A320" or PLANE_ICAO == "A20N" then set_array(dataref_to_open_the_door,3,target_to_open_the_door) end
+						if PLANE_ICAO == "A321" or PLANE_ICAO == "A21N" then set_array(dataref_to_open_the_door,7,target_to_open_the_door) end
+						if PLANE_ICAO == "A339" then set_array(dataref_to_open_the_door,7,target_to_open_the_door) end
+						if PLANE_ICAO == "A346" then set_array(dataref_to_open_the_door,7,target_to_open_the_door) end
+					end
+				end
 
-			if SGES_Embraer_catering_is_small == nil then SGES_Embraer_catering_is_small = true end
-			if PLANE_ICAO == "A306" then
-				z = -1.25*math.abs(BeltLoaderFwdPosition)
-			elseif string.match(AIRCRAFT_PATH,"146") then
-				z = -1.70*math.abs(BeltLoaderFwdPosition)
-			elseif PLANE_ICAO == "SF34" or PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" then
-				z = -2*math.abs(BeltLoaderFwdPosition)
-			elseif PLANE_ICAO == "B742" then
-				z = -23.5
-			elseif PLANE_ICAO == "A346" then
-				z = -0.85*math.abs(BeltLoaderFwdPosition)
-			elseif PLANE_ICAO == "MD11" and IsPassengerPlane == 0 then
-				z = -1.20*math.abs(BeltLoaderFwdPosition)
-			elseif string.match(PLANE_ICAO,"CRJ") then
-				x = -targetDoorX-8
-				z = 2*math.abs(BeltLoaderFwdPosition)
-			elseif (string.match(PLANE_ICAO,"E4") or string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13") or string.match(PLANE_ICAO,"E3")) and string.match(SGES_Author,"Marko") then
-				x = -targetDoorX-3.75
-				if targetDoorZ ~= nil then
-					z = -targetDoorZ - 1.30
-				else
+
+				load_Catering()
+
+				-- remove bulk loader, 3D conflict !
+				if show_BulkLoader and SGES_IsHelicopter ~= nil and SGES_IsHelicopter ~= 1  then
+					show_BulkLoader = false
+					BulkLoader_chg = true
+				end
+			  else
+
+				if Catering_instance[0] ~= nil and PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then -- toggle F104 chocks
+					set("Colimata/F104_A_SW_DOORS_gun_front_i",0)
+					set("Colimata/F104_A_SW_DOORS_gun_rear_i",0)
+					set("Colimata/F104_A_SW_DOORS_avionics_i",0)
+					set("Colimata/F104_A_SW_DOORS_electrics_i",0)
+				end
+				if Catering_instance[0] ~= nil and PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" then				command_once("FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door")				end
+
+
+				if dataref_to_open_the_door ~= nil then
+					if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
+						if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
+							if get("XCrafts/doors/front_service") == 1 then -- close the door if open
+								command_once("XCrafts/ERJ/service_door")
+							end
+						end
+					elseif dataref_to_open_the_door == "AirbusFBW/PaxDoorModeArray" then -- toliss
+						if PLANE_ICAO == "A319" then set_array(dataref_to_open_the_door,3,target_to_open_the_door-1) end
+						if PLANE_ICAO == "A320" or PLANE_ICAO == "A20N" then set_array(dataref_to_open_the_door,3,target_to_open_the_door-1) end
+						if PLANE_ICAO == "A321" or PLANE_ICAO == "A21N" then set_array(dataref_to_open_the_door,7,target_to_open_the_door-1) end
+						if PLANE_ICAO == "A339" then set_array(dataref_to_open_the_door,7,target_to_open_the_door-1) end
+						if PLANE_ICAO == "A346" then set_array(dataref_to_open_the_door,7,target_to_open_the_door-1) end
+					end
+				end
+
+				Catering_chg,Catering_instance[0],rampserviceref8 = common_unload("Catering",Catering_instance[0],rampserviceref8)
+				Catering_chg,Catering_instance[1],rampserviceref8h = common_unload("CateringHighPart",Catering_instance[1],rampserviceref8h)
+				Catering_chg,Catering_instance[2],rampserviceref8hE = common_unload("CateringElevator",Catering_instance[2],rampserviceref8hE)
+				--unload_Catering()
+				CatObject = nil
+				if CateringHighPart_is_night_lighting ~= nil then CateringHighPart_is_night_lighting = nil end
+			  end
+			  if Catering_instance[0] ~= nil then
+				local x = -targetDoorX-deltaDoorX-1
+				local z = -1.35*math.abs(BeltLoaderFwdPosition)
+
+				if SecondStairsFwdPosition ~= - 30 and SecondStairsFwdPosition < -6 then -- if SecondStairsFwdPosition is defined in the aircraft config
+					z = SecondStairsFwdPosition
+				end
+
+				if SGES_Embraer_catering_is_small == nil then SGES_Embraer_catering_is_small = true end
+				if PLANE_ICAO == "A306" then
+					z = -1.25*math.abs(BeltLoaderFwdPosition)
+				elseif string.match(AIRCRAFT_PATH,"146") then
+					z = -1.70*math.abs(BeltLoaderFwdPosition)
+				elseif PLANE_ICAO == "SF34" or PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
+					z = -2*math.abs(BeltLoaderFwdPosition)
+				elseif PLANE_ICAO == "B742" then
+					z = -23.5
+				elseif PLANE_ICAO == "A346" then
+					z = -0.85*math.abs(BeltLoaderFwdPosition)
+				elseif PLANE_ICAO == "MD11" and IsPassengerPlane == 0 then
+					z = -1.20*math.abs(BeltLoaderFwdPosition)
+				elseif string.match(PLANE_ICAO,"CRJ") then
+					x = -targetDoorX-8
 					z = 2*math.abs(BeltLoaderFwdPosition)
+				elseif (string.match(PLANE_ICAO,"E4") or string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13") or string.match(PLANE_ICAO,"E3")) and string.match(SGES_Author,"Marko") then
+					x = -targetDoorX-3.75
+					if targetDoorZ ~= nil then
+						z = -targetDoorZ - 1.30
+					else
+						z = 2*math.abs(BeltLoaderFwdPosition)
+					end
+				elseif PLANE_ICAO == "MD88" then
+					x = 2
+					z = - (BeltLoaderFwdPosition + 5.5)
+				elseif PLANE_ICAO == "E170" and SGES_Embraer_catering_is_small then
+					x = 9
+					z = BeltLoaderFwdPosition - 1
+				elseif PLANE_ICAO == "E175" and SGES_Embraer_catering_is_small then
+					x = 10
+					z = BeltLoaderFwdPosition - 1
+				elseif PLANE_ICAO == "E19L" and SGES_Embraer_catering_is_small then
+					x = 7
+					z = BeltLoaderFwdPosition - 2
+				elseif PLANE_ICAO == "MD82" or PLANE_ICAO == "MD90" then
+					x = -targetDoorX-9
+					z = BeltLoaderFwdPosition + 5.5
+				elseif PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then
+					x = -targetDoorX - 7
+					z = 1.40*math.abs(BeltLoaderFwdPosition)
 				end
-			elseif PLANE_ICAO == "MD88" then
-				x = 2
-				z = - (BeltLoaderFwdPosition + 5.5)
-			elseif PLANE_ICAO == "E170" and SGES_Embraer_catering_is_small then
-				x = 9
-				z = BeltLoaderFwdPosition - 1
-			elseif PLANE_ICAO == "E175" and SGES_Embraer_catering_is_small then
-				x = 10
-				z = BeltLoaderFwdPosition - 1
-			elseif PLANE_ICAO == "E19L" and SGES_Embraer_catering_is_small then
-				x = 7
-				z = BeltLoaderFwdPosition - 2
-			elseif PLANE_ICAO == "MD82" or PLANE_ICAO == "MD90" then
-				x = -targetDoorX-9
-				z = BeltLoaderFwdPosition + 5.5
-			elseif PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" then
-				x = -targetDoorX - 7
-				z = 1.40*math.abs(BeltLoaderFwdPosition)
-			end
-			local object_hdg_correction= - 85
-			if SGES_Embraer_catering_is_small and (string.match(PLANE_ICAO,"B46") or PLANE_ICAO == "RJ70" or PLANE_ICAO == "RJ85" or PLANE_ICAO == "RJ1H" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8C" or PLANE_ICAO == "DH8D" or string.match(PLANE_ICAO,"AT4") or string.match(PLANE_ICAO,"GLF650ER") or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)")) then
-				object_hdg_correction = 150 -- make room for the baggage cart
-				z = -2.25*math.abs(BeltLoaderFwdPosition)
-			end
-			-- At the White House
-			if CatObject == SAM_object_3 or CatObject == SAM_object_1 or CatObject == SAM_object_2 then
-				x = 7*x
-				object_hdg_correction = 150
-			end
-			if (string.match(PLANE_ICAO,"E4") or string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13") or string.match(PLANE_ICAO,"E3")) and string.match(SGES_Author,"Marko") then
-				object_hdg_correction = 90
-			end
-			if CatObject == Dayonly_truck_flatbed_01 then
-				object_hdg_correction = 90
-			end
-			local x_higher_part = x
-			local z_higher_part = z
+				local object_hdg_correction= - 85
+				if SGES_Embraer_catering_is_small and (string.match(PLANE_ICAO,"B46") or PLANE_ICAO == "RJ70" or PLANE_ICAO == "RJ85" or PLANE_ICAO == "RJ1H" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8C" or PLANE_ICAO == "DH8D" or string.match(PLANE_ICAO,"AT4") or string.match(PLANE_ICAO,"GLF650ER") or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)")) then
+					object_hdg_correction = 150 -- make room for the baggage cart
+					z = -2.25*math.abs(BeltLoaderFwdPosition)
+				end
+				-- At the White House
+				if CatObject == SAM_object_3 or CatObject == SAM_object_1 or CatObject == SAM_object_2 then
+					x = 7*x
+					object_hdg_correction = 150
+				end
+				if (string.match(PLANE_ICAO,"E4") or string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13") or string.match(PLANE_ICAO,"E3")) and string.match(SGES_Author,"Marko") then
+					object_hdg_correction = 90
+				end
+				if CatObject == Dayonly_truck_flatbed_01 then
+					object_hdg_correction = 90
+				end
+				local x_higher_part = x
+				local z_higher_part = z
 
-			-- When this is an X-Plane 12.4.1 object, allow more space with the fuselage
-			if CatObject ~= nil and string.find(CatObject,"Common_Elements/Vehicles") and User_Custom_Prefilled_CateringObject_1241 then
-				x = 1.267 * x
-				x_higher_part = x * 0.79
-			-- When this is an X-Plane 12.1.4 object, allow more room toward the fuselage
-			elseif CatObject ~= nil and string.find(CatObject,"Common_Elements/Vehicles") then
-				x = 1.25 * x
-			end
+				-- When this is an X-Plane 12.4.1 object, allow more space with the fuselage
+				if CatObject ~= nil and string.find(CatObject,"Common_Elements/Vehicles") and User_Custom_Prefilled_CateringObject_1241 then
+					x = 1.267 * x
+					x_higher_part = x * 0.79
+				-- When this is an X-Plane 12.1.4 object, allow more room toward the fuselage
+				elseif CatObject ~= nil and string.find(CatObject,"Common_Elements/Vehicles") then
+					x = 1.25 * x
+				end
 
-			draw_static_object(x,z,object_hdg_correction,Catering_instance[0],"Catering")
-			--"CateringHighPart" is only a good keyword here for the elevated vehicles, otherwise trouble trouble :
-			if CateringHighPart_is_night_lighting ~= nil and CateringHighPart_is_night_lighting then
-				Catering_chg = draw_static_object(x,z,object_hdg_correction,Catering_instance[1],"CateringLight") -- when it's the night lighting of X-Plane 12.1.4 van
-			else
-				Catering_chg = draw_static_object(x_higher_part,z_higher_part,object_hdg_correction,Catering_instance[1],"CateringHighPart") -- otherwise use CateringHighPart to affect the elevation
-			end
+				if protect_the_aircraft then
+					x = x - 20
+					x_higher_part = x_higher_part - 20
+					z = z - 3
+					z_higher_part = z_higher_part - 3
+				end
 
-			if Catering_instance[2] ~= nil then
-				Catering_chg = draw_static_object(x,z,object_hdg_correction,Catering_instance[2],"CateringElevator") -- when it's the night lighting of X-Plane 12.1.4 van
-			end
+				draw_static_object(x,z,object_hdg_correction,Catering_instance[0],"Catering")
+				--"CateringHighPart" is only a good keyword here for the elevated vehicles, otherwise trouble trouble :
+				if CateringHighPart_is_night_lighting ~= nil and CateringHighPart_is_night_lighting then
+					Catering_chg = draw_static_object(x,z,object_hdg_correction,Catering_instance[1],"CateringLight") -- when it's the night lighting of X-Plane 12.1.4 van
+				else
+					Catering_chg = draw_static_object(x_higher_part,z_higher_part,object_hdg_correction,Catering_instance[1],"CateringHighPart") -- otherwise use CateringHighPart to affect the elevation
+				end
+
+				if Catering_instance[2] ~= nil then
+					Catering_chg = draw_static_object(x,z,object_hdg_correction,Catering_instance[2],"CateringElevator") -- when it's the night lighting of X-Plane 12.1.4 van
+				end
 		  end
 	  end
-
 	end
 
 	function service_object_physics_PRM()
@@ -3600,194 +3762,78 @@ function SGES_script()
 		end
 	end
 
-	function service_object_physics_ULDloader()
-	  if ULDLoader_chg == true then
-		  if show_ULDLoader then
-			load_ULDLoader()
-			if PLANE_ICAO == "B77L" and string.find(SGES_Author,"FlightFactor") and sges_EngineState[0] < 10 then
-				if XPLMFindDataRef("1-sim/anim/doorCargo") ~= nil  then set("1-sim/anim/doorCargo",0.85) end
-				if XPLMFindDataRef("1-sim/anim/cargoDoorBar") ~= nil  then set("1-sim/anim/cargoDoorBar",1) end -- 1 removes it ! 0 displays the barrier !
-				if XPLMFindDataRef("1-sim/anim/doorFwd") ~= nil  then set("1-sim/anim/doorFwd",1) end
-				if XPLMFindDataRef("1-sim/anim/doorAft") ~= nil  then set("1-sim/anim/doorAft",1) end
-			end
-		  else
-			if PLANE_ICAO == "B77L" and string.find(SGES_Author,"FlightFactor") then
-				if XPLMFindDataRef("1-sim/anim/doorCargo") ~= nil  then set("1-sim/anim/doorCargo",0) end
-				if XPLMFindDataRef("1-sim/anim/cargoDoorBar") ~= nil  then set("1-sim/anim/cargoDoorBar",0) end -- 1 removes it ! 0 displays the barrier !
-				if XPLMFindDataRef("1-sim/anim/doorFwd") ~= nil  then set("1-sim/anim/doorFwd",0) end
-				if XPLMFindDataRef("1-sim/anim/doorAft") ~= nil  then set("1-sim/anim/doorAft",0) end
-			end
-			show_CargoULD = false
-			CargoULD_chg = true
-			-- apply this directly :
-			CargoULD_chg,Baggage_instance[5],rampservicerefBaggage5 = common_unload("CargoULD",Baggage_instance[5],rampservicerefBaggage5)
-
-			-- then
-			ULDLoader_chg,ULDLoader_instance[0],rampserviceref72 = common_unload("ULDLoader",ULDLoader_instance[0],rampserviceref72)
-
-			--unload_ULDLoader()
-		  end
-
-
-		  if ULDLoader_instance[0] ~= nil then
-			if PLANE_ICAO == "A321" then ULDLoaderFwdPositionFactor = 0.72
-			elseif PLANE_ICAO == "A320" then ULDLoaderFwdPositionFactor = 1.0
-			elseif PLANE_ICAO == "A20N" then ULDLoaderFwdPositionFactor = 1.0
-			elseif PLANE_ICAO == "A346" then ULDLoaderFwdPositionFactor = 0.5
-			elseif PLANE_ICAO == "A306" then ULDLoaderFwdPositionFactor = 0.96
-			elseif PLANE_ICAO == "MD11" then ULDLoaderFwdPositionFactor = 1.45
-			elseif PLANE_ICAO == "B722" then ULDLoaderFwdPositionFactor = 1.13
-			elseif PLANE_ICAO == "B738" then ULDLoaderFwdPositionFactor = 0.95
-			elseif PLANE_ICAO == "B748" then ULDLoaderFwdPositionFactor = -0.53
-			elseif PLANE_ICAO == "B742" then ULDLoaderFwdPositionFactor = -0.67 lateral_factor_ULDLoader = -1.2
-			elseif PLANE_ICAO == "B744" then ULDLoaderFwdPositionFactor = -0.7
-			elseif PLANE_ICAO == "B762" then ULDLoaderFwdPositionFactor = 0.95
-			elseif PLANE_ICAO == "B763" then ULDLoaderFwdPositionFactor = 0.9
-			elseif PLANE_ICAO == "B772" then ULDLoaderFwdPositionFactor = 1
-			elseif PLANE_ICAO == "B773" then ULDLoaderFwdPositionFactor = 1
-			elseif PLANE_ICAO == "B77L" then ULDLoaderFwdPositionFactor = -0.66
-			elseif PLANE_ICAO == "B752" then ULDLoaderFwdPositionFactor = 1.15
-			elseif PLANE_ICAO == "SF34" then ULDLoaderFwdPositionFactor = -1.1
-			elseif PLANE_ICAO == "B462" then ULDLoaderFwdPositionFactor = 1.03
-			elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then ULDLoaderFwdPositionFactor = 0.95
-			else ULDLoaderFwdPositionFactor = 1.1 end
-			-- then :
-			local x = targetDoorX+10
-			if PLANE_ICAO == "MD11" then x = targetDoorX+9 end
-			if PLANE_ICAO == "B752" then x = targetDoorX+9.5 end
-			if PLANE_ICAO == "B763" then x = targetDoorX+8 end
-			if PLANE_ICAO == "A306" then x = targetDoorX+8 end
-			if PLANE_ICAO == "B722" then x = targetDoorX+9.5 end
-			if PLANE_ICAO == "B77L" then x = targetDoorX+8.75 end
-			if string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then x = targetDoorX+11 end
-			local z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
-			local h = 90
-			if UseXplaneDefaultObject == true then
-				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], targetDoorX+15, ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition, sges_gs_plane_head[0] )
-				if PLANE_ICAO == "A310" then			x = targetDoorX-7.5				y = 11				h = -90
-				elseif PLANE_ICAO == "A3ST" then			x = targetDoorX-7.5				y = -12.8			h = -90
-				end
-			else
-				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], targetDoorX+10, ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition, sges_gs_plane_head[0] )
-				if PLANE_ICAO == "A310" then			x = targetDoorX-3.5				y = 11				h = -90
-				elseif PLANE_ICAO == "A3ST" then			x = targetDoorX-3.5				y = -11.8			h = -90
-				end
-
-				if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cargo_loader_ch70w") then
-					x = x + 3
-				end
-				-- doesn't work for big airplanes so I add :
-				if  BeltLoaderFwdPosition >= ULDthresholdx  and string.find(Prefilled_CargoDeck_ULDLoaderObject,"cargo_loader_ch70w") then
-					x = x + 3
-				end
-
-				if string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") or string.find(Prefilled_CargoDeck_ULDLoaderObject,"ContainerLoader.obj") then --77F FF/STS
-					if reuse_lateral_factor == nil then reuse_lateral_factor = 1.7 end
-					x = x + reuse_lateral_factor
-					print("[Ground Equipment " .. version_text_SGES .. "] Adjusting the location of the special animated cargo loader : " .. reuse_lateral_factor .. " for the " .. PLANE_ICAO ..".")
-				end
-
-			end
-
-			if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) and IsPassengerPlane == 0 then
-				x = x - 0.9
-				-- definitively change linked cones for a single cone to not disturb the ULD loader on main cargo deck
-				if Linked_cones ~= Prefilled_ConeObject then
-					Cones_chg,Cones_instance[1],rampserviceref3 = common_unload("BAe146QTCones",Cones_instance[1],rampserviceref3)
-					Linked_cones = Prefilled_ConeObject
-					Cones_chg =  true
-				end
-			end
-			x = x + lateral_factor_ULDLoader
-			z = z + longitudinal_factor3_ULDLoader
-			uld_x = x
-			if CargoDeck_ULDLoaderObject == "highly_high_variant" and string.find(Prefilled_CargoDeck_ULDLoaderObject,"cLoader.obj") then --77F FF/STS
-				uld_x = x + 4.5
-			elseif CargoDeck_ULDLoaderObject == "highly_high_variant_toliss" and string.find(Prefilled_CargoDeck_ULDLoaderObject,"ContainerLoader.obj") then -- Toliss cargo loader
-				uld_x = x + 1
-				h = h + 180
-			end
-			uld_x_stored = uld_x
-			uld_z = z
-			ULDLoader_chg = draw_static_object(x,z,h,ULDLoader_instance[0],"ULD Loader")
-		  end
-	  end
-	end
 
 
 	function service_object_physics_People1()
 	  if People1_chg == true then
-		  if show_People1 then
-			if PLANE_ICAO ~= "DC3" and PLANE_ICAO ~= "DC3" then
-			  Load_Cami_de_Bellis_Objects()
-			  if Clairmarais_Aerodrome_directory ~= nil then Clairmarais_Aerodrome_lib() end
-			  load_People1()
-			end
-		  else
-			People1_chg,People1_instance[0],rampserviceref73 = common_unload("People1",People1_instance[0],rampserviceref73)
-			--unload_People1()
-		  end
-		  if People1_instance[0] ~= nil then
-			if show_PB then
-			  People1_chg = draw_static_object(targetDoorX+4,-targetDoorZ+5,310,People1_instance[0],"People1")
-			else
-			  People1_chg = draw_static_object(targetDoorX+3,-targetDoorZ+5,310,People1_instance[0],"People1")
-			end
-		  end
+			  if show_People1 then
+				if PLANE_ICAO ~= "DC3" and PLANE_ICAO ~= "DC3" then
+				  Load_Cami_de_Bellis_Objects()
+				  if Clairmarais_Aerodrome_directory ~= nil then Clairmarais_Aerodrome_lib() end
+				  load_People1()
+				end
+			  else
+				People1_chg,People1_instance[0],rampserviceref73 = common_unload("People1",People1_instance[0],rampserviceref73)
+				--unload_People1()
+			  end
+			  if People1_instance[0] ~= nil then
+				if show_PB then
+				  People1_chg = draw_static_object(targetDoorX+4,-targetDoorZ+5,310,People1_instance[0],"People1")
+				else
+				  People1_chg = draw_static_object(targetDoorX+3,-targetDoorZ+5,310,People1_instance[0],"People1")
+				end
+			  end
 	  end
-	end
-	function service_object_physics_People2()
+		------------------------------------------------------------------------
 	  if People2_chg == true then
-		  if show_People2 then
-			  load_People2()
-		  else
-			People2_chg,People2_instance[0],rampserviceref74 = common_unload("People2",People2_instance[0],rampserviceref74)
-			--unload_People2()
-		  end
-		  if People2_instance[0] ~= nil then
-			local x = targetDoorX+4
-			local z = BeltLoaderFwdPosition+2
-			if PLANE_ICAO == "E195" then
-				x = targetDoorX+9
-				z = BeltLoaderFwdPosition
-			elseif PLANE_ICAO == "A346" then
-				x = 9
-				z = 0.57*math.abs(BeltLoaderFwdPosition)
-			end
-			People2_chg = draw_static_object(x,z,80,People2_instance[0],"People2")
-		  end
+			  if show_People2 then
+				  load_People2()
+			  else
+				People2_chg,People2_instance[0],rampserviceref74 = common_unload("People2",People2_instance[0],rampserviceref74)
+				--unload_People2()
+			  end
+			  if People2_instance[0] ~= nil then
+				local x = targetDoorX+4
+				local z = BeltLoaderFwdPosition+2
+				if PLANE_ICAO == "E195" then
+					x = targetDoorX+9
+					z = BeltLoaderFwdPosition
+				elseif PLANE_ICAO == "A346" then
+					x = 9
+					z = 0.57*math.abs(BeltLoaderFwdPosition)
+				end
+				People2_chg = draw_static_object(x,z,80,People2_instance[0],"People2")
+			  end
 	  end
-	end
-	function service_object_physics_People3()
+		------------------------------------------------------------------------
 	  if People3_chg == true then
-		  if show_People3 then
-			 load_People3()
-		  else
-			People3_chg,People3_instance[0],rampserviceref75 = common_unload("People3",People3_instance[0],rampserviceref75)
-			--unload_People3()
-		  end
-		  if People3_instance[0] ~= nil then
-			local x = 11
-			local z = -2.1*math.abs(BeltLoaderFwdPosition)
+			  if show_People3 then
+				 load_People3()
+			  else
+				People3_chg,People3_instance[0],rampserviceref75 = common_unload("People3",People3_instance[0],rampserviceref75)
+				--unload_People3()
+			  end
+			  if People3_instance[0] ~= nil then
+				local x = 11
+				local z = -2.1*math.abs(BeltLoaderFwdPosition)
 
 
-			if SecondStairsFwdPosition ~= - 30 and SecondStairsFwdPosition < -12 then -- if SecondStairsFwdPosition is defined in the aircraft config
-				z = SecondStairsFwdPosition - 6
-			end
+				if SecondStairsFwdPosition ~= - 30 and SecondStairsFwdPosition < -12 then -- if SecondStairsFwdPosition is defined in the aircraft config
+					z = SecondStairsFwdPosition - 6
+				end
 
-			-- then peculiarities :
-			if PLANE_ICAO == "E195" then
-				x = targetDoorX+8
-				z = BeltLoaderFwdPosition
-			elseif PLANE_ICAO == "A346" then
-				x = 8
-				z = -0.5*math.abs(BeltLoaderFwdPosition)
-			end
-			People3_chg = draw_static_object(x,z,-160,People3_instance[0],"People3")
-		  end
+				-- then peculiarities :
+				if PLANE_ICAO == "E195" then
+					x = targetDoorX+8
+					z = BeltLoaderFwdPosition
+				elseif PLANE_ICAO == "A346" then
+					x = 8
+					z = -0.5*math.abs(BeltLoaderFwdPosition)
+				end
+				People3_chg = draw_static_object(x,z,-160,People3_instance[0],"People3")
+			  end
 	  end
-	end
-	function service_object_physics_People4()
+		------------------------------------------------------------------------
 	  if People4_chg == true then
 		  if show_People4 then
 			  load_People4()
@@ -4585,8 +4631,8 @@ function SGES_script()
 
 			-- rear static baggages deposit near the rear belt loader when it is available
 		  if Baggage_instance[2] ~= nil and show_Cart and show_RearBeltLoader and baggage_x2 ~= nil then
-			if IsPassengerPlane == 0 then
-				draw_static_object(baggage_x2-1,baggage_z2+2,-175,Baggage_instance[2],"Baggage2") -- the dolly is a wide 3D object, we don't want it to intersect with the human handler
+			if IsPassengerPlane == 0  or Prefilled_BeltLoaderObject == Prefilled_ULDLoaderObject then
+				draw_static_object(baggage_x2-1.5,baggage_z2+3,-175,Baggage_instance[2],"Baggage2") -- the dolly is a wide 3D object, we don't want it to intersect with the human handler
 			else
 				draw_static_object(baggage_x2,baggage_z2,-175,Baggage_instance[2],"Baggage2") -- normal baggages
 			end
@@ -5039,69 +5085,85 @@ function SGES_script()
 
 			if stairs_authorized and sges_openSAM ~= nil and sges_openSAM[0] == 2 then show_StairsXPJ = false option_StairsXPJ_override = false end -- patch to prevent stairs with an Open SAM jetway when stairs are authorized
 
-		  if show_StairsXPJ and (stairs_authorized or option_StairsXPJ_override) then
-			  load_StairsXPJ()
-		  else
-			--unload_StairsXPJ()
-			StairsXPJ_chg,StairsXPJ_instance[0],rampserviceref300 = common_unload("StairsXPJ",StairsXPJ_instance[0],rampserviceref300)
-			StairsXPJ_chg,StairsXPJ_instance[1],rampserviceref301 = common_unload("StairsXPJ1",StairsXPJ_instance[1],rampserviceref301)
-		  end
-		  if StairsXPJ_instance[0] ~= nil and StairsXPJ_instance[1] ~= nil then
-			  draw_StairsXPJ()
-		  end
+			  if show_StairsXPJ and (stairs_authorized or option_StairsXPJ_override) then
+				  load_StairsXPJ()
+			  else
+				--unload_StairsXPJ()
+				StairsXPJ_chg,StairsXPJ_instance[0],rampserviceref300 = common_unload("StairsXPJ",StairsXPJ_instance[0],rampserviceref300)
+				StairsXPJ_chg,StairsXPJ_instance[1],rampserviceref301 = common_unload("StairsXPJ1",StairsXPJ_instance[1],rampserviceref301)
+			  end
+			  if StairsXPJ_instance[0] ~= nil and StairsXPJ_instance[1] ~= nil then
+				  draw_StairsXPJ()
+			  end
 		end
-	end
-
-	function service_object_physics_stairsXPJ2()
+		------------------------------------------------------------------------
+		if Ramp_chg == true then
+			  if show_Ramp then
+					load_StairsXPJ()
+					show_StairsXPJ = false
+					StairsXPJ_chg = true
+			  else
+					Ramp_chg,StairsXPJ_instance[2],rampserviceref301b = common_unload("Ramp",StairsXPJ_instance[2],rampserviceref301b)
+			  end
+			  if StairsXPJ_instance[2] ~= nil then
+				local x = targetDoorX+deltaDoorX + 4.6 + targetDoorX_alternate -- lateral
+				local z = -targetDoorZ + 1 + targetDoorZ_alternate				-- longitudinal
+				if protect_the_aircraft then x = x + 14 end
+				Ramp_chg = draw_static_object(x,z,94,StairsXPJ_instance[2],"Ramp")
+				DualBoard = false
+				BoardStairsXPJ = false
+				BoardStairsXPJ2 = true
+			  end
+		end
+		------------------------------------------------------------------------
 		if StairsXPJ2_chg == true then
-		  if show_StairsXPJ2 then
-			  load_StairsXPJ2()
-		  else
-			--unload_StairsXPJ2()
-			StairsXPJ2_chg,StairsXPJ2_instance[0],rampserviceref302 = common_unload("StairsXPJ2",StairsXPJ2_instance[0],rampserviceref302)
-			StairsXPJ2_chg,StairsXPJ2_instance[1],rampserviceref303 = common_unload("StairsXPJ21",StairsXPJ2_instance[1],rampserviceref303)
-				-- restore position for passenger deplacement back to forward stair if it is shown
-				if show_StairsXPJ and StairsXPJ_instance[0] ~= nil then
-					StairFinalY = StairFinalY_stairIII
-					StairFinalH = StairFinalH_stairIII
-					StairFinalX = StairFinalX_stairIII
-					InitialPaxHeight = InitialPaxHeight_stairIII
-					BoardStairsXPJ = true
-					BoardStairsXPJ2 = false
-				end
-		  end
-		  if StairsXPJ2_instance[0] ~= nil and StairsXPJ2_instance[1] ~= nil then
-			  draw_StairsXPJ2()
-		  end
+			  if show_StairsXPJ2 then
+				  load_StairsXPJ2()
+			  else
+				--unload_StairsXPJ2()
+				StairsXPJ2_chg,StairsXPJ2_instance[0],rampserviceref302 = common_unload("StairsXPJ2",StairsXPJ2_instance[0],rampserviceref302)
+				StairsXPJ2_chg,StairsXPJ2_instance[1],rampserviceref303 = common_unload("StairsXPJ21",StairsXPJ2_instance[1],rampserviceref303)
+					-- restore position for passenger deplacement back to forward stair if it is shown
+					if show_StairsXPJ and StairsXPJ_instance[0] ~= nil then
+						StairFinalY = StairFinalY_stairIII
+						StairFinalH = StairFinalH_stairIII
+						StairFinalX = StairFinalX_stairIII
+						InitialPaxHeight = InitialPaxHeight_stairIII
+						DualBoard = true
+						BoardStairsXPJ2 = false
+					end
+			  end
+			  if StairsXPJ2_instance[0] ~= nil and StairsXPJ2_instance[1] ~= nil then
+				  draw_StairsXPJ2()
+			  end
 		end
-	end
-
-	function service_object_physics_stairsXPJ3()
+		------------------------------------------------------------------------
 		if StairsXPJ3_chg == true then
-		  if show_StairsXPJ3 then
-			if sign3 == nil then
-				_,Cones_instance[0],rampserviceref0 = common_unload("Cones",Cones_instance[0],rampserviceref0) -- remove engine left conus, to make rooms for stairs
-			elseif sign3 > 0 then -- when stairs is on the left hand sie
-				_,Cones_instance[0],rampserviceref0 = common_unload("Cones",Cones_instance[0],rampserviceref0) -- remove engine left conus, to make rooms for stairs
-			else -- when stairs is on the left hand side
-				_,Cones_instance[2],rampserviceref010 = common_unload("Cones",Cones_instance[2],rampserviceref010) -- remove engine right conus, to make rooms for stairs
-			end
+			  if show_StairsXPJ3 then
+				if sign3 == nil then
+					_,Cones_instance[0],rampserviceref0 = common_unload("Cones",Cones_instance[0],rampserviceref0) -- remove engine left conus, to make rooms for stairs
+				elseif sign3 > 0 then -- when stairs is on the left hand sie
+					_,Cones_instance[0],rampserviceref0 = common_unload("Cones",Cones_instance[0],rampserviceref0) -- remove engine left conus, to make rooms for stairs
+				else -- when stairs is on the left hand side
+					_,Cones_instance[2],rampserviceref010 = common_unload("Cones",Cones_instance[2],rampserviceref010) -- remove engine right conus, to make rooms for stairs
+				end
 
-			load_StairsXPJ3()
+				load_StairsXPJ3()
 
-		  else
-			StairsXPJ3_chg,StairsXPJ3_instance[0],rampserviceref302 = common_unload("StairsXPJ3",StairsXPJ3_instance[0],rampserviceref304)
-			StairsXPJ3_chg,StairsXPJ3_instance[1],rampserviceref303 = common_unload("StairsXPJ31",StairsXPJ3_instance[1],rampserviceref305)
-			Cones_chg = true -- put back cones to their anterior status
-		  end
-		  if StairsXPJ3_instance[0] ~= nil and StairsXPJ3_instance[1] ~= nil then
-			  draw_StairsXPJ3()
-		  end
+			  else
+				StairsXPJ3_chg,StairsXPJ3_instance[0],rampserviceref302 = common_unload("StairsXPJ3",StairsXPJ3_instance[0],rampserviceref304)
+				StairsXPJ3_chg,StairsXPJ3_instance[1],rampserviceref303 = common_unload("StairsXPJ31",StairsXPJ3_instance[1],rampserviceref305)
+				Cones_chg = true -- put back cones to their anterior status
+			  end
+			  if StairsXPJ3_instance[0] ~= nil and StairsXPJ3_instance[1] ~= nil then
+				  draw_StairsXPJ3()
+			  end
 		end
+		------------------------------------------------------------------------
 	end
 
 
-	function service_object_physics_Ponev()
+	function service_object_physics_Ponev() -- dynamic (for carrier)
 	  if Ponev_chg == true then
 		  if show_Ponev then
 			  Load_Cami_de_Bellis_Objects()
@@ -5115,8 +5177,32 @@ function SGES_script()
 	  end
 	end
 
+	function service_object_physics_ASU_GPU_Forklift()
 
-	function service_object_physics_ASU()
+	  if GPU_chg == true then
+		  if show_GPU then
+			if string.match(PLANE_AUTHOR,"Thranda") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then
+				print("[Ground Equipment " .. version_text_SGES .. "] Displaying only the Thranda external power unit, not SGES GPU.")
+				GPU_chg = false
+			else-- load the visual GPU only when not already the Thranda planes GPU (XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil)
+			  load_GPU()
+			 end
+		  else
+			  GPU_chg,GPU_instance[0],rampserviceref1 = common_unload("GPU",GPU_instance[0],rampserviceref1)
+			  --unload_GPU()
+		  end
+		  if GPU_instance[0] ~= nil then
+			local x = -5
+			local z = BeltLoaderFwdPosition + 10
+			if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
+				GPU_chg = false
+			else
+				-- send it :
+				GPU_chg = draw_static_object(x,z,-55,GPU_instance[0],"GPU")
+			end
+		  end
+	  end
+	  --------------------------------------------------------------------------
 		if ASU_chg then
 		  if show_ASU or show_ACU then
 			  load_ASU_ACU()
@@ -5147,9 +5233,7 @@ function SGES_script()
 			if Prefilled_ASU_duct ~= nil then ASU_chg = draw_static_object(x,z,1,ASU_ACU_instance[1],"ASU_ACU") end
 		  end
 		end
-	end
-
-	function service_object_physicsForklift()
+	  --------------------------------------------------------------------------
 		if Forklift_chg == true then
 		  if show_Forklift then
 			  load_Forklift()
@@ -5702,6 +5786,49 @@ function SGES_script()
 		end
 	end
 
+
+	function load_BulkLoader()
+		if BeltLoader_instance[3] == nil then
+
+			if heliDollyObject ~= nil and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1 then -- we will use this object for an helicopter dolly to avoid create snother one
+				BulkLoaderObject = heliDollyObject
+				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], 15, 155, sges_gs_plane_head[0] )
+				local y_forward,_ = probe_y (g_shifted_x, sges_gs_plane_y[0], g_shifted_z)
+				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], 15, 145, sges_gs_plane_head[0] )
+				local y_aft,_ 	= probe_y (g_shifted_x, sges_gs_plane_y[0], g_shifted_z)
+				local ground_level_difference = math.abs(y_forward-y_aft)*100
+
+
+				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], 5, 150, sges_gs_plane_head[0] )
+				local y_R,_ = probe_y (g_shifted_x, sges_gs_plane_y[0], g_shifted_z)
+				coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], 15, 150, sges_gs_plane_head[0] )
+				local y_L,_ 	= probe_y (g_shifted_x, sges_gs_plane_y[0], g_shifted_z)
+				local ground_level_difference_LR = math.abs(y_R-y_L)*100
+
+				if  ground_level_difference > 11 or ground_level_difference_LR > 11 then
+					print("[Ground Equipment " .. version_text_SGES .. "] SGES would like to suggest the terrain is not flat enough for an heli dolly...")
+					show_BulkLoader = false -- put it to false : cancels the heli dolly
+					BulkLoader_chg = true
+				end
+			elseif BeltLoaderFwdPosition > 13 and file_exists(XPlane_Ramp_Equipment_directory   .. "Tug660_Up_1.obj") then
+				BulkLoaderObject = XPlane_Ramp_Equipment_directory   .. "Tug660_Up_1.obj"
+			else
+				BulkLoaderObject = Stored_BulkLoaderObject
+			end
+
+			if show_BulkLoader then -- if still true
+			   XPLM.XPLMLoadObjectAsync(BulkLoaderObject,
+						function(inObject, inRefcon)
+							BeltLoader_instance[3] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+							rampservicerefBulk = inObject
+						end,
+						inRefcon )
+			else
+				print("[Ground Equipment " .. version_text_SGES .. "] SGES cancels this item.")
+			end
+		end
+	end
+
 	function load_Cart()
 			   --print("[Ground Equipment " .. version_text_SGES .. "] Do we load the cart ?")
 		if BeltLoader_instance[1] == nil and cart_show_only_once then
@@ -5718,7 +5845,7 @@ function SGES_script()
 					-- if it is X-Plane 12, we can use the new luggage train also to bring diversity
 					-- the X-Plane cart hasn't lights, so restrict that to the day
 					randomView = math.random()
-					if randomView <= 0.25 and (local_time_in_simulator >= 7 and local_time_in_simulator < 19) then
+					if randomView <= 0.65 and (local_time_in_simulator >= 7 and local_time_in_simulator < 19) then
 						CartObject = XPlane_Ramp_Equipment_directory   .. "leg_lugg_train_str2.obj"
 					else
 						CartObject = Prefilled_2CartObject
@@ -7146,8 +7273,15 @@ function SGES_script()
 
 		if Baggage_instance[2] == nil and baggage2_show_only_once then
 
-			if IsPassengerPlane == 0 then
-				Baggage2Object=XPlane_Ramp_Equipment_directory   .. "cont_dolly_LD3_1.obj"
+			if IsPassengerPlane == 0 or Prefilled_BeltLoaderObject == Prefilled_ULDLoaderObject then
+				randomView = math.random()
+				if randomView > 0.5 then
+					Baggage2Object=XPlane_Ramp_Equipment_directory   .. "cont_dolly_LD3_1.obj"
+				elseif randomView < 0.2 then
+					Baggage2Object=XPlane_Ramp_Equipment_directory   .. "cont_dolly_LD3_2.obj"
+				else
+					Baggage2Object=XPlane_Ramp_Equipment_directory   .. "pallet_01.obj"
+				end
 			elseif sges_military == 1 or sges_military_default == 1 then
 				Baggage2Object=XPlane_Ramp_Equipment_directory   .. "pallet_04.obj"
 			else
@@ -7281,6 +7415,12 @@ function SGES_script()
 			Prefilled_StairsXPJObject 	= SCRIPT_DIRECTORY   	.. 	"Simple_Ground_Equipment_and_Services/Airstairs/new/small/MobileAirstairsSlider_small.obj"
 			Prefilled_StairsXPJ2Object 		= Prefilled_StairsXPJObject
 			Prefilled_StairsXPJ2Object_base = Prefilled_StairsXPJObject_base
+
+			--~ if IsXPlane1244 and AccessiblePassengerBoardingRampsObject ~= nil and (show_Ramp or show_PRM) then
+				--~ Prefilled_StairsXPJObject 		= Prefilled_LightObject
+				--~ Prefilled_StairsXPJObject_base 	=  AccessiblePassengerBoardingRampsObject
+				--~ print("[Ground Equipment " .. version_text_SGES .. "] loading stairs and adding Accessible Passenger Boarding Ramp")
+			--~ end
 		elseif SGES_stairs_type == "Boarding_without_stairs" then -- I have decided to make that transparent, no stairs, as if the aircraft ladder was used.
 			Prefilled_StairsXPJObject 		= Prefilled_LightObject
 			Prefilled_StairsXPJObject_base 	= XPlane_objects_directory   .. "../apt_lights/slow/inset_edge_rwy_WW.obj"
@@ -7300,24 +7440,37 @@ function SGES_script()
 			if show_FireVehicle then
 				Prefilled_StairsXPJObject_base 	= SCRIPT_DIRECTORY  ..  "Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsBase_EMS.obj"
 				Prefilled_StairsXPJObject 	= SCRIPT_DIRECTORY   	.. 	"Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsSlider_EMS.obj"
+				Prefilled_StairsXPJ2Object 		= Prefilled_StairsXPJObject
+				Prefilled_StairsXPJ2Object_base = Prefilled_StairsXPJObject_base
 			elseif sges_military == 1 or sges_military_default == 1 then
 				Prefilled_StairsXPJObject_base 	= SCRIPT_DIRECTORY  ..  "Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsBase_Mil.obj"
 				Prefilled_StairsXPJObject 	= SCRIPT_DIRECTORY   	.. 	"Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsSlider_Mil.obj"
+				Prefilled_StairsXPJ2Object 		= Prefilled_StairsXPJObject
+				Prefilled_StairsXPJ2Object_base = Prefilled_StairsXPJObject_base
+			--~ elseif IsXPlane1244 and AccessiblePassengerBoardingRampsObject ~= nil and (show_Ramp or show_PRM) then
+				--~ Prefilled_StairsXPJObject 		= Prefilled_LightObject
+				--~ Prefilled_StairsXPJObject_base 	=  AccessiblePassengerBoardingRampsObject
+				--~ Prefilled_StairsXPJ2Object_base 	= SCRIPT_DIRECTORY  ..  "Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsBase.obj"
+				--~ Prefilled_StairsXPJ2Object 	= SCRIPT_DIRECTORY   	.. 	"Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsSlider.obj"
+				--~ print("[Ground Equipment " .. version_text_SGES .. "] loading stairs and adding Accessible Passenger Boarding Ramp")
 			else
 				Prefilled_StairsXPJObject_base 	= SCRIPT_DIRECTORY  ..  "Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsBase.obj"
 				Prefilled_StairsXPJObject 	= SCRIPT_DIRECTORY   	.. 	"Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsSlider.obj"
 				if string.match(PLANE_ICAO,"A20N") or PLANE_ICAO == "A306" or string.match(PLANE_ICAO,"A33") then
 					Prefilled_StairsXPJObject 		= SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsSlider_Blue.obj"
 				end
+				Prefilled_StairsXPJ2Object 		= Prefilled_StairsXPJObject
+				Prefilled_StairsXPJ2Object_base = Prefilled_StairsXPJObject_base
 			end
-			Prefilled_StairsXPJ2Object 		= Prefilled_StairsXPJObject
-			Prefilled_StairsXPJ2Object_base = Prefilled_StairsXPJObject_base
 			if sges_big_airport and not show_FireVehicle then -- front stairs only
 				Prefilled_StairsXPJObject_base 	= SCRIPT_DIRECTORY  ..  "Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsBase_Servisair.obj"
 				Prefilled_StairsXPJObject 	= SCRIPT_DIRECTORY   	.. 	"Simple_Ground_Equipment_and_Services/Airstairs/new/normal/MobileAirstairsSlider_Servisair_rain.obj"
+				Prefilled_StairsXPJ2Object 		= Prefilled_StairsXPJObject
+				Prefilled_StairsXPJ2Object_base = Prefilled_StairsXPJObject_base
 			end
+
 		end
-		--print("[Ground Equipment " .. version_text_SGES .. "] loading stairs and selecting stairs model " .. SGES_stairs_type)
+		--~ print("[Ground Equipment " .. version_text_SGES .. "] loading stairs and selecting stairs model " .. SGES_stairs_type)
 	end
 
 
@@ -7346,6 +7499,25 @@ function SGES_script()
 							inRefcon )
 			end
 			StairsXPJ_1_show_only_once = false
+		end
+		if StairsXPJ_2_show_only_once then
+
+			if StairsXPJ_instance[2] == nil and AccessiblePassengerBoardingRampsObject ~= nil then
+					randomView = math.random()
+					if randomView > 0.20 and outsideAirTemp > 10 then
+						AccessiblePassengerBoardingRampsObject =        XPlane_Ramp_Equipment_directory .. "boarding_ramp_2.obj"
+					else
+						AccessiblePassengerBoardingRampsObject =        XPlane_Ramp_Equipment_directory .. "boarding_ramp_2_canopy.obj"
+					end
+				   print("[Ground Equipment " .. version_text_SGES .. "] load accessible stairs " .. AccessiblePassengerBoardingRampsObject)
+				   XPLM.XPLMLoadObjectAsync(AccessiblePassengerBoardingRampsObject,
+							function(inObject, inRefcon)
+								StairsXPJ_instance[2] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+								rampserviceref301b = inObject
+							end,
+							inRefcon )
+			end
+			StairsXPJ_2_show_only_once = false
 		end
 	end
 
@@ -7376,7 +7548,7 @@ function SGES_script()
 
 	function load_StairsXPJ3()
 		if StairsXPJ3_instance[0] == nil and StairsXPJ3_0_show_only_once then
-		   XPLM.XPLMLoadObjectAsync(Prefilled_StairsXPJObject,
+		   XPLM.XPLMLoadObjectAsync(Prefilled_StairsXPJ2Object,
 					function(inObject, inRefcon)
 						StairsXPJ3_instance[0] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
 						rampserviceref304 = inObject
@@ -7385,7 +7557,7 @@ function SGES_script()
 			StairsXPJ3_0_show_only_once = false
 		end
 		if StairsXPJ3_instance[1] == nil and StairsXPJ3_1_show_only_once then
-		   XPLM.XPLMLoadObjectAsync(Prefilled_StairsXPJObject_base,
+		   XPLM.XPLMLoadObjectAsync(Prefilled_StairsXPJ2Object_base,
 					function(inObject, inRefcon)
 						StairsXPJ3_instance[1] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
 						rampserviceref305 = inObject
@@ -7801,6 +7973,7 @@ function SGES_script()
 
 			end
 
+			-- ------------------ ----------------- -------
 			coordinates_of_adjusted_ref_rampservice(reference_x, reference_z, placeToBeX, placeToBeZ, reference_heading)
 
 			if IsXPlane12 and string.match(object_name,"XP12Carrier") and user_boat_lon ~= nil and user_boat_lat ~= nil then
@@ -7857,7 +8030,10 @@ function SGES_script()
 			end
 
 
-
+			if object_name == "heliDolly" then
+				objpos_target_value_y = ground -0.55
+				objpos_value[0].y = objpos_target_value_y
+			end
 
 
 			if object_name == "Submarine" then
@@ -7939,6 +8115,8 @@ function SGES_script()
 				objpos_target_value_y = ground - SGES_VDGS_object_geometry_factor
 				objpos_value[0].y = objpos_target_value_y
 			end
+
+
 
 			------------------------------------------------
 			-- apply the y target value.
@@ -8623,6 +8801,15 @@ function SGES_script()
 		--if sges_military_default == 1 then hdg_dev = -90 end
 
 		-- define final positions :
+		-- -------------------------------
+		-- Make that locals !
+			--~ local finalX = 18
+			--~ local finalY = 0.8*math.abs(targetDoorZ)
+			--~ local dX = 0.333
+			--~ local dY = 0.333
+			--~ local StartX = 38
+			--~ local StartY = finalY - 40
+		-- -------------------------------
 		if BeltLoaderFwdPosition >= 19 then
 			-- B747, A340
 			finalX = 29
@@ -8646,17 +8833,17 @@ function SGES_script()
 			finalY = 50
 		end
 
-		if protect_StairsXPJ then finalY = 0 end -- avoid moved-away airstairs
+		if protect_the_aircraft then finalY = 0 end -- avoid moved-away airstairs
 
 		-- define initial positions
-		if currentX == nil or currentY == nil then
+		if currentXbus == nil or currentYbus == nil then
 			StartX = 38
 			StartY = finalY - 40
 			if BeltLoaderFwdPosition >= 19 then
 				-- B748, A330, A340
 				StartX = 45
 			end
-			if protect_StairsXPJ then StartX = StartX + 3 end -- avoid moved-away airstairs
+			if protect_the_aircraft then StartX = StartX + 3 end -- avoid moved-away airstairs
 			if debugging_passengers then
 				StartX = finalX -- debugging conditiond for passengers
 				StartY = finalY -- debugging conditiond for passengers
@@ -8664,14 +8851,14 @@ function SGES_script()
 			if boarding_from_the_terminal then
 				StartX = finalX + 0.2 -- force to draw
 				StartY = finalY - 0.2 -- force to draw
-				print("[Ground Equipment " .. version_text_SGES .. "]  BOARDING FROM THE TERMINAL")
+				print("[Ground Equipment " .. version_text_SGES .. "] BOARDING FROM THE TERMINAL")
 			end
-			currentX = StartX
-			currentY = StartY
+			currentXbus = StartX
+			currentYbus = StartY
 			currentH = 24
-			--print("[Ground Equipment " .. version_text_SGES .. "]  Bus starts from " .. currentX)
+			print("[Ground Equipment " .. version_text_SGES .. "] Bus starts from " .. currentXbus)
 		end
-		if currentX > finalX and currentY < finalY  then
+		if currentXbus > finalX and currentYbus < finalY  then
 
 			if IsPassengerPlane == 0 then  -- when is an ULD AAD train, be slow
 				currentH = 24
@@ -8681,35 +8868,35 @@ function SGES_script()
 				end
 			else -- when a bus
 				-- slow down as required
-				if currentX < finalX + 0.5 or currentY > finalY - 0.5 then
+				if currentXbus < finalX + 0.5 or currentYbus > finalY - 0.5 then
 					-- variation to object position at each frame
 					dX= 0.0035
 					dY = 0.007
-				elseif currentH > 21 and currentX < finalX + 4 then
+				elseif currentH > 21 and currentXbus < finalX + 4 then
 					currentH = currentH - 0.04
 					--~ print("turning bus")
 					if dX > 0.0035 then dX= dX - 0.00025 end
 					if dY > 0.007 then dY = dY - 0.0005 end
-				elseif currentX >= finalX + 5.5 then
+				elseif currentXbus >= finalX + 5.5 then
 					dX= 0.030
 					dY = 0.066
 				end
 			end
-			currentX = currentX - dX
-			currentY = currentY + dY
+			currentXbus = currentXbus - dX
+			currentYbus = currentYbus + dY
 
 			-- MIRROR
 			if SGES_mirror == 1 then
-				currentX = -1 * finalX - 2
-				currentY = finalY + 3
+				currentXbus = -1 * finalX - 2
+				currentYbus = finalY + 3
 				hdg_dev = - 5
 			end
 
 			-- escape when not really a Bus
 			--if IsPassengerPlane == 0 then currentX = finalX currentY = finalY end -- dont bother
-			if UseXplaneDefaultObject == true then currentX = finalX currentY = finalY end -- dont bother
-
-			coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], currentX, currentY, sges_gs_plane_head[0] )
+			if UseXplaneDefaultObject == true then currentXbus = finalX currentYbus = finalY end -- dont bother
+			--~ print("Draw me at " .. currentXbus .. " for " .. finalX .. " with dX = " .. dX)
+			coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], currentXbus, currentYbus, sges_gs_plane_head[0] )
 
 			--if XTrident_Chinook_Directory ~= nil then
 				if XTrident_Chinook_Directory ~= nil and Prefilled_BusObject == SCRIPT_DIRECTORY .. XTrident_Chinook_Directory   .. "/plugins/CH47/mission/loads/humvee.obj" then
@@ -8727,10 +8914,10 @@ function SGES_script()
 
 		else
 			Bus_chg = false               -- indicate that the possible change in ramp/gate has been processed
-			print("[Ground Equipment " .. version_text_SGES .. "]  Bus has reached final position " .. currentX .. " , " .. currentY)
+			print("[Ground Equipment " .. version_text_SGES .. "]  Bus has reached final position " .. currentXbus .. " , " .. currentYbus)
 			if show_StairsXPJ and IsPassengerPlane == 1 then
 				if math.abs(BeltLoaderFwdPosition) > 5 then
-					if not protect_StairsXPJ then  show_Pax = true end
+					if not protect_the_aircraft then  show_Pax = true end
 					-- upon bus arrival, enable the passengers automatically, but only for the bigger aircraft.
 					-- 		and only when the aircraft is not protected in ZSAR with airstairs away enough.
 					-- only offer passengers manually on small aircraft
@@ -8755,8 +8942,8 @@ function SGES_script()
 					print("[Ground Equipment " .. version_text_SGES .. "]  Isn't a passenger plane : the arrival of the ULD train unlocked the Cargo ULD once.")
 			end
 			-- store final position to start passenger deplacement
-			BusFinalX = currentX
-			BusFinalY = currentY
+			BusFinalX = currentXbus
+			BusFinalY = currentYbus
 		end
 
 	end
@@ -8865,7 +9052,7 @@ function SGES_script()
 			Cart_finalX = -14
 			Cart_finalY = -12
 			heading_correcting_factor = heading_correcting_factor + 180
-		elseif PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" then
+		elseif PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
 			Cart_finalX = -(targetDoorX+12)
 			Cart_finalY = 1.5*BeltLoaderFwdPosition
 			heading_correcting_factor = heading_correcting_factor + 180
@@ -9280,7 +9467,7 @@ function SGES_script()
 				forbid_only_once_the_stairs_to_appear = true
 				if show_StairsXPJ == true and show_StairsXPJ2 == false then
 					BoardStairsXPJ2 = false
-					BoardStairsXPJ = true
+					DualBoard = true
 					StairFinalY = StairFinalY_stairIII
 					StairFinalH = StairFinalH_stairIII
 					StairFinalX = StairFinalX_stairIII
@@ -9318,6 +9505,7 @@ function SGES_script()
 	end
 
 	local stair_height = 5
+
 	function draw_StairsXPJ()
 		--[[
 
@@ -9334,7 +9522,7 @@ function SGES_script()
 			lateral_deviation = targetDoorX+deltaDoorX + 0.99 + targetDoorX_alternate
 		end
 
-		if protect_StairsXPJ then lateral_deviation = lateral_deviation + 7.5 + 2 end
+		if protect_the_aircraft then lateral_deviation = lateral_deviation + 7.5 + 4 end
 
 		-- targetDoorX_alternate is normally zero and is only different than zero if set manually by user in GUI
 		--~ if targetDoorX == 0 then -- Warn
@@ -9346,6 +9534,7 @@ function SGES_script()
 		else
 			longitudinal_position = -targetDoorZ+0.25
 		end
+
 		longitudinal_position_higher_part = longitudinal_position + targetDoorZ_alternate
 		coordinates_of_adjusted_ref_rampservice(sges_gs_plane_x[0], sges_gs_plane_z[0], lateral_deviation, longitudinal_position_higher_part, sges_gs_plane_head[0])
 		stair_y,wetness = probe_y (g_shifted_x, sges_gs_plane_y[0], g_shifted_z)
@@ -9375,7 +9564,7 @@ function SGES_script()
 		--~ print("stair_height = targetDoorAltitude - stair_y = " .. stair_height)
 		if SGES_stairs_type == "New_Normal" then
 			delta_base = 1.8 * stair_height + 9.39
-			if protect_StairsXPJ then delta_base = delta_base + 7.5 + 2 end
+			if protect_the_aircraft then delta_base = delta_base + 7.5 + 4 end
 		elseif SGES_stairs_type == "Boarding_without_stairs" then
 			delta_base = 0.5 * stair_height + 8
 		else
@@ -9416,7 +9605,7 @@ function SGES_script()
 		end
 		InitialPaxHeight = stair_y + targetDoorH_alternate
 		--  targetDoor(H|Z|X)_alternate is often zero
-		BoardStairsXPJ = true
+		DualBoard = true
 		BoardStairsXPJ2 = false
 
 		-- store position for passenger deplacement change
@@ -9438,7 +9627,7 @@ function SGES_script()
 		end
 
 
-		if protect_StairsXPJ then lateral_deviation2 = lateral_deviation2 + 7.5 + 5 end
+		if protect_the_aircraft then lateral_deviation2 = lateral_deviation2 + 7.5 + 7 end
 
 		StairHigherPartX_stairIV = lateral_deviation2
 
@@ -9460,7 +9649,7 @@ function SGES_script()
 			stair_height = targetDoorAltitude2 - stair_y
 
 			delta_base2 = 1.8 * stair_height + 9.39
-			if protect_StairsXPJ then delta_base2 = delta_base2 + 7.5 + 5 end
+			if protect_the_aircraft then delta_base2 = delta_base2 + 7.5 + 7 end
 			if SGES_stairs_type == "Boarding_without_stairs" then
 				delta_base2 = 0.5 * stair_height + 8
 			end
@@ -9499,7 +9688,7 @@ function SGES_script()
 			local vertical_position3 = vertical_position
 			local lateral_deviation3 = lateral_deviation
 
-			--~ if protect_StairsXPJ then lateral_deviation3 = lateral_deviation + 7.5 end
+			--~ if protect_the_aircraft then lateral_deviation3 = lateral_deviation + 7.5 end
 
 			if vertical_position == nil then -- happens when a jetway is connected and the front stairs has therefore not be initiliazed, so we use values directly here.
 				vertical_position3 = vertical_door_position - 2.82 + targetDoorH_alternate
@@ -10928,6 +11117,7 @@ function SGES_script()
 				if name == "CateringHighPart" then 	  Catering_show_only_once = true end
 				if name == "ASU" then 	  ASU_show_only_once = true end
 				if name == "Forklift" then 	  Forklift_show_only_once = true end
+				if name == "Ramp" then StairsXPJ_2_show_only_once = true end
 
 				--~ -- aircraft actions
 				if XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then -- check is Thranda plugin is loaded and running
@@ -12462,7 +12652,7 @@ function SGES_script()
 	SGES_LegacyGUI = true
 	local loadOptions = false
 
-	BoardStairsXPJ = true
+	DualBoard = true
 	BoardStairsXPJ2 = false
 	ladder_state = 0
 	GUIcoordinates = false
@@ -12727,7 +12917,7 @@ function SGES_script()
 							-- Click & hold tooltip
 							imgui.BeginTooltip()
 							-- This function configures the wrapping inside the toolbox and thereby its width
-							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 							imgui.TextUnformatted("Night ambiance.")
 							imgui.TextUnformatted("Available if stopped.")
@@ -12862,7 +13052,7 @@ function SGES_script()
 				--~ -- Click & hold tooltip
 				--~ imgui.BeginTooltip()
 				--~ -- This function configures the wrapping inside the toolbox and thereby its width
-				--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				--~ imgui.TextUnformatted("Visual docking guidance system.")
 				--~ imgui.PopStyleColor()
@@ -13126,7 +13316,7 @@ function SGES_script()
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Browse & select one of the captured stands.")
 						imgui.PopStyleColor()
@@ -13272,7 +13462,7 @@ function SGES_script()
 				-- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("Aim at your intended parking.")
 				imgui.PopStyleColor()
@@ -13300,7 +13490,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Change the distance of the VDGS pylon.")
 					imgui.PopStyleColor()
@@ -13367,7 +13557,7 @@ function SGES_script()
 				-- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("Relocate the emergency services on a situation ahead of your aircraft.")
 				imgui.PopStyleColor()
@@ -13404,7 +13594,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Water salute.")
 					imgui.PopStyleColor()
@@ -13535,7 +13725,7 @@ function SGES_script()
 		end
 		if imgui.IsItemActive() then
 			imgui.BeginTooltip()
-			imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+			imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 			imgui.TextUnformatted("A ship accident site at sea, located ahead.")
 			imgui.TextUnformatted("Cycle to cyle the distance.")
@@ -13576,7 +13766,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Distance of the fire/smoke, and of the EMS when located ahead of the aircraft.")
 					imgui.PopStyleColor()
@@ -13594,7 +13784,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Pelicandrome. Ground configuration to refill ground-based fire-fighting aircraft.")
 					imgui.PopStyleColor()
@@ -13707,7 +13897,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Click to suppress the ZIBO / LevelUp built-in ground services to favor SGES services.")
 						imgui.PopStyleColor()
@@ -13739,7 +13929,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Expedite the load of user options.")
 					imgui.PopStyleColor()
@@ -13872,7 +14062,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("ZIBO or LevelUp Ground Power Unit")
 					imgui.PopStyleColor()
@@ -13907,7 +14097,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("ZIBO or LevelUp Air Start Unit")
 					imgui.PopStyleColor()
@@ -13934,7 +14124,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Felis B742 Air Conditionning Unit.\nIf SGES Air Start Unit is already present, this will request the Felis ACU, in the contrary a request for removal will be sent.")
 					imgui.PopStyleColor()
@@ -14030,7 +14220,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("The fuel truck is an hydrant dispenser in this case. Fuel hydrant is a pressurized fuel supply point.")
 					imgui.PopStyleColor()
@@ -14110,6 +14300,37 @@ function SGES_script()
 		  end
 
 
+			  if show_RearBeltLoader and BeltLoaderFwdPosition >= 7.80 and BeltLoaderFwdPosition < 29 and wetness == 0 then
+				if (string.match(PLANE_ICAO,"A3") or string.match(PLANE_ICAO,"B77") or string.match(PLANE_ICAO,"B78") or string.match(PLANE_ICAO,"B74")) and not plane_has_cargo_hold_on_the_left_hand_side then
+					  imgui.SameLine()
+					  l_changed, l_newval = imgui.Checkbox(" Bulk", show_BulkLoader)
+					  if l_changed then
+						show_BulkLoader = l_newval
+						BulkLoader_chg = true
+					  end
+				 end
+			   elseif heliDollyObject ~= nil and SGES_IsHelicopter ~= nil and SGES_IsHelicopter == 1 and wetness == 0 then
+					  imgui.SameLine()
+					  l_changed, l_newval = imgui.Checkbox(" H. Dolly", show_BulkLoader)
+						if imgui.IsItemActive() then
+							-- Click & hold tooltip
+							imgui.BeginTooltip()
+							-- This function configures the wrapping inside the toolbox and thereby its width
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+							imgui.TextUnformatted("A wooden helipad (NEEDS some flat terrain).")
+							imgui.PopStyleColor()
+							-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+							imgui.PopTextWrapPos()
+							imgui.EndTooltip()
+						end
+					  if l_changed then
+						show_BulkLoader = l_newval
+						BulkLoader_chg = true
+					  end
+			   end
+
+
 		  if BeltLoaderFwdPosition > 2 then
 			  if PLANE_ICAO == "B742" and SGES_Author == "Felis Leopard" and sges_military_default == 1 then
 					 l_changed, l_newval = imgui.Checkbox(" E-4 stairs", show_BeltLoader)
@@ -14145,8 +14366,10 @@ function SGES_script()
 				BeltLoader_chg = true
 				-- don't show for the Beluga
 				if PLANE_ICAO == "A3ST" then show_BeltLoader = false end
-				show_Cart = l_newval
-				Cart_chg = true
+				if l_newval then
+					show_Cart = l_newval
+					Cart_chg = true
+				end
 				-- also link the rear bealot loader when defined in the aircraft set, or on removal always
 				if BeltLoaderRearPosition ~= nil or l_newval == false then
 					show_RearBeltLoader = l_newval
@@ -14156,6 +14379,11 @@ function SGES_script()
 					show_Baggage = l_newval
 					Baggage_chg = true
 				end
+
+				if l_newval == false then
+					show_BulkLoader = l_newval
+					BulkLoader_chg = true
+				end
 			  end
 			  imgui.SameLine()
 			  -- but user can also manually unlink it :
@@ -14164,7 +14392,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Luggage train.")
 					imgui.PopStyleColor()
@@ -14186,26 +14414,36 @@ function SGES_script()
 				if PLANE_ICAO ~= "D328" and PLANE_ICAO ~= "SF34" and not string.match(PLANE_ICAO,"CRJ") and not string.match(PLANE_ICAO,"DH8A") and not (string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13")) and PLANE_ICAO ~= "DH8D" and PLANE_ICAO ~= "DH8C" and PLANE_ICAO ~= "QX" and  PLANE_ICAO ~= "AMF" and PLANE_ICAO ~= "GLF650ER" and not plane_has_cargo_hold_on_the_left_hand_side then
 					  imgui.SameLine()
 					  l_changed, l_newval = imgui.Checkbox(" Rear", show_RearBeltLoader)
-					if imgui.IsItemActive() then
-					-- Click & hold tooltip
-					imgui.BeginTooltip()
-					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					if BeltLoaderRearPosition == nil then
-						imgui.TextUnformatted("A rear loader in the vicinity of the fuselage (but not in direct contact to it : BeltLoaderRearPosition not set in the config).")
-					else
-						imgui.TextUnformatted("A rear loader (defined by BeltLoaderRearPosition in the config.).")
-					end
-					imgui.PopStyleColor()
-					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-					imgui.PopTextWrapPos()
-					imgui.EndTooltip()
-				end
+						if imgui.IsItemActive() then
+							-- Click & hold tooltip
+							imgui.BeginTooltip()
+								-- This function configures the wrapping inside the toolbox and thereby its width
+								imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+								imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+								if BeltLoaderRearPosition == nil then
+									imgui.TextUnformatted("A rear loader in the vicinity of the fuselage (but not in direct contact to it : BeltLoaderRearPosition not set in the config).")
+								else
+									imgui.TextUnformatted("A rear loader (defined by BeltLoaderRearPosition in the config.).")
+								end
+								imgui.PopStyleColor()
+								-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+								imgui.PopTextWrapPos()
+							imgui.EndTooltip()
+						end
 					  if l_changed then
 						show_RearBeltLoader = l_newval
 						RearBeltLoader_chg = true
+						if l_newval == false then
+							show_BulkLoader = l_newval
+							BulkLoader_chg = true
+						end
 					  end
+					  --~ imgui.SameLine()
+					  --~ l_changed, l_newval = imgui.Checkbox(" Bulk", show_BulkLoader)
+					  --~ if l_changed then
+						--~ show_BulkLoader = l_newval
+						--~ BulkLoader_chg = true
+					  --~ end
 				 end
 			   end
 		  --elseif math.abs(BeltLoaderFwdPosition) >= 4.9 and dataref_to_open_the_door ~= nil then -- allow at least the luggage cart to show
@@ -14245,12 +14483,14 @@ function SGES_script()
 		-- manual slider ajustment of the front beltloader
 		if adjust_BeltLoader then
 			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-			local changed, newVal4 = imgui.SliderFloat("D", distance_to_fuselage, -5, 2, "Distance " .. math.floor(distance_to_fuselage*100)/100)
+			local changed, newVal4 = imgui.SliderFloat("D", distance_to_fuselage, -4, 2, "Distance " .. math.floor(distance_to_fuselage*10)/10)
 			if changed then
 				distance_to_fuselage = newVal4
 				--l_changed = true
 				BeltLoader_chg = true
 				RearBeltLoader_chg = true
+				BulkLoader_chg = true
+				Catering_chg = true
 				if distance_to_fuselage < -1 then
 					show_Cart = false
 					Cart_chg = true
@@ -14260,28 +14500,45 @@ function SGES_script()
 			end
 			imgui.SameLine()
 			if  imgui.Button("Reset D",44,20)  then
-				distance_to_fuselage = 0
+				distance_to_fuselage = 0.5
 				--l_changed = true
 				BeltLoader_chg = true
 				RearBeltLoader_chg = true
+				BulkLoader_chg = true
+				Catering_chg = true
 			end
 			imgui.PopStyleColor()
 			if init_BeltLoaderFwdPosition == nil then
 				init_BeltLoaderFwdPosition = BeltLoaderFwdPosition
 			end
-			local changed, newVal5 = imgui.SliderFloat("L", BeltLoaderFwdPosition, init_BeltLoaderFwdPosition-0.4, init_BeltLoaderFwdPosition+0.4, "LoaderFwdPos " .. math.floor(BeltLoaderFwdPosition*100)/100)
+			local changed, newVal5 = imgui.SliderFloat("L", BeltLoaderFwdPosition, init_BeltLoaderFwdPosition-0.4, init_BeltLoaderFwdPosition+0.4, "Loader pos. " .. math.floor(BeltLoaderFwdPosition*100)/100)
 			if changed then
 				BeltLoaderFwdPosition = newVal5
 				--l_changed = true
 				BeltLoader_chg = true
 				RearBeltLoader_chg = true
+				BulkLoader_chg = true
 			end
 			imgui.SameLine()
 			if  imgui.Button("Reset F",44,20)  then
 				BeltLoaderFwdPosition = init_BeltLoaderFwdPosition
 				BeltLoader_chg = true
 				RearBeltLoader_chg = true
+				BulkLoader_chg = true
 			end
+			--~ bulkloader_longitudinal_factor
+			if show_BulkLoader then
+				local changed, newVal5 = imgui.SliderFloat("B", bulkloader_longitudinal_factor, -2, 2, "Bulk pos. " .. math.floor(bulkloader_longitudinal_factor*10)/10)
+				if changed then
+					bulkloader_longitudinal_factor = newVal5
+					BulkLoader_chg = true
+				end
+				imgui.SameLine()
+				if  imgui.Button("Reset B",44,20)  then
+					BulkLoader_chg = true
+				end
+			end
+
 			if BeltLoaderFwdPosition >= ULDthresholdx then
 				imgui.TextUnformatted("In this range ULD are used.")
 			else
@@ -14318,7 +14575,7 @@ function SGES_script()
 				-- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("Adjust the cargo loader.")
 				imgui.PopStyleColor()
@@ -14418,7 +14675,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Removes the ULD currently loading on the main deck.")
 						imgui.TextUnformatted("You can otherwise immobilize it by removing the ULD train, and make it reappear by recalling the ULD train.")
@@ -14461,7 +14718,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Currently controlled by the 1L door. (Auto stairs).")
 					imgui.PopStyleColor()
@@ -14493,7 +14750,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Will allow passengers boarding without airport stairs. Please adjust the door coordinates.")
 						imgui.PopStyleColor()
@@ -14504,7 +14761,7 @@ function SGES_script()
 				end
 			  end
 
-			  if show_StairsXPJ  then -- Warn
+			  if show_StairsXPJ or show_StairsXPJ2 then -- Warn
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
 				if  imgui.SmallButton("*")  then
@@ -14518,7 +14775,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Adjust the door coordinates.")
 					imgui.PopStyleColor()
@@ -14528,12 +14785,12 @@ function SGES_script()
 				end
 				imgui.PopStyleColor()
 				-- Protect as required the aircraft by moving airstairs far away enough :
-				if SGES_stairs_type ~= "Boarding_without_stairs" and (not show_Pax or protect_StairsXPJ) then
+				if SGES_stairs_type ~= "Boarding_without_stairs" and (not show_Pax or protect_the_aircraft) then
 					imgui.SameLine()
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFFFCACA)
 					if  imgui.SmallButton("P")  then
-						if protect_StairsXPJ == false then
-							protect_StairsXPJ = true
+						if protect_the_aircraft == false then
+							protect_the_aircraft = true
 							-- and close the door as required in ZSAR :
 							if PaxDoor1Left ~= nil 		and PaxDoor1Left == target_to_open_the_door 		then PaxDoor1Left = target_to_open_the_door-1				end
 							if PaxDoorRearLeft ~= nil 	and PaxDoorRearLeft == target_to_open_the_door 	then	PaxDoorRearLeft = target_to_open_the_door-1 	end
@@ -14541,21 +14798,39 @@ function SGES_script()
 							show_Bus = false
 							Pax_chg = true
 							Bus_chg = true
+							-- also moves the cargo hold loaders
+							distance_to_fuselage = -15
+							BeltLoader_chg = true
+							RearBeltLoader_chg = true
+							BulkLoader_chg = true
+							show_Baggage = false
+							Baggage_chg = true
+							Catering_chg = true
+							Ramp_chg = true
 						else
-							protect_StairsXPJ = false
+							protect_the_aircraft = false
+							-- also moves the cargo hold loaders
+							distance_to_fuselage = 0.5
+							BeltLoader_chg = true
+							RearBeltLoader_chg = true
+							BulkLoader_chg = true
+							show_Baggage = true
+							Baggage_chg = true
+							Catering_chg = true
+							Ramp_chg = true
 						end
 						StairsXPJ_chg 	= true
 						StairsXPJ2_chg 	= true
 						--~ StairsXPJ3_chg	= true
 					end
-					if protect_StairsXPJ then
+					if protect_the_aircraft then
 						imgui.SameLine() imgui.TextUnformatted("Protected")
 					end
 					if imgui.IsItemActive() then
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Protect the aircraft.")
 						imgui.PopStyleColor()
@@ -14599,6 +14874,10 @@ function SGES_script()
 				end
 				show_StairsXPJ = l_newval
 				StairsXPJ_chg = true
+				if show_Ramp then
+					show_Ramp = false
+					Ramp_chg = true
+				end
 				option_StairsXPJ_override = l_newval -- once action, absolutely required
 				if show_StairsXPJ2 and show_StairsXPJ then
 					DualBoard = true
@@ -14626,7 +14905,7 @@ function SGES_script()
 				-- With BAe-146 ladder deplyed, display sthe stairs away form the fuselage :
 				if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
 					if ladder_state ~= nil and ladder_state == 2 then
-						protect_StairsXPJ = true
+						protect_the_aircraft = true
 					end
 				end
 
@@ -14719,7 +14998,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Board or deboard without stair.")
 						imgui.PopStyleColor()
@@ -14768,7 +15047,7 @@ function SGES_script()
 						--~ l_changed, l_newval = imgui.Checkbox(" Deboard", BoardStairsXPJ)
 					--~ end
 					--~ if l_changed and BoardStairsXPJ2 then
-						--~ BoardStairsXPJ = true
+						--~ DualBoard = true
 						--~ BoardStairsXPJ2 = false
 						--~ StairFinalY = StairFinalY_stairIII
 						--~ StairFinalH = StairFinalH_stairIII
@@ -14838,7 +15117,7 @@ function SGES_script()
 				  end
 					if show_StairsXPJ2 == false and show_StairsXPJ == true then
 						BoardStairsXPJ2 = false
-						BoardStairsXPJ = true
+						DualBoard = true
 						StairFinalY = StairFinalY_stairIII
 						StairFinalH = StairFinalH_stairIII
 						StairFinalX = StairFinalX_stairIII
@@ -14931,7 +15210,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Adjust the stairs.")
 					imgui.PopStyleColor()
@@ -15000,7 +15279,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("ZIBO or LevelUp aircraft stairs.")
 					imgui.PopStyleColor()
@@ -15021,7 +15300,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Toggle the presence of aircraft airstairs in this ZIBO or LevelUp model.")
 					imgui.PopStyleColor()
@@ -15074,7 +15353,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Pax walk without bus to or from the terminal building.")
 					imgui.PopStyleColor()
@@ -15233,7 +15512,7 @@ function SGES_script()
 								-- Click & hold tooltip
 								imgui.BeginTooltip()
 								-- This function configures the wrapping inside the toolbox and thereby its width
-								imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+								imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 								imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 								imgui.TextUnformatted("Conclude progressively the (de)boarding.")
 								imgui.PopStyleColor()
@@ -15247,7 +15526,7 @@ function SGES_script()
 				  if l_changed then
 					 if l_newval == false then
 						show_Pax = l_newval
-						if protect_StairsXPJ then show_Pax = false end
+						if protect_the_aircraft then show_Pax = false end
 						Pax_chg = true
 						terminate_passenger_action = false
 						--~ if show_Pax then terminate_passenger_action = true -- 15-7-2023 : make the disappearance progressive only
@@ -15257,7 +15536,7 @@ function SGES_script()
 						--~ end
 					 elseif (show_StairsXPJ or show_StairsXPJ2) then
 						show_Pax = l_newval
-						if protect_StairsXPJ then show_Pax = false end
+						if protect_the_aircraft then show_Pax = false end
 						Pax_chg = true
 						terminate_passenger_action = false
 						initial_pax_start = true
@@ -15341,7 +15620,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Remove the wing walkers.")
 					imgui.TextUnformatted("The pushback continues.")
@@ -15392,9 +15671,9 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 16)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-					imgui.TextUnformatted("Persons with Reduced Mobility boarding.")
+					imgui.TextUnformatted("Persons with Reduced Mobility boarding.\n\nTip: if you display the L1 stair while PRM is active a ramp will replace the regular airstair (after XP12.4).")
 					imgui.PopStyleColor()
 					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 					imgui.PopTextWrapPos()
@@ -15407,6 +15686,30 @@ function SGES_script()
 					imgui.SameLine()
 					if imgui.SmallButton("/") then
 						if PRM_is_catering then PRM_is_catering = false else PRM_is_catering = true end
+					end
+				end
+				if IsXPlane1244 and SGES_IsAirliner ~= nil and SGES_IsAirliner == 1 then
+					imgui.SameLine()
+					if imgui.SmallButton("Ramp") then
+						if not show_Ramp then
+							show_Ramp = true
+							Ramp_chg = true
+						elseif show_Ramp then
+							show_Ramp = false
+							Ramp_chg = true
+						end
+					end
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("An accessible ramp just standing nearby (not animated)")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
 					end
 				end
 				--imgui.TextUnformatted("") -- return line
@@ -15423,7 +15726,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.TextUnformatted("Laminar Research chocks (only after after X-Plane 12.2).")
 						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 						imgui.PopTextWrapPos()
@@ -15437,7 +15740,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Active chocks allowing you to release the parking brake.")
 					imgui.PopStyleColor()
@@ -15504,7 +15807,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("ZIBO/LevelUp chocks and cones.")
 					imgui.PopStyleColor()
@@ -15534,7 +15837,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Felis B742 chocks.\nIf SGES chocks are already on, this will replace them by Felis ones")
 					imgui.PopStyleColor()
@@ -15565,7 +15868,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("CL650 chocks.\nIf SGES chocks are already on, this will replace them by Hot Start ones.")
 					imgui.PopStyleColor()
@@ -15583,7 +15886,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("If on a flight deck, shows an aircraft Handling Officer.")
 					imgui.PopStyleColor()
@@ -15605,7 +15908,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Here's a nice & simple Push-back. You must turn OFF the Parking Brake to be able to move. See the dedicated manual for more.")
 					imgui.PopStyleColor()
@@ -15645,7 +15948,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("If 'GO', then as soon as the parking brake is released, the push-back is pushing you backward. Otherwise you control it manually with the joystick.")
 						imgui.PopStyleColor()
@@ -15671,7 +15974,7 @@ function SGES_script()
 							-- Click & hold tooltip
 							imgui.BeginTooltip()
 							-- This function configures the wrapping inside the toolbox and thereby its width
-							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 							imgui.TextUnformatted("A single push backward, usefull for aircraft carrier operations. You can rotate with the joystick.")
 							imgui.PopStyleColor()
@@ -15704,7 +16007,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("If the tug cannot push you, increase the force. Otherwise, please keep the cursor aligned with the reference.")
 						imgui.PopStyleColor()
@@ -15863,7 +16166,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("1/ Aim at your desired position at the end of the pushback with parking brake set. 2/ Release the parking brake to continue. 3/ Click on 'Start PB'. 4/ Wait for the pushback to complete. Note : to pause the pushback at any time, set the parking brake.")
 					imgui.PopStyleColor()
@@ -15903,7 +16206,7 @@ function SGES_script()
 			-- Click & hold tooltip
 			imgui.BeginTooltip()
 			-- This function configures the wrapping inside the toolbox and thereby its width
-			imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+			imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 			imgui.TextUnformatted("Nose orientation after the pushback.")
 			imgui.PopStyleColor()
@@ -15931,7 +16234,7 @@ function SGES_script()
 			-- Click & hold tooltip
 			imgui.BeginTooltip()
 			-- This function configures the wrapping inside the toolbox and thereby its width
-			imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+			imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 			imgui.TextUnformatted("Aim at your intended position after the pushback.")
 			imgui.PopStyleColor()
@@ -16249,7 +16552,7 @@ function SGES_script()
 				-- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("You have the X-Trident Chinook installed.")
 				imgui.PopStyleColor()
@@ -16278,7 +16581,7 @@ function SGES_script()
 				-- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("If you have the X-Trident Chinook installed, we can display a HEMTT M978 fuel truck and a HMMWV M998 Hummer. Please see the manual how to unlock that.")
 				imgui.PopStyleColor()
@@ -16294,7 +16597,7 @@ function SGES_script()
 				--~ -- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("Green painted vehicles will appear instead of the regular ones.")
 				imgui.PopStyleColor()
@@ -16502,7 +16805,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This is the wind at the user aircraft location (readonly).")
 						imgui.PopStyleColor()
@@ -16521,7 +16824,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("If you popped up both the frigate and the CVN at the same time their two heading should be close (readonly).")
 						imgui.PopStyleColor()
@@ -16897,7 +17200,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Only effective when already above the sea.")
 						imgui.PopStyleColor()
@@ -16908,7 +17211,7 @@ function SGES_script()
 					end
 					if sges_ship_cancelled_cause_land then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Not above water !")
 						imgui.PopStyleColor()
@@ -16940,7 +17243,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This is the wind at the user aircraft location (readonly).")
 						imgui.PopStyleColor()
@@ -17018,7 +17321,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Any active plane reaching the combat floor of " .. math.floor(sges_capture_elevation_threshold*3.2809) .. " feet AGL or below will be disabled.")
 					imgui.PopStyleColor()
@@ -17149,7 +17452,7 @@ function SGES_script()
 				-- Click & hold tooltip
 				imgui.BeginTooltip()
 				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+				imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 				imgui.TextUnformatted("Select a landing runway to put the arresting system on. You may change EMAS for a cable or a net barrier.")
 				imgui.PopStyleColor()
@@ -17203,7 +17506,7 @@ function SGES_script()
 							BushObjectsToggle(0)
 						end
 
-						if IsXPlane12 and SGES_BushMode and BeltLoaderFwdPosition < 2 and outsideAirTemp > 5 and outsideAirTemp <= 35 and SGES_local_time_in_simulator_hours ~= nil and (SGES_local_time_in_simulator_hours[0] <= 10 or SGES_local_time_in_simulator_hours[0] >= 16) and sges_big_airport ~= nil and not sges_big_airport then
+						if not show_FUEL and IsXPlane12 and SGES_BushMode and BeltLoaderFwdPosition < 2 and outsideAirTemp > 5 and outsideAirTemp <= 35 and SGES_local_time_in_simulator_hours ~= nil and (SGES_local_time_in_simulator_hours[0] <= 10 or SGES_local_time_in_simulator_hours[0] >= 16) and sges_big_airport ~= nil and not sges_big_airport then
 							FuelTruck_is_deer = true
 							show_FUEL = true
 							FUEL_chg = true
@@ -17229,7 +17532,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Display SGES options")
 						imgui.PopStyleColor()
@@ -17337,7 +17640,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Can only catch aircraft with hook down.")
 					imgui.PopStyleColor()
@@ -17459,7 +17762,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("BetterPushback (as installed)")
 					imgui.PopStyleColor()
@@ -17479,7 +17782,7 @@ function SGES_script()
 				--imgui.PopStyleColor()
 				if imgui.IsItemActive() then
 					imgui.BeginTooltip()
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("BetterPushback (not installed)")
 					imgui.PopStyleColor()
@@ -17494,41 +17797,66 @@ function SGES_script()
 
 
 			if XPLMFindDataRef("bp/connected") ~= nil then imgui.SameLine() end
-			if  imgui.Button("Jetway",50,20)  then
-				command_once("sim/ground_ops/jetway")
-				show_StairsXPJ = false
-				StairsXPJ_chg = true
-				--also stops or remove the passengers if there is no stairs :
-				if show_StairsXPJ == false and show_StairsXPJ2 == false and show_Pax then
-					show_Pax = l_newval
-					Pax_chg = true
-					if show_Pax then 	initial_pax_start = true end
+			if IsXPlane12 and SGES_IsAirliner ~= nil and SGES_IsAirliner == 1 then
+				if  imgui.Button("Jetw.",42,20)  then
+					command_once("sim/ground_ops/jetway")
+					show_StairsXPJ = false
+					StairsXPJ_chg = true
+					--also stops or remove the passengers if there is no stairs :
+					if show_StairsXPJ == false and show_StairsXPJ2 == false and show_Pax then
+						show_Pax = l_newval
+						Pax_chg = true
+						if show_Pax then 	initial_pax_start = true end
+					end
+					if show_StairsXPJ == false and show_StairsXPJ2 == true then
+						BoardStairsXPJ2 = true
+						BoardStairsXPJ = false
+						DualBoard = false
+						StairFinalY = StairFinalY_stairIV
+						StairFinalH = StairFinalH_stairIV
+						StairFinalX = StairFinalX_stairIV
+						InitialPaxHeight = InitialPaxHeight_stairIV
+					end
 				end
-				if show_StairsXPJ == false and show_StairsXPJ2 == true then
-					BoardStairsXPJ2 = true
-					BoardStairsXPJ = false
-					DualBoard = false
-					StairFinalY = StairFinalY_stairIV
-					StairFinalH = StairFinalH_stairIV
-					StairFinalX = StairFinalX_stairIV
-					InitialPaxHeight = InitialPaxHeight_stairIV
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("Actuate the X-Plane 12 jetway in range.\n\n'sim/ground_ops/jetway'")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
 				end
 			end
 
-			if imgui.IsItemActive() then
-				-- Click & hold tooltip
-				imgui.BeginTooltip()
-				-- This function configures the wrapping inside the toolbox and thereby its width
-				imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
-				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-				imgui.TextUnformatted("Actuate the X-Plane 12 jetway in range.")
-				imgui.PopStyleColor()
-				-- Reset the wrapping, this must always be done if you used PushTextWrapPos
-				imgui.PopTextWrapPos()
-				imgui.EndTooltip()
-			end
+			if IsXPlane12 and UseXplane1214DefaultObject then
 
-			if sges_openSAM ~= nil then
+
+				if SGES_IsAirliner ~= nil and SGES_IsAirliner == 1 then
+					imgui.SameLine()
+					imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF000000)
+					if  imgui.Button("Serv.",38,20)  then
+						command_once("sim/ground_ops/service_plane")
+					end
+					imgui.PopStyleColor()
+					if imgui.IsItemActive() then
+						-- Click & hold tooltip
+						imgui.BeginTooltip()
+						-- This function configures the wrapping inside the toolbox and thereby its width
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+						imgui.TextUnformatted("Actuate the X-Plane 12 services, instead of using SGES services.\n\n'sim/ground_ops/service_plane'")
+						imgui.PopStyleColor()
+						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+						imgui.PopTextWrapPos()
+						imgui.EndTooltip()
+					end
+				end
+
+			elseif sges_openSAM ~= nil and SGES_IsAirliner ~= nil and SGES_IsAirliner == 1 then
 				if sges_openSAM[0] ~= nil and sges_openSAM[0] == 2 then
 					imgui.SameLine()
 					if  imgui.Button("SAM jwy.",60,20)  then
@@ -17560,7 +17888,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Actuate the jetway using openSAM.")
 						imgui.PopStyleColor()
@@ -17581,7 +17909,7 @@ function SGES_script()
 
 			if IsToLiSs and sges_gs_gnd_spd[0] < 10 and not show_ArrestorSystem then -- clean a little the interface at higher speeds
 				imgui.SameLine()
-				if  imgui.Button("ISCS",40,20)  then -- toliss command menu
+				if  imgui.Button("ISCS",38,20)  then -- toliss command menu
 					command_once("toliss_airbus/iscs_open")
 				end
 
@@ -17589,7 +17917,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Open ToLiss ISCS.")
 					imgui.PopStyleColor()
@@ -17613,7 +17941,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Open Melbo's menu.")
 					imgui.PopStyleColor()
@@ -17636,7 +17964,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Open Felis EFB.")
 					imgui.PopStyleColor()
@@ -17657,7 +17985,7 @@ function SGES_script()
 						--~ -- Click & hold tooltip
 						--~ imgui.BeginTooltip()
 						--~ -- This function configures the wrapping inside the toolbox and thereby its width
-						--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						--~ imgui.TextUnformatted("Toggles Lua JIT ON and OFF in the Felis EFB. Toggling it off increases the FPS for some people.")
 						--~ imgui.PopStyleColor()
@@ -17690,7 +18018,7 @@ function SGES_script()
 							-- Click & hold tooltip
 							imgui.BeginTooltip()
 							-- This function configures the wrapping inside the toolbox and thereby its width
-							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 							imgui.TextUnformatted("B742 before start procedure (scripted).")
 							imgui.PopStyleColor()
@@ -17710,7 +18038,7 @@ function SGES_script()
 							-- Click & hold tooltip
 							imgui.BeginTooltip()
 							-- This function configures the wrapping inside the toolbox and thereby its width
-							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 							imgui.TextUnformatted("B742 before takeoff procedure (scripted).")
 							imgui.PopStyleColor()
@@ -17734,7 +18062,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("B742 after landing procedure (scripted).")
 						imgui.PopStyleColor()
@@ -17754,7 +18082,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF704470)
 						imgui.TextUnformatted("B742 climb and acceleration procedure (scripted).")
 						imgui.PopStyleColor()
@@ -17773,7 +18101,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("B742 descent and approach procedure (scripted).")
 						imgui.PopStyleColor()
@@ -17823,7 +18151,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Open FlyJSim JPAD.")
 					imgui.PopStyleColor()
@@ -17889,7 +18217,7 @@ function SGES_script()
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Open Colimata F-104 GUI.")
 					imgui.PopStyleColor()
@@ -18318,7 +18646,7 @@ function SGES_script()
 						-- Click & hold tooltip
 						imgui.BeginTooltip()
 						-- This function configures the wrapping inside the toolbox and thereby its width
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("SimLoadManager.lua by RackhamRPL is installed.")
 						imgui.TextUnformatted("This button does nothing at the moment.")
@@ -19151,7 +19479,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("X-Plane 12.1.4 or above brings new objects like Snow and De-Icing Equipment, Ambulances, Trucks Airside and Airport Operations that we can use.")
 						imgui.PopStyleColor()
@@ -19176,7 +19504,7 @@ function SGES_script()
 					--~ imgui.PopStyleColor()
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("X-Plane 12.2.0 brings new objects : the chocks.\nThis parameter is global and not carried over the next session. You can instead choose & save your preference for a given model in the developer menu.")
 						imgui.PopStyleColor()
@@ -19228,7 +19556,7 @@ function SGES_script()
 				end
 				if imgui.IsItemActive() then
 					imgui.BeginTooltip()
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Front stairs (and loader, cones) will appear automatically upon 1L door opening. Warning : even with a jetway connected.")
 					imgui.PopStyleColor()
@@ -19244,7 +19572,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("When in X-Plane 11, this settings can disable engine sounds. In X-Plane 12, this setting is ONLY applicable to planned pushback communications. Engine sounds in X-Plane 12 made in FMOD cannot be removed.")
 						imgui.PopStyleColor()
@@ -19258,7 +19586,7 @@ function SGES_script()
 					l_changed, l_newval = imgui.Checkbox(" Don't use SGES vehicles\n (Change can only be written\n in CONFIG_vehicles.lua)", UseXplaneDefaultObject)
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("When you don't use the SGES custom 3D vehicles, you revert to legacy X-Plane 11 vehicles where possible.")
 						imgui.PopStyleColor()
@@ -19371,7 +19699,7 @@ function SGES_script()
 				end
 				if imgui.IsItemActive() then
 					imgui.BeginTooltip()
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("Show cones around the aircraft when SGES loads. A nice visual confirmation SGES is ready !")
 					imgui.PopStyleColor()
@@ -19391,7 +19719,7 @@ function SGES_script()
 				end
 				if imgui.IsItemActive() then
 					imgui.BeginTooltip()
-					imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 					imgui.TextUnformatted("At night SGES stairs cast light if true. Casting light is the normal setting.")
 					imgui.PopStyleColor()
@@ -19477,7 +19805,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This item is used for military people and asset around the aircraft when you select the ARMY handling set. Scan Aircraft directory for third-party items now.")
 						imgui.PopStyleColor()
@@ -19506,7 +19834,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This item is used for plotting an aircraft STOL carrier.  Scan Aircraft directory for third-party assets now.")
 						imgui.PopStyleColor()
@@ -19535,7 +19863,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This item is used for container loaders and other services around the aircraft.  Scan Aircraft directory for third-party assets now.")
 						imgui.PopStyleColor()
@@ -19562,7 +19890,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This item is used for people around the aircraft. Scan X-Plane for third-party assets now.")
 						imgui.PopStyleColor()
@@ -19592,7 +19920,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("This item is used for container loaders around the aircraft. Scan Aircraft directory for third-party assets now.")
 						imgui.PopStyleColor()
@@ -19621,7 +19949,7 @@ function SGES_script()
 					--~ end
 					--~ if imgui.IsItemActive() then
 						--~ imgui.BeginTooltip()
-						--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						--~ imgui.TextUnformatted("This item is used for belt loaders (loose cargo) around the aircraft. Scan Aircraft directory for third-party assets now.")
 						--~ imgui.PopStyleColor()
@@ -19658,7 +19986,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Force to use B777 v2 objects only for this flight. Always true if FF/STS B777 v2 is the current aircraft.")
 						imgui.PopStyleColor()
@@ -19676,7 +20004,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("Cami de Bellis Library 2.6 has some nice people and if the library is installed, we can use that in your scenery.")
 						imgui.PopStyleColor()
@@ -19691,7 +20019,7 @@ function SGES_script()
 					end
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("By nhadrian (Clairmarais aerodrome). This is only available when you use the nhadrian Sopwith F1 Camel.")
 						imgui.PopStyleColor()
@@ -19702,7 +20030,7 @@ function SGES_script()
 					_, _ = imgui.Checkbox(" Use nhadrian Clairmarais\n aerodrome.", false)
 					if imgui.IsItemActive() then
 						imgui.BeginTooltip()
-						imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+						imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 						imgui.TextUnformatted("By nhadrian (Clairmarais aerodrome). This is only available when you use the nhadrian Sopwith F1 Camel.")
 						imgui.PopStyleColor()
@@ -19886,7 +20214,7 @@ function SGES_script()
 							-- Click & hold tooltip
 							imgui.BeginTooltip()
 							-- This function configures the wrapping inside the toolbox and thereby its width
-							imgui.PushTextWrapPos(imgui.GetFontSize() * 10)
+							imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
 							imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
 							imgui.TextUnformatted("Request weather at nearest airport.")
 							imgui.PopStyleColor()
@@ -20024,8 +20352,8 @@ function SGES_script()
 	   if show_Automatic_sequence_start and SGES_total_flight_time_sec < 3600 then
 			if SGES_total_flight_time_sec > SGES_Automatic_sequence_start_flight_time_sec + (1/sequence_debug_factor) and SGES_total_flight_time_sec < SGES_Automatic_sequence_start_flight_time_sec + (3/sequence_debug_factor) and show_Chocks == false then
 				print("[Ground Equipment " .. version_text_SGES .. "] Automatic_departure_sequence_start")
-				if protect_StairsXPJ then
-					protect_StairsXPJ = false
+				if protect_the_aircraft then
+					protect_the_aircraft = false
 					StairsXPJ_chg 	= true
 					StairsXPJ2_chg 	= true
 					--~ StairsXPJ3_chg	= true
@@ -20070,8 +20398,8 @@ function SGES_script()
 	    elseif show_Automatic_sequence_start and SGES_total_flight_time_sec >= 3600 then
 			local sequence_user_factor = sequence_debug_factor -- we will default to max duration but we don't want to ultimately loose the user configuration, save that now.
 			if SGES_total_flight_time_sec > SGES_Automatic_sequence_start_flight_time_sec + (1/sequence_debug_factor) and SGES_total_flight_time_sec < SGES_Automatic_sequence_start_flight_time_sec + (3/sequence_debug_factor) and show_Chocks == false then
-				if protect_StairsXPJ then
-					protect_StairsXPJ = false
+				if protect_the_aircraft then
+					protect_the_aircraft = false
 					StairsXPJ_chg 	= true
 					StairsXPJ2_chg 	= true
 					--~ StairsXPJ3_chg	= true
@@ -20185,6 +20513,7 @@ function SGES_script()
 		CargoULD_chg,Baggage_instance[5],rampservicerefBaggage5 = common_unload("CargoULD",Baggage_instance[5],rampservicerefBaggage5)
 		StairsXPJ_chg,StairsXPJ_instance[0],rampserviceref300 = common_unload("StairsXPJ",StairsXPJ_instance[0],rampserviceref300)
 		StairsXPJ_chg,StairsXPJ_instance[1],rampserviceref301 = common_unload("StairsXPJ",StairsXPJ_instance[1],rampserviceref301)
+		Ramp_chg,StairsXPJ_instance[2],rampserviceref301b = common_unload("Ramp",StairsXPJ_instance[2],rampserviceref301b)
 		StairsXPJ2_chg,StairsXPJ2_instance[0],rampserviceref302 = common_unload("StairsXPJ",StairsXPJ2_instance[0],rampserviceref302)
 		StairsXPJ2_chg,StairsXPJ2_instance[1],rampserviceref303 = common_unload("StairsXPJ",StairsXPJ2_instance[1],rampserviceref303)
 		StairsXPJ3_chg,StairsXPJ3_instance[0],rampserviceref304 = common_unload("StairsXPJ3",StairsXPJ3_instance[0],rampserviceref304)
@@ -20194,6 +20523,7 @@ function SGES_script()
 		Helicopters_chg,Helicopters_instance[2],rampservicerefXP12Helicopter2 = common_unload("Helicopter",Helicopters_instance[2],rampservicerefXP12Helicopter2)
 		Helicopters_chg,Helicopters_instance[3],rampservicerefXP12Helicopter3 = common_unload("Helicopter",Helicopters_instance[3],rampservicerefXP12Helicopter3)
 		Submarine_chg,Submarine_instance[0],rampservicerefSubmarine = common_unload("Submarine",Submarine_instance[0],rampservicerefSubmarine)
+		BulkLoader_chg,BeltLoader_instance[3],rampservicerefBulk =  common_unload("BulkLoader",BeltLoader_instance[3],rampservicerefBulk)
 		set("sim/operation/override/override_engine_forces",0)
 		set("sim/operation/override/override_wing_forces",0)
 		exit_plugin_part3()
@@ -20311,25 +20641,15 @@ function SGES_script()
 			if sges_gs_gnd_spd[0] < 1 then
 				CockpitLight_physics() -- night ambiance in the cockpit
 				service_object_physics_Cones() -- all engines and wind traffic cones
-				service_object_physics_GPU() -- GPU Ground power unit
 				service_object_physics_Beltloader()
-				service_object_physics_RearBeltloader()
-				service_object_physics_Catering()	--
 				service_object_physics_PRM()	-- People with reduced mobility cart
-				service_object_physics_ULDloader()
 				--~ service_object_physics_ULD() -- actuated in ships functions .lua
-				service_object_physics_People1() -- People1
-				service_object_physics_People2() -- People2
-				service_object_physics_People3() -- People3
-				service_object_physics_People4() -- People4
+				service_object_physics_People1() -- People1 to People4
 				service_object_physics_AllCHOCKS() -- Chocks services - all - restricted to the drawing functions
 				service_object_physics_AllDeicing() -- Deicing (both carts)
 				service_object_physics_EnvLight() -- light (in the environement, not the cockpit light)
 				service_object_physics_stairsXPJ() -- stairsXPJ
-				service_object_physics_stairsXPJ2() -- stairsXPJ2
-				service_object_physics_stairsXPJ3() -- stairsXPJ2
-				service_object_physics_ASU()	-- ASU Air start Unit
-				service_object_physicsForklift()	-- Forklift
+				service_object_physics_ASU_GPU_Forklift()	-- as in title
 				automatic_display_EMS()
 				--automatic_parking_search() -- Marshaller : one cycle of autoamtic search per Follow me -- removed for performance on 4th of Nov 2023
 				if show_auto_stairs then react_to_door_dataref() end -- Show the stairs if the doors open, but in auto stairs mode only
@@ -20338,7 +20658,9 @@ function SGES_script()
 				service_object_physics_XPlane_stairs() -- static stairs, also used at higher speed for the marshaller
 			end
 
-			service_object_physics_Cleaning() -- cleaning and multipurpose truck, also used in emergency situation outside the airport scope
+			if sges_gs_gnd_spd[0] < 400 then
+				service_object_physics_Catering_Cleaning() -- cleaning and multipurpose truck, also used in emergency situation outside the airport scope
+			end
 			if show_Automatic_sequence_start	then Automatic_sequence_start() end
 		end
 	end
