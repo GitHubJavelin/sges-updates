@@ -1,6 +1,24 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
+Version 81, 26th of September, 2026
+
+    added a button "Serv." to call the X-Plane native airport services (requires airliner)
+    added helicopter dolly popup (requires flat terrain)
+    added a bulk loader to the Airbus A320, A330, A340, B777, B787, B747 series
+    added the accessible passenger boarding ramp (requires X-Plane 12.4.4). Object not animated, only standing by.
+    Preparations made to support the Metroliner III by Retro Wings, currently based on Starving Pilot Metroliner geometry
+    Bug fixes :	never display individual passenger luggage on the ground when the cargo is containerized
+				corrected a problem with the bus animation
+				corrected a faulty push-back animation trigger
+				corrected missing flames and smoke on AI plane crash site when in no-respawn mode
+
+Version 80.1, 29th of June, 2026 - 29th of August 2026
+
+    Routed through the ToLiss Airbus and the Flight Factor 777 display units the METARS and ATIS requested in the Hoppie Network - no change for other models
+    ToLiss Airbus models : changed the door opening code (safer), to allow companion script speedy copilot for toliss 11.2 own's changes - no change for other models
+    Code housekeeping
+
 Version 80, 25th of June, 2026
 	Added a tailored set for the A310 and A310F by CremonaSoft (user request) and for the V35 Bonanza
 	Repaired the combat functions when destroying the SAM site with weapons (user feedback)
