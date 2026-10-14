@@ -162,7 +162,8 @@ function execute_DYNAMIC_service_objects()
 		if SGES_XPlaneIsPaused == 0 and execute_DYNAMIC_service_objects_wigwag == 0 then
 			service_object_physics_Ponev()
 			service_object_physics_Marshaller()
-			if IsXPlane12 and (show_Cart or show_Baggage or Baggage_chg) then service_object_physics_Baggage() end  --  to avoid "too many callback" error
+			if IsXPlane12 and (show_Cart or show_Baggage or Baggage_chg) and show_BeltLoader then service_object_physics_Baggage() end  --  to avoid "too many callback" error
+			if IsXPlane12 and sges_use_bagage_at_rear and BeltLoaderRearPosition ~= nil and (show_Cart or show_Baggage or Baggage_chg) and show_RearBeltLoader then service_object_physics_BaggageRear() end  --  to avoid "too many callback" error
 			if IsXPlane1211 and (show_CargoULD or CargoULD_chg) and show_ULDLoader and (IsPassengerPlane == 0 or Baggage_instance[5] ~= nil) and not SGES_BushMode then service_object_physics_ULD() end --  to avoid "too many callback" error
 			--~ if IsXPlane1211 then print("IsXPlane1211") end
 			--~ if show_CargoULD then print("show_CargoULD") end

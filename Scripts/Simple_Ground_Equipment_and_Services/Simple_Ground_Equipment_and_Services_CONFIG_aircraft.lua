@@ -19,9 +19,9 @@ function AircraftParameters() -- don't remove the function
     if     PLANE_ICAO == "K35A" then BeltLoaderFwdPosition = 10.1
     elseif PLANE_ICAO == "B703" then BeltLoaderFwdPosition = 10.1	SecondStairsFwdPosition = -14.2	custom_fuel_pump_finalX = 15.50  custom_fuel_pump_finalY = 1
     elseif PLANE_ICAO == "B720" then BeltLoaderFwdPosition = 10.1	SecondStairsFwdPosition = -11.2 custom_fuel_pump_finalX = 15.50  custom_fuel_pump_finalY = 1
-    elseif PLANE_ICAO == "B732" then BeltLoaderFwdPosition = 6.1	SecondStairsFwdPosition = -9.9 custom_fuel_finalX = -15 custom_fuel_finalY = 0 custom_fuel_pump_finalX = 13 custom_fuel_pump_finalY = -4 -- SecondStairsFwdPosition = -8.7
+    elseif PLANE_ICAO == "B732" then BeltLoaderFwdPosition = 6.1	SecondStairsFwdPosition = -9.9 BeltLoaderRearPosition = -6.20 custom_fuel_finalX = -15 custom_fuel_finalY = 0 custom_fuel_pump_finalX = 13 custom_fuel_pump_finalY = -4 -- SecondStairsFwdPosition = -8.7
     elseif PLANE_ICAO == "B733" then BeltLoaderFwdPosition = 6.9	SecondStairsFwdPosition = -11.1		BeltLoaderRearPosition = -8.5
-    elseif PLANE_ICAO == "B736" then BeltLoaderFwdPosition = 6.5 BeltLoaderRearPosition = -6.1 airstart_unit_factor = 16.4 SecondStairsFwdPosition = -9.5
+    elseif PLANE_ICAO == "B736" then BeltLoaderFwdPosition = 6.5 BeltLoaderRearPosition = -6.1 airstart_unit_factor = 16.4 SecondStairsFwdPosition = -9.5  sges_use_bagage_at_rear = false
     elseif PLANE_ICAO == "B737" then BeltLoaderFwdPosition = 6.7 BeltLoaderRearPosition = -7.2 airstart_unit_factor = 16.4 SecondStairsFwdPosition = -10.5 custom_fuel_finalX = -20 custom_fuel_finalY = -5 custom_fuel_pump_finalX = 13 custom_fuel_pump_finalY = -4.5
     elseif PLANE_ICAO == "B738" then BeltLoaderFwdPosition = 9.5 BeltLoaderRearPosition = -10 airstart_unit_factor = 16.4 SecondStairsFwdPosition = -13.6 custom_fuel_finalX = -19 custom_fuel_finalY = -4 custom_fuel_pump_finalX = -7.5 custom_fuel_pump_finalY = 0
     elseif PLANE_ICAO == "B739" then BeltLoaderFwdPosition = 11.2 airstart_unit_factor = 16.4 SecondStairsFwdPosition = -14.2 custom_fuel_finalX = -19 custom_fuel_finalY = -5 custom_fuel_pump_finalX = 12.5 custom_fuel_pump_finalY = -4
@@ -49,9 +49,9 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
     elseif PLANE_ICAO == "MD90" then BeltLoaderFwdPosition = 11.9	airstart_unit_factor = 2.4 	BeltLoaderRearPosition = -6.7 custom_fuel_finalX = -17 custom_fuel_finalY = -4 custom_fuel_pump_finalX = 22 custom_fuel_pump_finalY = -7
     elseif PLANE_ICAO == "MD11" then BeltLoaderFwdPosition = 14 	SecondStairsFwdPosition = -15.9		BeltLoaderRearPosition = -12.5	custom_fuel_pump_finalX = 20  custom_fuel_pump_finalY = -2.5
     elseif PLANE_ICAO == "BCS1" then BeltLoaderFwdPosition = 7.5 	SecondStairsFwdPosition = -12 -- airbus A220-100 -- to be refined in the future
-    elseif PLANE_ICAO == "A318" then BeltLoaderFwdPosition = 7.5 	SecondStairsFwdPosition = -8.3		BeltLoaderRearPosition = -4.7		custom_fuel_pump_finalX = -8.25  custom_fuel_pump_finalY = 2.5
-    elseif PLANE_ICAO == "A319" then BeltLoaderFwdPosition = 7 		SecondStairsFwdPosition = -11		airstart_unit_factor = 16.4   BeltLoaderRearPosition = -6.7	sges_refuel_port_lateral = 0 sges_refuel_port_longitudinal = 36 sges_refuel_port_elev = 3.5		custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -0.7
-    elseif PLANE_ICAO == "A19N" then BeltLoaderFwdPosition = 7 		SecondStairsFwdPosition = -11		airstart_unit_factor = 16.4   BeltLoaderRearPosition = -6.7	sges_refuel_port_lateral = 0 sges_refuel_port_longitudinal = 36 sges_refuel_port_elev = 3.5		custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -0.7
+    elseif PLANE_ICAO == "A318" then BeltLoaderFwdPosition = 7.5 	SecondStairsFwdPosition = -8.3		BeltLoaderRearPosition = -4.7		custom_fuel_pump_finalX = -8.25  custom_fuel_pump_finalY = 2.5  sges_use_bagage_at_rear = false
+    elseif PLANE_ICAO == "A319" then BeltLoaderFwdPosition = 7 		SecondStairsFwdPosition = -11		airstart_unit_factor = 16.4   BeltLoaderRearPosition = -6.7	sges_refuel_port_lateral = 0 sges_refuel_port_longitudinal = 36 sges_refuel_port_elev = 3.5		custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -0.7 sges_use_bagage_at_rear = false
+    elseif PLANE_ICAO == "A19N" then BeltLoaderFwdPosition = 7 		SecondStairsFwdPosition = -11		airstart_unit_factor = 16.4   BeltLoaderRearPosition = -6.7	sges_refuel_port_lateral = 0 sges_refuel_port_longitudinal = 36 sges_refuel_port_elev = 3.5		custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -0.7 sges_use_bagage_at_rear = false
     elseif PLANE_ICAO == "A320" then BeltLoaderFwdPosition = 8		SecondStairsFwdPosition = -12.7		BeltLoaderRearPosition = -7.6	custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -1.8
     elseif PLANE_ICAO == "A20N" then BeltLoaderFwdPosition = 7.6	SecondStairsFwdPosition = -13.15	BeltLoaderRearPosition = -7.5	custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -1.8
     elseif PLANE_ICAO == "A321" then BeltLoaderFwdPosition = 12 	SecondStairsFwdPosition = -15.8 	airstart_unit_factor = 16.4		BeltLoaderRearPosition = -10	custom_fuel_pump_finalX = -6.75 custom_fuel_pump_finalY = -2.5
@@ -397,6 +397,31 @@ custom_fuel_pump_finalY = 1.5 -- SecondStairsFwdPosition = -5.9
 	else vertical_door_position2 = -4 deltaDoorX2 = 11
 	end
 
+
+    -- -------------------------------------------------------------------------
+	-- |||| Define the main cargo deck ULD loader longitudinal position for freighters |||||
+		if PLANE_ICAO == "A321" then ULDLoaderFwdPositionFactor = 0.72
+		elseif PLANE_ICAO == "A320" then ULDLoaderFwdPositionFactor = 1.0
+		elseif PLANE_ICAO == "A20N" then ULDLoaderFwdPositionFactor = 1.0
+		elseif PLANE_ICAO == "A346" then ULDLoaderFwdPositionFactor = 0.5
+		elseif PLANE_ICAO == "A306" then ULDLoaderFwdPositionFactor = 0.96 ULDLoaderLateralPositionFactor = 8
+		elseif PLANE_ICAO == "MD11" then ULDLoaderFwdPositionFactor = 1.45 ULDLoaderLateralPositionFactor = 9
+		elseif PLANE_ICAO == "B722" then ULDLoaderFwdPositionFactor = 1.13 ULDLoaderLateralPositionFactor = 9.5
+		elseif PLANE_ICAO == "B732" then ULDLoaderFwdPositionFactor = 0.99 ULDLoaderLateralPositionFactor = 9.2
+		elseif PLANE_ICAO == "B738" then ULDLoaderFwdPositionFactor = 0.95
+		elseif PLANE_ICAO == "B748" then ULDLoaderFwdPositionFactor = -0.53
+		elseif PLANE_ICAO == "B742" then ULDLoaderFwdPositionFactor = -0.67 ULDLoaderLateralPositionFactor = 8.8
+		elseif PLANE_ICAO == "B744" then ULDLoaderFwdPositionFactor = -0.7
+		elseif PLANE_ICAO == "B762" then ULDLoaderFwdPositionFactor = 0.95
+		elseif PLANE_ICAO == "B763" then ULDLoaderFwdPositionFactor = 0.9 ULDLoaderLateralPositionFactor = 8
+		elseif PLANE_ICAO == "B772" then ULDLoaderFwdPositionFactor = 1 ULDLoaderLateralPositionFactor = 8.5
+		elseif PLANE_ICAO == "B773" then ULDLoaderFwdPositionFactor = 1 ULDLoaderLateralPositionFactor = 8.5
+		elseif PLANE_ICAO == "B77L" then ULDLoaderFwdPositionFactor = -0.66 ULDLoaderLateralPositionFactor = 8.5
+		elseif PLANE_ICAO == "B752" then ULDLoaderFwdPositionFactor = 1.15 ULDLoaderLateralPositionFactor = 9.5
+		elseif PLANE_ICAO == "SF34" then ULDLoaderFwdPositionFactor = -1.1
+		elseif PLANE_ICAO == "B462" then ULDLoaderFwdPositionFactor = 1.03
+		elseif string.match(AIRCRAFT_PATH, "A310") and string.match(SGES_Author,"CremonaSoft") then ULDLoaderFwdPositionFactor = 0.95 ULDLoaderLateralPositionFactor = 11
+		else ULDLoaderFwdPositionFactor = 1.1 ULDLoaderLateralPositionFactor = 10 end
 
     -- -------------------------------------------------------------------------
 	-- |||| Define the dataref to open the aircraft left front and rear doors for passengers |||||
