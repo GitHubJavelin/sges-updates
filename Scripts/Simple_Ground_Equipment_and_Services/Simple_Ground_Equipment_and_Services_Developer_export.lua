@@ -149,6 +149,9 @@ function WriteToDisk_SGES_USER_CONFIG()
 	if TolissSA_Directory ~= nil then 	file:write("\nTolissSA_Directory = \"" .. TolissSA_Directory .. "\"") end
 
 	if Airstairs_with_lights ~= nil and Airstairs_with_lights~= true then file:write("\nAirstairs_with_lights = false") end
+	if UseCustomProggyClean ~= nil and UseCustomProggyClean~= false then file:write("\nUseCustomProggyClean = true") end
+
+    
 
 	file:close()
 end
@@ -179,5 +182,6 @@ function Wipe_SGES_USER_CONFIG()
 	Airstairs_with_lights = nil
 	UseXplane1220Chocks = false
 	SpeedyCopilotForFelis_wait4spoilers = nil
+    UseCustomProggyClean = nil
 	WriteToDisk_SGES_USER_CONFIG()
 end
