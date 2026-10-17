@@ -1,2 +1,7 @@
-Hello !
-The sole file skunkcrafts_updater.cfg should go into the folder "X-Plane 12/Resources/plugins/FlyWithLua", but all other files go into "X-Plane 12/Resources/plugins/FlyWithLua/Scripts/"
+skunkcrafts_updater.cfg goes to :
+X-Plane 12/Resources/plugins/FlyWithLua
+
+The scripts and other subfolders all go to :
+X-Plane 12/Resources/plugins/FlyWithLua/Scripts
+
+AFter FlyWithLua 2.8.17, as required, restoring sharp fonts can be done in FlyWithLua/fwl_prefs.ini with ProggyCleanDefault = 1.

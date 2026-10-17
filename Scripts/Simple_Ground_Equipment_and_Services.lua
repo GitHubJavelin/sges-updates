@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "81.1"
+version_text_SGES = "81.2"
 --------------------------------------------------------------------------------
 --[[
 
@@ -236,6 +236,7 @@ function SGES_script()
 		logMsg("imgui not supported by your FlyWithLua version")
 		return
 	end
+    --~ imgui.PushFont(ProggyClean.ttf)
 
 	require("bit")
 	require("graphics")
@@ -755,7 +756,23 @@ function SGES_script()
 	function SGES_WriteToDisk()
 		fileES = io.open(FileName_Menu_position, "w")
 		fileES:write("float_wnd_saved_position_x = " .. float_wnd_saved_position_x)
+		fileES:write("\nfloat_wnd_saved_position_y = " .. float_wnd_saved_position_y)
 		fileES:close()
+        float_wnd_live_position_x = nil -- to allow reloading from file
+        float_wnd_live_position_y = nil
+	end
+
+	function SGES_RevertUI(groundservices_float_wnd, posx,  posy)
+        posx = 100
+        if SCREEN_HIGHT > 2* sges_menu_height then
+            posy = SCREEN_HIGHT*0.5-sges_menu_height/2 - (100 * 2 * SGES_XPlane_user_interface_scale)
+        else
+            posy = SCREEN_HIGHT*0.5-sges_menu_height/2
+        end
+        float_wnd_saved_position_x = posx
+        float_wnd_saved_position_y = posy
+        float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+        SGES_WriteToDisk()
 	end
 
 	--print("[Ground Equipment " .. version_text_SGES .. "] BeltLoaderFwdPosition " .. BeltLoaderFwdPosition)
@@ -1946,6 +1963,8 @@ function SGES_script()
 	SGES_HandlingSpeeds = false
 	VDGS_time = "local"
 
+    UseCustomProggyClean = false
+
 	VDGS_manual = false
 	boat_manual_control = false
 	heading_flag_selected = 0
@@ -2312,7 +2331,7 @@ function SGES_script()
 	StopzoneY = -1
 	local syspath = ""
 	local BUFSIZE = 102400  -- read in blocks of 100Kb
-	local groundservices_wnd = nil
+	local groundservices_float_wnd = nil
 	local holder_wnd = nil
 	local screen_width = 1920
 	local Holder_len = 30
@@ -12943,75 +12962,77 @@ function SGES_script()
 
 	-- ////////////////////////////////// GROUND SERVICE /////////////////////////////////////////////////////////
 
-	local larg = 237
+	local sges_menu_width = 237
 	groundservices_float_wnd = nil
-	function show_windoz() -- new version on 27th of June, 2022, floatting variant.
+	function show_sges_menu() -- new version on 27th of June, 2022, floatting variant.
 		-- SGES_XPlane_user_interface_scale == 1 or 1.5 or 2
 		--if groundservices_float_wnd == nil and sges_gs_ias_spd[0] < 260 and sges_gs_plane_y_agl[0] < 3333 then -- IAS24
 		if groundservices_float_wnd == nil and sges_gs_ias_spd[0] < 250 then -- IAS24
-			time_opening_groundservices_float_wnd = SGES_total_flight_time_sec
-			larg = 267																											----- GUI SIZE HERE
-			local haut = 530
-			if SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" and BeltLoaderFwdPosition >= 17 then
-				haut = haut + 15
-			end
+            time_opening_groundservices_float_wnd = SGES_total_flight_time_sec
+            sges_menu_width = 267																											----- GUI SIZE HERE
+            sges_menu_height = 530
+            if SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" and BeltLoaderFwdPosition >= 17 then
+                sges_menu_height = sges_menu_height + 15
+            end
 
-			if SCREEN_HIGHT == nil then SCREEN_HIGHT = 1024 end -- has a typo in X-Plane ! Beware in XP 12 !
-			groundservices_float_wnd = float_wnd_create(larg, haut, 1, true) -- the third parameter is 1  for floating windows, 2 for fixed windows.
-			float_wnd_set_title(groundservices_float_wnd, "Ground services " .. version_text_SGES)
-			--float_wnd_set_position(groundservices_float_wnd, SCREEN_WIDTH*0.5-larg/2,  SCREEN_HIGHT*0.5-haut/2)
-			if posx == nil then posx = SCREEN_WIDTH*0.5-larg/2 end
-			if Cat_acting ~= nil then Cat_acting() end
-			-- regarding the vertical position on the screen
-			-- XPJavelin used until October 2024 :
-			--posy = SCREEN_HIGHT*0.5-haut/2
+            if SCREEN_HIGHT == nil then SCREEN_HIGHT = 1024 end -- has a typo in X-Plane ! Beware in XP 12 !
+            groundservices_float_wnd = float_wnd_create(sges_menu_width, sges_menu_height, 1, true) -- the third parameter is 1  for floating windows, 2 for fixed windows.
+            float_wnd_set_title(groundservices_float_wnd, "Ground services " .. version_text_SGES)
+            --float_wnd_set_position(groundservices_float_wnd, SCREEN_WIDTH*0.5-sges_menu_width/2,  SCREEN_HIGHT*0.5-sges_menu_height/2)
+            --~ if posx == nil then posx = SCREEN_WIDTH*0.5-sges_menu_width/2 end
+            --~ if Cat_acting ~= nil then Cat_acting() end -- an easter egg; commented out on 2026-10-16
+            -- regarding the vertical position on the screen
+            -- XPJavelin used until October 2024 :
+            --posy = SCREEN_HIGHT*0.5-sges_menu_height/2
 
-			-- but thensweat @enjxp came with an enjoyable solution :
-			-- "I had a try and found it would be better with this tuning :"
-			-- posy = SCREEN_HIGHT*0.5-haut/2 - 75   -- line #10163 in SGES 72.0
+            -- but thensweat @enjxp came with an enjoyable solution :
+            -- "I had a try and found it would be better with this tuning :"
+            -- posy = SCREEN_HIGHT*0.5-sges_menu_height/2 - 75   -- line #10163 in SGES 72.0
 
-			-- Then XPJavelin adapted that :
-			if IsXPlane12 and SGES_XPlane_user_interface_scale == nil then SGES_XPlane_user_interface_scale = get("sim/graphics/misc/user_interface_scale")
-			elseif SGES_XPlane_user_interface_scale == nil then SGES_XPlane_user_interface_scale = 1 end
+            -- Then XPJavelin adapted that :
+            if IsXPlane12 and SGES_XPlane_user_interface_scale == nil then SGES_XPlane_user_interface_scale = get("sim/graphics/misc/user_interface_scale")
+            elseif SGES_XPlane_user_interface_scale == nil then SGES_XPlane_user_interface_scale = 1 end
 
-			if SCREEN_HIGHT > 2* haut then
-				posy = SCREEN_HIGHT*0.5-haut/2 - (100 * 2 * SGES_XPlane_user_interface_scale)
-			else
-				posy = SCREEN_HIGHT*0.5-haut/2
-			end
-			-- changed 2023 08 :
-			posx=100
-			--changed 2023 12 :
-			if float_wnd_saved_position_x ~= nil then
-				if float_wnd_saved_position_x > 101 then
-					posx = float_wnd_saved_position_x
-				else
-					float_wnd_saved_position_x = 100
-					posx=100
-				end
-			end
+            if posy == nil then
+                if SCREEN_HIGHT > 2* sges_menu_height then
+                    posy = SCREEN_HIGHT*0.5-sges_menu_height/2 - (100 * 2 * SGES_XPlane_user_interface_scale)
+                else
+                    posy = SCREEN_HIGHT*0.5-sges_menu_height/2
+                end
+            end
+            -- changed 2023 08 :
+            if posx == nil then posx=100 end
+            --changed 2023 12 :
+            if float_wnd_saved_position_x ~= nil then
+                if float_wnd_saved_position_x > 101 then
+                    posx = float_wnd_saved_position_x
+                elseif posx == nil then
+                    float_wnd_saved_position_x = 100
+                    posx=100
+                end
+            end
 
-			if float_wnd_saved_position_x == nil and float_wnd_saved_position_y == nil then
-				float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-			else
-				float_wnd_set_position(groundservices_float_wnd, float_wnd_saved_position_x,  posy)
-			end -- december 2023 changed to allow saving position
-			-- apply some effects : --https://github.com/X-Friese/FlyWithLua/blob/master/FlyWithLua/Scripts%20(disabled)/imgui_demo.lua
-			-- put the content inside :
-			float_wnd_set_imgui_builder(groundservices_float_wnd, "build_windoz")
-			float_wnd_set_onclose(groundservices_float_wnd, "hide_floatting_windoz")
-			--~ if PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then command_once("CL650/fbo/debug/tog_status_window") end
-			if sges_gs_gnd_spd[0] < 0.1 and sges_gs_plane_y_agl[0] < 1 and SGES_is_glider == 0 and math.abs(BeltLoaderFwdPosition) > 4 then sges_big_airport,sges_airport_ID = sges_nearest_airport_type(sges_big_airport,sges_current_time,sges_airport_ID) end
-		else
-			hide_floatting_windoz()
+
+            if float_wnd_live_position_x ~= nil and float_wnd_live_position_y ~= nil then
+                float_wnd_set_position(groundservices_float_wnd, float_wnd_live_position_x,  float_wnd_live_position_y)
+            elseif float_wnd_saved_position_x == nil and float_wnd_saved_position_y == nil then
+                float_wnd_set_position(groundservices_float_wnd, posx,  posy)
+            else
+                if float_wnd_saved_position_y == nil then float_wnd_saved_position_y = posy end --older SGES didn't saved float_wnd_saved_position_y - backware compatibility is required
+                float_wnd_set_position(groundservices_float_wnd, float_wnd_saved_position_x, float_wnd_saved_position_y)
+            end -- december 2023 changed to allow saving position
+            -- apply some effects : --https://github.com/X-Friese/FlyWithLua/blob/master/FlyWithLua/Scripts%20(disabled)/imgui_demo.lua
+            -- put the content inside :
+            float_wnd_set_imgui_builder(groundservices_float_wnd, "build_sges_menu")
+            float_wnd_set_onclose(groundservices_float_wnd, "hide_sges_menu")
+            --~ if PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then command_once("CL650/fbo/debug/tog_status_window") end
+            if sges_gs_gnd_spd[0] < 0.1 and sges_gs_plane_y_agl[0] < 1 and SGES_is_glider == 0 and math.abs(BeltLoaderFwdPosition) > 4 then sges_big_airport,sges_airport_ID = sges_nearest_airport_type(sges_big_airport,sges_current_time,sges_airport_ID) end
+                
 		end
 	end
 
 	-- ////////////////////////////////// GROUND SERVICE /////////////////////////////////////////////////////////
 
-	XPJ_show = false
-	groundservices_wnd = nil
-	SGES_LegacyGUI = true
 	local loadOptions = false
 
 	DualBoard = true
@@ -13019,80 +13040,26 @@ function SGES_script()
 	ladder_state = 0
 	GUIcoordinates = false
 
-	function show_fixed_windoz()
 
-		if not SGES_LegacyGUI and not SUPPORTS_FLOATING_WINDOWS then
-			-- to make sure the script doesn't stop old FlyWithLua versions
-			logMsg("imgui not supported by your FlyWithLua version")
-			SGES_LegacyGUI = true
-			return
-		end
-
-		Cat_acting()
-
-		windoz_first_access = true
-
-		if SGES_LegacyGUI or not groundservices_wnd_open then
-
-			local sges_win_height = 520
-			if (SecondStairsFwdPosition ~= -30 and SGES_stairs_type ~= "Boarding_without_stairs" and BeltLoaderFwdPosition >= 17 and show_StairsXPJ and show_StairsXPJ2 and StairFinalY_stairIV ~= nil and StairFinalY_stairIII ~= nil) or show_StairsXPJ3 then
-				sges_win_height = sges_win_height + 20
-			end
-
-			groundservices_wnd = float_wnd_create(218, sges_win_height, 2, true)
-			float_wnd_set_title(groundservices_wnd, "Ground services options")
-			if posx == nil then posx=screen_width - 2*screen_width/3 - Holder_len end
-			posy=Win_Y-50
-
-
-
-			if float_wnd_saved_position_x == nil then
-				float_wnd_set_position(groundservices_wnd, posx,  posy)
-			else
-				float_wnd_set_position(groundservices_wnd, float_wnd_saved_position_x,  posy)
-			end -- december 2023 changed to allow saving position
-
-			float_wnd_set_imgui_builder(groundservices_wnd, "build_windoz")
-			XPJ_show = true
-			if not SGES_LegacyGUI then
-				float_wnd_set_onclose(groundservices_wnd, "hide_windoz")
-				groundservices_wnd_open = true
-				app_is_active = true
-				float_wnd_set_geometry(groundservices_wnd, SCREEN_WIDTH- 2*screen_width/3, 450, SCREEN_WIDTH- 2*screen_width/3 + 220, 10)
-			end
-		end
-		--~ if PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then command_once("CL650/fbo/debug/tog_status_window") end
-		if sges_gs_gnd_spd[0] < 0.1 and sges_gs_plane_y_agl[0] < 1 and SGES_is_glider == 0 and math.abs(BeltLoaderFwdPosition) > 4 then sges_big_airport,sges_airport_ID = sges_nearest_airport_type(sges_big_airport,sges_current_time,sges_airport_ID) end
-	end
-
-
-	function hide_windoz()
-		groundservices_wnd_open = false
-		if groundservices_wnd ~= nil then
-			set_array("sim/operation/override/override_boats", 0, 0) -- carrier
-			set_array("sim/operation/override/override_boats", 1, 0) -- frigate
-			float_wnd_destroy(groundservices_wnd)
-			groundservices_wnd = nil
-			Window_is_inactive = true
-			if config_helper ~= nil then config_helper = false end
-			XPJ_show = false
-			--~ if PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then command_once("CL650/fbo/debug/tog_status_window") end
-		end
-	end
-
-	function hide_floatting_windoz()
+	function hide_sges_menu()
 		if groundservices_float_wnd ~= nil then
 			set_array("sim/operation/override/override_boats", 0, 0) -- carrier
 			set_array("sim/operation/override/override_boats", 1, 0) -- frigate
+            local left, top, right, bottom = float_wnd_get_geometry(groundservices_float_wnd)
+            --~ posx = left
+            --~ posy = top
+            float_wnd_live_position_x = left -- this window position is not written to disk here, it's just for the current session
+            float_wnd_live_position_y = bottom -- this window position is not written to disk here, it's just for the current session
 			float_wnd_destroy(groundservices_float_wnd)
 			groundservices_float_wnd = nil
 			if config_helper ~= nil then config_helper = false 	debugging_passengers = false end
 			sges_ship_cancelled_cause_land = false -- also reset that conveniently
+			--~ if PLANE_ICAO == "CL60" and string.find(PLANE_AUTHOR,"Hot") then command_once("CL650/fbo/debug/tog_status_window") end
 		end
 	end
 
 	dofile (SCRIPT_DIRECTORY .. "Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_GUI_for_VR.lua") -- threat module
-	add_macro("SGES : display the SGES window","if XPJ_show then hide_windoz() else show_windoz() end")
+	add_macro("SGES : display the SGES window","sges_menu_toggle()")
 	add_macro("SGES : display the VR window (beta)","create_VR_GUI()")
     add_macro("SGES : deploy an active SAM site (nearest airport)","show_Sam = true Sam_chg = true 	if show_Sam and not Threat_module_loaded then dofile (SCRIPT_DIRECTORY .. \"Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_Threat.lua\") end","show_Sam = false Sam_chg = true","deactivate")
 	add_macro("SGES : stop downed AI to respawn in battle","prevent_respawn = true 	if prevent_respawn and not sges_respawn_loaded then dofile (SCRIPT_DIRECTORY .. \"Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_AiDontReborn.lua\") end","prevent_respawn = false if sges_respawn_loaded then AcquireAircraft_sges()  ReleaseAircraft_sges() end","deactivate")
@@ -13103,9 +13070,13 @@ function SGES_script()
 
 	--~ add_macro("SGES : reload the Custom-2 battle (debug)","if sges_Load_locations == nil then 	dofile (SCRIPT_DIRECTORY .. 'Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_Front_Line.lua') end  if  FrontLine_instance[1] ~= nil then show_Front_Line = false Front_Line_chg = true else show_Front_Line = true Front_Line_chg = true end")
 
-	function auto_hide_floatting_windoz()
-		if groundservices_float_wnd ~= nil and ((sges_gs_ias_spd[0] > 260 and SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 20)  or (sges_gs_plane_y_agl[0] > 3333 and SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 20) or SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 600) then --IAS24
-			hide_floatting_windoz() -- avoids OOM
+	function auto_hide_sges_menu()
+		if groundservices_float_wnd ~= nil and
+        (
+           (sges_gs_ias_spd[0] > 200 and SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 30) 
+        or SGES_total_flight_time_sec > time_opening_groundservices_float_wnd + 300 --5 minutes
+        ) then --IAS24
+			hide_sges_menu() -- avoids OOMf
 		end
 		-- also I will jump on the occasion to remove the chocks if we are flying ! That's a safety to prevent an abrupt stop upon landing.
 		-- some addon may trigger chocks falsely an we want to avoid having chocks ON at landing !
@@ -13114,13 +13085,13 @@ function SGES_script()
 
 
 	end
-	do_sometimes("auto_hide_floatting_windoz()")  -- avoids OOM
+	do_sometimes("auto_hide_sges_menu()")  -- avoids OOM
 
 	-- the following function was the key "F" hardcoded to open the menu.
 	--[[
 	function key_handlerFM()
 		if VKEY == 70 and KEY_ACTION == "pressed" then
-			if XPJ_show then hide_windoz() else show_windoz() end
+			if groundservices_float_wnd ~= nil then hide_sges_menu() else show_sges_menu() end
 			print("GROUND-SERVICE (" .. VKEY .. ")")
 		 end
 	end
@@ -13131,17 +13102,12 @@ function SGES_script()
 	show_Pelicandrome = false
 
 
-
-	--~ function build_windoz(groundservices_wnd, x, y)
-
-	--~ end
-
-
-	function build_windoz(groundservices_wnd, x, y)
+	function build_sges_menu(groundservices_float_wnd, x, y)
+       if imgui_push_font ~= nil and UseCustomProggyClean then imgui_push_font(7) end
 		-- get the current time
 	  local l_is_selected = false
 	  local l_changed = false
-	  imgui.SetWindowFontScale(1.0)
+	  --$--imgui.SetWindowFontScale(1.0)
 	  --imgui.TextUnformatted(curr_ICAO.. "   ".. curr_ICAO_name)
 		if SGES_total_flight_time_sec < time_opening_groundservices_float_wnd + 5 and SGES_local_time_in_simulator_hours ~= nil then
 			imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
@@ -13196,71 +13162,40 @@ function SGES_script()
 
 		end
 
-	  imgui.SetWindowFontScale(0.99)
+	  --$--imgui.SetWindowFontScale(0.99)
 	  if groundservices_float_wnd ~= nil then
+      
+
 			imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
 
-
-
-			--~ float_wnd_saved_position = imgui.GetWindowPos(groundservices_float_wnd).x
-			--~ print(float_wnd_saved_position)
-			--~ float_wnd_saved_position_y = imgui.GetWindowPos(groundservices_wnd).y
-
-
-			--~ imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF000000)
-			--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
-
-			--~ imgui.PushItemWidth(110)
-			--~ local changed, newVal2 = imgui.SliderFloat("wp", posx, 100, SCREEN_WIDTH*0.5-larg/2, "Window")
-			--~ if changed then
-				--~ float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-			--~ end
 
 			imgui.SameLine()
 			if  imgui.Button("Move",38,18)  then
 				if adjust_sges_menu_pos then adjust_sges_menu_pos = false else adjust_sges_menu_pos = true end
 			end
+            
 			imgui.SameLine()
 			if adjust_sges_menu_pos == nil then adjust_sges_menu_pos = false end
 			if adjust_sges_menu_pos then
-				if  imgui.SmallButton("<<")  then
-					posx = 100
-					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-					float_wnd_saved_position_x = posx
-					--~ float_wnd_saved_position_y = posy
-					SGES_WriteToDisk()
-				end
-				imgui.SameLine()
-				if  imgui.SmallButton("<")  then
-					posx = posx - 200
-					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-					float_wnd_saved_position_x = posx
-					--~ float_wnd_saved_position_y = posy
-					SGES_WriteToDisk()
-				end
-				imgui.SameLine()
-				if  imgui.SmallButton("^")  then
-					posx = SCREEN_WIDTH*0.5-larg/2
-					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-					float_wnd_saved_position_x = posx
-					SGES_WriteToDisk()
-				end
-				imgui.SameLine()
-				if  imgui.SmallButton(">")  then
-					posx = posx + 200
-					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-					float_wnd_saved_position_x = posx
-					--~ float_wnd_saved_position_y = posy
-					SGES_WriteToDisk()
-				end
-				imgui.SameLine()
-				if  imgui.SmallButton(">>")  then
-					posx = screen_width - larg - 100
-					float_wnd_set_position(groundservices_float_wnd, posx,  posy)
-					float_wnd_saved_position_x = posx
-					--~ float_wnd_saved_position_y = posy
-					SGES_WriteToDisk()
-				end
+				
+				imgui.TextUnformatted("")
+				imgui.TextUnformatted(string.format("Menu location x=%d  y=%d", x, y))
+                
+                if  imgui.Button("Save the position",135,30)  then
+                    float_wnd_saved_position_x = x
+                    float_wnd_saved_position_y = y
+                    SGES_WriteToDisk()
+                end
+                imgui.SameLine()
+                if float_wnd_saved_position_x ~= x then
+                    if  imgui.Button("Rev",25,30)  then
+                        float_wnd_set_position(groundservices_float_wnd, float_wnd_saved_position_x,  float_wnd_saved_position_y)
+                    end
+                end
+                imgui.SameLine()
+                if  imgui.Button("Defaults",75,30)  then
+                    SGES_RevertUI(groundservices_float_wnd, posx,  posy)
+                end
 			else
 				if IsXPlane12 then
 					if (math.abs(sges_gs_gnd_spd[0]) < 0.5 or show_CockpitLight) then
@@ -13320,14 +13255,6 @@ function SGES_script()
 
 			imgui.PopStyleVar()
 		end
-	  imgui.SetWindowFontScale(1)
-	  --if not SGES_LegacyGUI then
-		--~ imgui.SameLine()
-		--~ if imgui.Button("X",35,17) then
-			--~ hide_windoz()
-			--~ hide_floatting_windoz() -- bad idea for flaoting windows
-		--~ end
-	  --end
 
 	  imgui.Separator()
 	  if not config_options then
@@ -13543,7 +13470,7 @@ function SGES_script()
 			imgui.SameLine()
 			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 			imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-			imgui.SetWindowFontScale(0.96)
+			--$--imgui.SetWindowFontScale(0.96)
 			if imgui.Button("Narrow",47,22) then
 				approaching_TargetMarker = 0
 				stand_found_flag = 0
@@ -13561,7 +13488,7 @@ function SGES_script()
 				if TargetMarker_instance[0] ~= nil then TargetMarker_chg,TargetMarker_instance[0],rampservicerefTargetMarker = common_unload("TargetMarker",TargetMarker_instance[0],rampservicerefTargetMarker) end --IAS24
 				Prefilled_TargetMarkerObject =       SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/Arrow_tubular.obj" --IAS24
 			end
-			imgui.SetWindowFontScale(1)
+			--$--imgui.SetWindowFontScale(1)
 			imgui.PopStyleColor()
 			imgui.PopStyleColor()
 			if imgui.IsItemActive() then
@@ -13582,7 +13509,7 @@ function SGES_script()
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-				imgui.SetWindowFontScale(0.96)
+				--$--imgui.SetWindowFontScale(0.96)
 				if imgui.Button("Here",45,22) then
 					show_VDGS = true
 					VDGS_manual = true
@@ -13620,7 +13547,7 @@ function SGES_script()
 					if TargetMarker_instance[0] ~= nil then TargetMarker_chg,TargetMarker_instance[0],rampservicerefTargetMarker = common_unload("TargetMarker",TargetMarker_instance[0],rampservicerefTargetMarker) end --IAS24
 					Prefilled_TargetMarkerObject =       SCRIPT_DIRECTORY   .. "Simple_Ground_Equipment_and_Services/Structures/Arrow_tubular.obj" --IAS24
 				end
-				imgui.SetWindowFontScale(1)
+				--$--imgui.SetWindowFontScale(1)
 				imgui.PopStyleColor()
 				imgui.PopStyleColor()
 				if imgui.IsItemActive() then
@@ -14255,7 +14182,7 @@ function SGES_script()
 					--~ imgui.TextUnformatted(" Built-in services ON in ZIBO EFB")
 					imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF000000)
 					imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-					--~ imgui.SetWindowFontScale(0.9)
+					--~ --$--imgui.SetWindowFontScale(0.9)
 					if imgui.Button("ZIBO built-in services are ON !",230,15) then
 						ZIBOToggleServicesOption()
 					end
@@ -14271,7 +14198,7 @@ function SGES_script()
 						imgui.PopTextWrapPos()
 						imgui.EndTooltip()
 					end
-					--~ imgui.SetWindowFontScale(1)
+					--~ --$--imgui.SetWindowFontScale(1)
 					imgui.PopStyleColor(2)
 				end
 				imgui.PopStyleColor()
@@ -14313,8 +14240,8 @@ function SGES_script()
 
 
 		if not ATIS_window_requested and not config_options then
-			imgui.Columns(2)
-
+			--~ imgui.Columns(2)
+            
 		  if PLANE_ICAO == "ALIA" or  AIRCRAFT_FILENAME == "AW109SP.acf" then
 			l_changed, l_newval = imgui.Checkbox(" Active GPU", show_GPU)
 			if show_GPU then
@@ -14417,11 +14344,11 @@ function SGES_script()
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-				--~ imgui.SetWindowFontScale(0.9)
+				--~ --$--imgui.SetWindowFontScale(0.9)
 				if imgui.Button("GPU",50,20) then
 					ZIBOToggleGPU()
 				end
-				--~ imgui.SetWindowFontScale(1)
+				--~ --$--imgui.SetWindowFontScale(1)
 				imgui.PopStyleColor(2)
 				if imgui.IsItemHovered() then
 					-- Click & hold tooltip
@@ -14436,6 +14363,10 @@ function SGES_script()
 					imgui.EndTooltip()
 				end
 			end
+
+
+        
+        imgui.SameLine() -- comment that when Colmuns are in use
 
 		if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
 				imgui.NextColumn()
@@ -14521,7 +14452,7 @@ function SGES_script()
 				end
 			end
 
-			imgui.Columns(1)
+			--~ imgui.Columns(1)
 
 		  if PLANE_ICAO ~= "ALIA" then -- ALIA doesn't require petroleum derivatives directly
 			if FuelTruck_is_deer and SGES_deer_run_cycle ~= nil then
@@ -16180,11 +16111,11 @@ function SGES_script()
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-				--~ imgui.SetWindowFontScale(0.9)
+				--~ --$--imgui.SetWindowFontScale(0.9)
 				if imgui.Button("Cho",30,20) then
 					ZIBOToggleChocks()
 				end
-				--~ imgui.SetWindowFontScale(1)
+				--~ --$--imgui.SetWindowFontScale(1)
 				imgui.PopStyleColor(2)
 
 
@@ -16233,7 +16164,7 @@ function SGES_script()
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF444444)
 				imgui.PushStyleColor(imgui.constant.Col.ButtonHovered,  0xFF555555)
-				--~ imgui.SetWindowFontScale(0.9)
+				--~ --$--imgui.SetWindowFontScale(0.9)
 				if imgui.Button("Cho",30,20) then
 					if show_Chocks then
 						command_once("CL650/hand_signals/chocks_in")
@@ -16246,7 +16177,7 @@ function SGES_script()
 						command_once("CL650/hand_signals/chocks_out")
 					end
 				end
-				--~ imgui.SetWindowFontScale(1)
+				--~ --$--imgui.SetWindowFontScale(1)
 				imgui.PopStyleColor(2)
 				if imgui.IsItemHovered() then
 					-- Click & hold tooltip
@@ -17177,10 +17108,6 @@ function SGES_script()
 						if not GUImoreShip then -- release the steering to automatic navigation by X-Plane
 							boat_manual_control = false
 							auto_release_boats()
-						--~ else
-							--~ if posx ~= nil and posy ~= nil and larg ~= nil then
-								--~ float_wnd_set_geometry(groundservices_wnd, posx, posy, 100 + larg, 10)
-							--~ end
 						end
 						-- otherwise display manual steering controls
 					end
@@ -17836,16 +17763,16 @@ function SGES_script()
 			imgui.Separator()
 				  -- added 2022
 			if show_ArrestorSystem then
-				imgui.SetWindowFontScale(0.9)
+				--$--imgui.SetWindowFontScale(0.9)
 			  l_changed, l_newval = imgui.Checkbox("Arr.", show_ArrestorSystem) -- for window space reasons I diminush the text
-			  imgui.SetWindowFontScale(1.0)
+			  --$--imgui.SetWindowFontScale(1.0)
 			else
 			if BeltLoaderFwdPosition > 4.5 then
 			  l_changed, l_newval = imgui.Checkbox("Arrestor", show_ArrestorSystem)
 			else
-				--~ imgui.SetWindowFontScale(0.95)
+				--~ --$--imgui.SetWindowFontScale(0.95)
 				l_changed, l_newval = imgui.Checkbox("Arres.", show_ArrestorSystem)
-				--~ imgui.SetWindowFontScale(1.0)
+				--~ --$--imgui.SetWindowFontScale(1.0)
 			end
 			end
 			if imgui.IsItemActive() then
@@ -19843,8 +19770,13 @@ function SGES_script()
 			imgui.PopStyleColor()
 
 		end
+        
 		if config_options then
-
+            if not config_helper then
+                imgui.PopStyleColor() -- patch 20260816
+            else
+                config_helper = false
+            end
 			--~ if  imgui.Button("Look for SGES updates",230,30)  then
 				--~ dofile(SCRIPT_DIRECTORY .. "Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_skinfat_updater.lua") -- threat module
 			--~ end
@@ -19874,6 +19806,23 @@ function SGES_script()
 			imgui.PopStyleColor()
 			imgui.Spacing()
 			imgui.Separator()
+             --~ imgui.ShowFontSelector("")
+			--~ if imgui_push_font ~= nil then
+				--~ l_changed, _ = imgui.Checkbox(" Restore the legacy font\n(This requires our ttf in\n FlyWithLua/Custom Fonts)", UseCustomProggyClean)
+				--~ if l_changed then
+					--~ UseCustomProggyClean = not UseCustomProggyClean
+                    --~ Buttonstring = "Remember the font"
+				--~ end
+				--~ if imgui.IsItemActive() then
+					--~ imgui.BeginTooltip()
+					--~ imgui.PushTextWrapPos(imgui.GetFontSize() * 19)
+					--~ imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					--~ imgui.TextUnformatted("After FlyWithLua 2.8.16, fonts have changed, not certainely for the good. To restore the legacy font (ProggyClean.ttf), copy the Roboto-regular.ttf from our SGES archive into FlyWithLua/Custom_Fonts and enable this option. We indeed furnish the ProggyClean font disguised as Roboto, this is a work around.")
+					--~ imgui.PopStyleColor()
+					--~ imgui.PopTextWrapPos()
+					--~ imgui.EndTooltip()
+				--~ end
+            --~ end 
 			if IsXPlane1214 then
 				l_changed, l_newval = imgui.Checkbox(" Use X-Plane native vehicles", UseXplane1214DefaultObject)
 				if l_changed then
@@ -20192,6 +20141,26 @@ function SGES_script()
 			end
 			imgui.PopStyleColor()
 			imgui.PopStyleVar()
+
+			imgui.Spacing()
+			if imgui_push_font ~= nil then
+				_, _ = imgui.Checkbox(" How to restore the font\n sharpness ? (click to display).", False)
+				--~ if l_changed then
+					--~ UseCustomProggyClean = not UseCustomProggyClean
+                    --~ Buttonstring = "Remember the font"
+				--~ end
+				if imgui.IsItemActive() then
+					imgui.BeginTooltip()
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 19)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("After FlyWithLua 2.8.16, fonts have changed. To restore the legacy font (ProggyClean.ttf) as default font in FWL 2.8.17 and above, go into X-Plane 12/Resources/plugins/FlyWithLua/fwl_prefs.ini and change the value of ProggyCleanDefault to 1.")
+					imgui.PopStyleColor()
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+            end 
+			imgui.Spacing()
+            
 			l_changed, l_newval = imgui.Checkbox(" Autodetect 3rd-party assets", scan_third_party_initially)
 			if l_changed then
 				scan_third_party_initially = l_newval
@@ -20495,8 +20464,9 @@ function SGES_script()
 				imgui.Spacing()
 			end
 
-			imgui.Separator()
 
+			imgui.Separator()
+            
 			imgui.PushStyleColor(imgui.constant.Col.Button,  0xFF505090)
 			if imgui.Button(Buttonstring .. ".",230,30)  then
 				WriteToDisk_SGES_USER_CONFIG()
@@ -20518,7 +20488,6 @@ function SGES_script()
 			elseif  imgui.SmallButton("Rebuild without custom sceneries",200,16)  then
 				includeCustomParkingPositions = false create_parking_position_cache()
 			end
-
 
 
 
@@ -20659,13 +20628,6 @@ function SGES_script()
 				imgui.PopStyleColor()
 			end
 			imgui.PopTextWrapPos()
-
-			--~ imgui.End()
-		--~ end
-
-		--~ do_every_frame("draw_hoppie_atis_window()")
-
-			imgui.TreePop()
 		end
 
 	-------------------------------------------------- ------------------ --------------------------
@@ -20754,7 +20716,8 @@ function SGES_script()
 		end
 		----------------------------------------------------------
 		end -- IAS24
-	end --function build_windoz(groundservices_wnd, x, y)
+       if imgui_push_font ~= nil and UseCustomProggyClean then imgui.PopFont() end
+	end --function build_sges_menu
 	--------------------------------------------------------------------
 
 	--------------------------------------------------------------------
@@ -21129,14 +21092,10 @@ function SGES_script()
 
 
 	--[[ Toggle Window ]]
-	function windoz_toggle()
-		if not XPJ_show then show_windoz() else hide_windoz() end
+	function sges_menu_toggle()
+		if groundservices_float_wnd ~= nil then hide_sges_menu() else show_sges_menu() end
 	end
-
-	if not SGES_LegacyGUI then
-		create_command("Simple_Ground_Equipment_and_Services/Window/Show", "Show the SGES menu", "loadOptions = true show_windoz()", "", "")
-	end
-	create_command("Simple_Ground_Equipment_and_Services/Window/Toggle", "Toggle Window", "windoz_toggle()", "", "")
+	create_command("Simple_Ground_Equipment_and_Services/Window/Toggle", "Toggle Window", "sges_menu_toggle()", "", "")
 
 
 	-- atrap2ss2 suggestion on February 2025
@@ -21146,7 +21105,7 @@ function SGES_script()
 
 	-- **************** THIS PART WAS ADDED FOR NEW WINDOW STYLE ********************** START **
 
-	loadOptions = true --show_windoz()
+	loadOptions = true --show_sges_menu()
 
 		--########################################
 		--# Prepare Text To Speak	             #
