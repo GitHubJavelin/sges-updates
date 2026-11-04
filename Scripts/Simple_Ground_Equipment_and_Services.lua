@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
-version_text_SGES = "81.2"
+version_text_SGES = "81.3"
 --------------------------------------------------------------------------------
 --[[
 
@@ -3418,6 +3418,9 @@ function SGES_script()
 					elseif PLANE_ICAO == "A346" then
 						x = 10
 						z = -0.5*math.abs(BeltLoaderFwdPosition)
+					elseif PLANE_ICAO == "AT76" then
+						x = -5
+						z = -2.5*math.abs(BeltLoaderFwdPosition)
 					end
 					-- with an X-Plane 12.1.4 vehicle, I need to back it a little bit
 					if string.find(Prefilled_CleaningTruckObject,"airsideops")	then
@@ -3520,6 +3523,9 @@ function SGES_script()
 					z = -1.70*math.abs(BeltLoaderFwdPosition)
 				elseif PLANE_ICAO == "SF34" or PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
 					z = -2*math.abs(BeltLoaderFwdPosition)
+                elseif PLANE_ICAO == "AT76" then
+					x = 6
+					z = 6*math.abs(BeltLoaderFwdPosition)
 				elseif PLANE_ICAO == "B742" then
 					z = -23.5
 				elseif PLANE_ICAO == "A346" then
@@ -3558,7 +3564,9 @@ function SGES_script()
 				local object_hdg_correction= - 85
 				if SGES_Embraer_catering_is_small and (string.match(PLANE_ICAO,"B46") or PLANE_ICAO == "RJ70" or PLANE_ICAO == "RJ85" or PLANE_ICAO == "RJ1H" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8C" or PLANE_ICAO == "DH8D" or string.match(PLANE_ICAO,"AT4") or string.match(PLANE_ICAO,"GLF650ER") or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)")) then
 					object_hdg_correction = 150 -- make room for the baggage cart
-					z = -2.25*math.abs(BeltLoaderFwdPosition)
+                    if SGES_Author ~= "Kostas Koronakis, Dimitris Koronakis, Andrzej Borysewicz" then
+                        z = -2.25*math.abs(BeltLoaderFwdPosition)
+                    end
 				end
 				-- At the White House
 				if CatObject == SAM_object_3 or CatObject == SAM_object_1 or CatObject == SAM_object_2 then
@@ -5298,10 +5306,14 @@ function SGES_script()
 			Deice_chg,Deice_instance[2],rampserviceref102 = common_unload("Deice2",Deice_instance[2],rampserviceref102)
 		  end
 		  if Deice_instance[0] ~= nil then
-				Deice_chg = draw_static_object(-15,-1.9*math.abs(BeltLoaderFwdPosition),-30,Deice_instance[0],"Deice")
+                local lateral_ice = 15
+                local longitudinal_ice = 1.7
+                local angle_ice2 = -15
+                if BeltLoaderFwdPosition < 6 then lateral_ice = 9 longitudinal_ice = 3.5 angle_ice2 = 25 end
+				Deice_chg = draw_static_object(-lateral_ice,-longitudinal_ice*math.abs(BeltLoaderFwdPosition),-30,Deice_instance[0],"Deice")
 				-- for some big planes, put the second deice truck
-				if (BeltLoaderFwdPosition > 5 or PLANE_ICAO == "CL60") and show_Deice and Deice_instance[1] ~= nil then
-					draw_static_object(targetDoorX+18,-1.6*math.abs(BeltLoaderFwdPosition),-30,Deice_instance[1],"Deice1")
+				if (BeltLoaderFwdPosition > 5 or PLANE_ICAO == "CL60" or PLANE_ICAO == "AT76" ) and show_Deice and Deice_instance[1] ~= nil then
+					draw_static_object(targetDoorX+lateral_ice+3,-longitudinal_ice*math.abs(BeltLoaderFwdPosition),angle_ice2,Deice_instance[1],"Deice1")
 				end
 				if Dayonly_deicing_truck_01 ~= nil and BeltLoaderFwdPosition > ULDthresholdx and show_Deice and Deice_instance[2] ~= nil then
 					draw_static_object(targetDoorX+43,1.2*math.abs(BeltLoaderFwdPosition),145,Deice_instance[2],"Deice2")
@@ -19783,9 +19795,38 @@ function SGES_script()
 			if  imgui.Button("Close the options",230,25)  then
 				config_options = false
 			end
-			if  imgui.Button("Check for SGES updates",230,25)  then
-				open_that_sges_url("https://forums.x-plane.org/index.php?/files/file/62296-simple-ground-equipment-services-low-tech-services")
-			end
+			--~ if  imgui.Button("Check for SGES updates",230,25)  then
+				--~ open_that_sges_url("https://forums.x-plane.org/index.php?/files/file/62296-simple-ground-equipment-services-low-tech-services")
+			--~ end
+
+            if imgui.Button("Check update (stable version)") then
+                if not SGESUpdater then
+                    dofile(
+                        SCRIPT_DIRECTORY ..
+                        "Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_Updater.lua"
+                    )
+                end
+                SGESUpdater.CheckForUpdates("https://raw.githubusercontent.com/GitHubJavelin/sges-updates/main")
+            end    
+            if imgui.Button("Check update (work-in-progress)") then
+                if not SGESUpdater then
+                    dofile(
+                        SCRIPT_DIRECTORY ..
+                        "Simple_Ground_Equipment_and_Services/Simple_Ground_Equipment_and_Services_Updater.lua"
+                    )
+                end
+                SGESUpdater.CheckForUpdates("https://raw.githubusercontent.com/GitHubJavelin/sges-updates-beta/main")
+            end
+            if  SGESUpdater ~= nil and SGESUpdater and SGESUpdater.UpdateAvailable ~= nil and  SGESUpdater.UpdateAvailable and SGESUpdater.FilesToUpdate ~= nil then
+                local button_update_string = "Download the " .. tostring(#SGESUpdater.FilesToUpdate) .. " available files !"
+                if #SGESUpdater.FilesToUpdate == 1 then button_update_string = "Download the available file !" end
+                if imgui.Button(button_update_string) then
+                    --~ SGESUpdater.CheckForUpdates("https://raw.githubusercontent.com/")
+                    SGESUpdater.InstallUpdates()
+                end
+            elseif SGESUpdater ~= nil and SGESUpdater and SGESUpdater.UpdateAvailable ~= nil and  not SGESUpdater.UpdateAvailable  then
+                imgui.TextUnformatted("Nothing to update today !")
+            end
 			imgui.Spacing()
 			imgui.Separator()
 			imgui.TextUnformatted("SGES OPTIONS")
