@@ -1,6 +1,10 @@
 
     == Caution ! The sole file skunkcrafts_updater.cfg should go into the root FlyWithLua folder ("X-Plane 12/Resources/plugins/FlyWithLua"), but all other SGES files go one folder below into "...FlyWithLua/Scripts/" as usual. ==
 
+Version 81.3, 3rd November, 2026
+	Adding ATR 72-600 custom geometry
+    Making preparations for self update mecanisms
+
 Version 81.2, 17th of October, 2026
 	Position saving of the SGES menu fully rewritten.
     Made adaptations to FlyWithLua 2.8.17
