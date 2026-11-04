@@ -21,8 +21,6 @@
 --    OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 --    DEALINGS IN THE SOFTWARE.
 
-
-
 --------------------------------------------------------------------------------
 -- Simple Ground Equipment & Services
 -- aka The Poor Man Ground Services --------------------------------------------
@@ -1992,6 +1990,8 @@ function SGES_script()
 	SGES_CONFIG_SGES_Author = "none"
 	SGES_CONFIG_AIRCRAFT_FILENAME = "none"
 
+    local Update_backup = false
+
 	function developer_change()
 		FireVehicle_chg = true
 		GPU_chg = true
@@ -2647,11 +2647,11 @@ function SGES_script()
 
 	  if Cones_chg == true then
 
-		if show_Cones and PLANE_ICAO == "M346" and PLANE_AUTHOR == "Kostas Koronakis Dimitris Koronakis Andrzej Borysewicz" then -- toggle M346 Remove before flight ON
-			set("DWSim/m346/external/rbf",0)
-		elseif not show_Cones and PLANE_ICAO == "M346" and PLANE_AUTHOR == "Kostas Koronakis Dimitris Koronakis Andrzej Borysewicz" then -- toggle M346 Remove before flight OFF
-			set("DWSim/m346/external/rbf",1)
-		end
+            if show_Cones and PLANE_ICAO == "M346" and PLANE_AUTHOR == "Kostas Koronakis Dimitris Koronakis Andrzej Borysewicz" then -- toggle M346 Remove before flight ON
+                set("DWSim/m346/external/rbf",0)
+            elseif not show_Cones and PLANE_ICAO == "M346" and PLANE_AUTHOR == "Kostas Koronakis Dimitris Koronakis Andrzej Borysewicz" then -- toggle M346 Remove before flight OFF
+                set("DWSim/m346/external/rbf",1)
+            end
 
 
 		  if show_Cones == true then
@@ -2660,6 +2660,11 @@ function SGES_script()
 				command_once("412/buttons/remove_before_flight_on")
 				command_once("412/buttons/PATIENT_off")
 			end
+            if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") then
+				--~ command_once("DWSim/ATR_Series/commands/ground/equipment/cones/set")
+				command_once("DWSim/ATR_Series/commands/ground/equipment/cones/clear") -- SGES cones and DWS cones : making that mutually exclusive for more clarity
+            end
+            
 			if (string.match(PLANE_ICAO,"E4") or string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13") or string.match(PLANE_ICAO,"E3")) and string.match(SGES_Author,"Marko") then
 				set("XCrafts/other/ground_objects",1)
 			end
@@ -2667,6 +2672,9 @@ function SGES_script()
 			if IsXPlane12 and SGES_IsHelicopter == 1 and AIRCRAFT_FILENAME == "Bell412.acf" and sges_gs_plane_y_agl[0] < 1 and sges_gs_gnd_spd[0] < 1 then
 				command_once("412/buttons/remove_before_flight_off")
 			end
+            if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") then
+				command_once("DWSim/ATR_Series/commands/ground/equipment/cones/clear")
+            end
 			if (string.match(PLANE_ICAO,"E4") or string.match(PLANE_ICAO,"E14") or string.match(PLANE_ICAO,"E13") or string.match(PLANE_ICAO,"E3")) and string.match(SGES_Author,"Marko") then
 				set("XCrafts/other/ground_objects",1)
 				set("XCrafts/other/remove_before_flight",1)
@@ -2848,10 +2856,41 @@ function SGES_script()
 	end
 
 	function service_object_physics_Beltloader()
+
+    if not show_BeltLoader and PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") ~= nil then
+        --~ print(get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement"))
+        if get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") == 1 then
+            command_end("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/right")
+            command_once("DWSim/ATR_Series/commands/misc/cargo/door/unlock")
+            command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/movement/toggle")
+        end
+   elseif show_BeltLoader and PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") ~= nil then
+        if get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") == 2 then
+            command_end("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/left")
+        end
+    end
+    
 	  if BeltLoader_chg == true then
 			if show_BeltLoader then
 				load_BeltLoader()
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") ~= nil then
+                    if get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") == 0 then
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/movement/toggle")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/cargoLight/toggle")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/unlock")
+                        command_begin("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/left")
+                        set("DWSim/ATR_Series/datarefs/misc/tailStrike/prop/toggle",1)
+                    end
+                end  
 			else
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") ~= nil then
+                    if get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") > 1 then
+                        command_end("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/left")
+                        command_begin("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/right")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/cargoLight/toggle")
+                        set("DWSim/ATR_Series/datarefs/misc/tailStrike/prop/toggle",0)
+                    end
+                end                
 				BeltLoader_chg,BeltLoader_instance[0],rampserviceref5 =  common_unload("BeltLoader",BeltLoader_instance[0],rampserviceref5)
 
                 --~ -- force to remove the bagage (DIRECT PATCH!!)
@@ -2866,6 +2905,9 @@ function SGES_script()
                     Baggage_chg = true
                 end
 			end
+
+            
+
 
 			if BeltLoader_instance[0] ~= nil then
 				--draw_BeltLoader()
@@ -2922,7 +2964,7 @@ function SGES_script()
 					if UseXplaneDefaultObject == true then
 						x = targetDoorX+5.2	z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
 					else
-						x = targetDoorX+6.5	z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
+						x = targetDoorX+5.0	z = ULDLoaderFwdPositionFactor*BeltLoaderFwdPosition
 					end
 				elseif PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
 					ULDLoaderFwdPositionFactor = -1.6
@@ -3393,12 +3435,22 @@ function SGES_script()
 		if Cleaning_chg == true then -- also used in flight as accidented vehicle
 			  if show_Cleaning then
 				  load_Cleaning()
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                    if get("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") == 0 then
+                        command_once("DWSim/ATR_Series/commands/misc/cabin/doors/catering/door/toggle")
+                    end
+                end
 			  --~ elseif Cleaning_instance[0] ~= nil and CleaningFinalX ~= nil then
 					--~ Cleaning_chg,Cleaning_instance[0],rampserviceref4,CleaningFinalX,CleaningFinalX = Common_draw_departing_vehicles(CleaningFinalX,CleaningFinalX,Cleaning_instance[0],"Cleaning",rampserviceref4,10)
 					--~ -- reset
 					--~ CleaningFinalX = nil
 					--~ CleaningFinalX = nil
 			  else
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                    if get("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") == 1 then
+                        command_once("DWSim/ATR_Series/commands/misc/cabin/doors/catering/door/toggle")
+                    end
+                end
 				 Cleaning_chg,Cleaning_instance[0],rampserviceref4 = common_unload("Cleaning",Cleaning_instance[0],rampserviceref4)
 				 _,Cleaning_instance[1],rampserviceref4L = common_unload("CleaningLight",Cleaning_instance[1],rampserviceref4L)
 				 --unload_Cleaning()
@@ -3419,8 +3471,8 @@ function SGES_script()
 						x = 10
 						z = -0.5*math.abs(BeltLoaderFwdPosition)
 					elseif PLANE_ICAO == "AT76" then
-						x = -5
-						z = -2.5*math.abs(BeltLoaderFwdPosition)
+						x = 2
+						z = -6.5*math.abs(BeltLoaderFwdPosition)
 					end
 					-- with an X-Plane 12.1.4 vehicle, I need to back it a little bit
 					if string.find(Prefilled_CleaningTruckObject,"airsideops")	then
@@ -3449,6 +3501,11 @@ function SGES_script()
 				end
 				if Catering_instance[0] == nil and PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" then				command_once("FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door")				end
 
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                    if get("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") == 0 then
+                        command_once("DWSim/ATR_Series/commands/misc/cabin/doors/catering/door/toggle")
+                    end
+                end
 
 				if dataref_to_open_the_door ~= nil then
 					if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
@@ -3485,6 +3542,12 @@ function SGES_script()
 				if Catering_instance[0] ~= nil and PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" then				command_once("FJS/Q4XP/Animation/Toggle_Rear_Right_Cabin_Door")				end
 
 
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                    if get("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") == 1 then
+                        command_once("DWSim/ATR_Series/commands/misc/cabin/doors/catering/door/toggle")
+                    end
+                end
+                
 				if dataref_to_open_the_door ~= nil then
 					if dataref_to_open_the_door == "XCrafts/doors/front_main" and string.match(PLANE_ICAO,"E") then			-- Eùmbraer ERJ
 						if XPLMFindDataRef("XCrafts/doors/front_service") ~= nil then
@@ -3524,8 +3587,9 @@ function SGES_script()
 				elseif PLANE_ICAO == "SF34" or PLANE_ICAO == "QX" or PLANE_ICAO == "AMF" or PLANE_ICAO == "SW4" then
 					z = -2*math.abs(BeltLoaderFwdPosition)
                 elseif PLANE_ICAO == "AT76" then
-					x = 6
-					z = 6*math.abs(BeltLoaderFwdPosition)
+					x = -4.4
+                    if string.find(CatObject,"airside") then x = -2.5 end
+					z = -8.9
 				elseif PLANE_ICAO == "B742" then
 					z = -23.5
 				elseif PLANE_ICAO == "A346" then
@@ -3563,10 +3627,13 @@ function SGES_script()
 				end
 				local object_hdg_correction= - 85
 				if SGES_Embraer_catering_is_small and (string.match(PLANE_ICAO,"B46") or PLANE_ICAO == "RJ70" or PLANE_ICAO == "RJ85" or PLANE_ICAO == "RJ1H" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8C" or PLANE_ICAO == "DH8D" or string.match(PLANE_ICAO,"AT4") or string.match(PLANE_ICAO,"GLF650ER") or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)")) then
-					object_hdg_correction = 150 -- make room for the baggage cart
                     if SGES_Author ~= "Kostas Koronakis, Dimitris Koronakis, Andrzej Borysewicz" then
                         z = -2.25*math.abs(BeltLoaderFwdPosition)
+                        object_hdg_correction = 150 -- make room for the baggage cart
                     end
+                end
+                if PLANE_ICAO == "AT76" then
+                    object_hdg_correction = 101
 				end
 				-- At the White House
 				if CatObject == SAM_object_3 or CatObject == SAM_object_1 or CatObject == SAM_object_2 then
@@ -3971,7 +4038,11 @@ function SGES_script()
 					if PaxLineageStairs_time == nil then PaxLineageStairs_time = SGES_total_flight_time_sec end
 				end
 				--------------
-
+                if dataref_to_open_the_door == "DWSim/ATR_Series/datarefs/misc/cabin/doors/passenger/door" and PLANE_ICAO == "AT76" then
+                    if not show_Pax and get("DWSim/ATR_Series/datarefs/misc/cabin/doors/passenger/door") ~= 0 then
+                        command_once("DWSim/ATR_Series/commands/misc/cabin/doors/passenger/door/toggle")
+                    end
+                end
 				if PaxDoor1Left ~= nil and PaxDoor1Left == target_to_open_the_door then
 					PaxDoor1Left = target_to_open_the_door-1 -- we will try with -1 if that's Ok for the airplane, otherwise the user will hopefully correct that manually in game
 				end
@@ -4427,7 +4498,9 @@ function SGES_script()
 					--~ set("Colimata/F104_A_SW_canopy_i",1)
 				end
 
-
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                    command_once("DWSim/ATR_Series/commands/ground/services/chocks/set")
+                end
 
 				if PLANE_ICAO == "VF14" and string.find(PLANE_AUTHOR,"Hager") and IsXPlane12 then -- toggle F104 chocks
 					set("com/petersaircraft/airbus/cabin_door_pos",1)
@@ -4508,7 +4581,11 @@ function SGES_script()
 					set("Colimata/F104_A_SW_GROUND_pins_i",0)
 					set("Colimata/F104_A_SW_GROUND_ladder_i",0)
 				end
-
+                
+                if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                    command_once("DWSim/ATR_Series/commands/ground/services/chocks/clear")
+                    command_once("DWSim/ATR_Series/commands/ground/equipment/rbf/removeAll")
+                end
 
 				if PLANE_ICAO == "VF14" and string.find(PLANE_AUTHOR,"Hager") and IsXPlane12 then -- toggle F104 chocks
 					set("com/petersaircraft/airbus/cabin_door_pos",0)
@@ -5478,6 +5555,8 @@ function SGES_script()
 			local z = BeltLoaderFwdPosition + 10
 			if (string.match(PLANE_AUTHOR,"Thranda") and string.match(AIRCRAFT_PATH,"146")) then
 				GPU_chg = false
+			elseif string.find(PLANE_AUTHOR,"Koronakis") and PLANE_ICAO == "AT76" then
+				GPU_chg = false
 			else
 				-- send it :
 				local gpu_angle = math.random(-60, -50)
@@ -5790,9 +5869,15 @@ function SGES_script()
 			if (PLANE_ICAO == "E190" or PLANE_ICAO == "E19L" or PLANE_ICAO == "E195" or PLANE_ICAO == "E170" or PLANE_ICAO == "E175") and string.match(SGES_Author,"Marko") then
 				set("XCrafts/other/remove_before_flight",1) -- on for OFF
 			end
+
+            --~ if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/ground/services/gpu/cable/dc") ~= nil then
+                --~ command_once("DWSim/ATR_Series/commands/misc/extPwr/dc/cover/toggle")
+                --~ set("DWSim/ATR_Series/datarefs/ground/services/gpu/cable/dc",1)
+                --~ set("DWSim/ATR_Series/datarefs/ground/services/gpu/groundOffset",1)
+            --~ end
 			--------------------- aircraft specifics ------------------------
 
-			if not ((PLANE_ICAO == "E190" or PLANE_ICAO == "E19L" or PLANE_ICAO == "E195" or PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" or PLANE_ICAO == "E135" or PLANE_ICAO == "E35L") and string.match(SGES_Author,"Marko")) then
+			if not ((PLANE_ICAO == "E190" or PLANE_ICAO == "E19L" or PLANE_ICAO == "E195" or PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" or PLANE_ICAO == "E135" or PLANE_ICAO == "E35L") and string.match(SGES_Author,"Marko"))  then
 			-- load the GPU 3D unit, except for E-Jets which already have a 3D object and we don't want two objects
 			   XPLM.XPLMLoadObjectAsync(GPUObject,
 						function(inObject, inRefcon)
@@ -6427,7 +6512,7 @@ function SGES_script()
 				elseif (PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "E19L") and SGES_Embraer_catering_is_small then
 					CatObject = Prefilled_AlternativeCateringObject
 					CateringHighPartObject =  Prefilled_LightObject				-- no second part
-				elseif IsXPlane1214 and UseXplane1214DefaultObject and Dayonly_truck_flatbed_01 ~= nil and PLANE_ICAO == "DH8D" and not SGES_Embraer_catering_is_small then
+				elseif IsXPlane1214 and UseXplane1214DefaultObject and Dayonly_truck_flatbed_01 ~= nil and (PLANE_ICAO == "DH8D" or PLANE_ICAO == "AT76") and not SGES_Embraer_catering_is_small then
 					CatObject = Dayonly_truck_flatbed_01
 					CateringHighPartObject =  Prefilled_LightObject				-- no second part
 				elseif string.match(PLANE_ICAO,"BN2") or PLANE_ICAO == "MD88" or string.match(PLANE_ICAO,"B46") or PLANE_ICAO == "RJ70" or PLANE_ICAO == "RJ85" or PLANE_ICAO == "RJ1H" or string.match(PLANE_ICAO,"DH8A") or PLANE_ICAO == "DH8C" or PLANE_ICAO == "DH8D" or string.match(PLANE_ICAO,"AT4") or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)") or PLANE_ICAO == "E145" or PLANE_ICAO == "E45X" or PLANE_ICAO == "E135" or PLANE_ICAO == "E35L" then
@@ -7002,6 +7087,15 @@ function SGES_script()
 						print("[Ground Equipment " .. version_text_SGES .. "] Opening the Rotate MD-88 door via command.")
 						PaxDoor1Left = nil
 					end
+
+                elseif dataref_to_open_the_door == "DWSim/ATR_Series/datarefs/misc/cabin/doors/passenger/door" and PLANE_ICAO == "AT76" then
+                    if show_Pax and get("DWSim/ATR_Series/datarefs/misc/cabin/doors/passenger/door") == 0 then
+                        command_once("DWSim/ATR_Series/commands/misc/cabin/doors/passenger/door/toggle")
+                    end
+                    --~ if not show_Pax and get("DWSim/ATR_Series/datarefs/misc/cabin/doors/passenger/door") ~= 0 then
+                        --~ command_once("DWSim/ATR_Series/commands/misc/cabin/doors/passenger/door/toggle")
+                    --~ end
+                        
 				elseif show_StairsXPJ then
 					if PaxDoor1Left == nil and XPLMFindDataRef(dataref_to_open_the_door) ~= nil then
 						print("[Ground Equipment " .. version_text_SGES .. "] The door has the dataref " .. dataref_to_open_the_door .. ":" .. index_to_open_the_door)
@@ -7440,24 +7534,26 @@ function SGES_script()
 						end,
 						inRefcon )
 		end
-		if Chocks_instance[1] == nil then
-			   --print("[Ground Equipment " .. version_text_SGES .. "] load_Chocks 2")
-			   XPLM.XPLMLoadObjectAsync(Chocks_92,
-						function(inObject, inRefcon)
-						Chocks_instance[1] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
-						rampserviceref92 = inObject
-						end,
-						inRefcon )
-		end
-		if Chocks_instance[2] == nil then
-			   --print("[Ground Equipment " .. version_text_SGES .. "] load_Chocks 3")
-			   XPLM.XPLMLoadObjectAsync(Chocks_92,
-						function(inObject, inRefcon)
-						Chocks_instance[2] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
-						rampserviceref93 = inObject
-						end,
-						inRefcon )
-		end
+        if PLANE_ICAO ~= "AT76" then
+            if Chocks_instance[1] == nil then
+                   --print("[Ground Equipment " .. version_text_SGES .. "] load_Chocks 2")
+                   XPLM.XPLMLoadObjectAsync(Chocks_92,
+                            function(inObject, inRefcon)
+                            Chocks_instance[1] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+                            rampserviceref92 = inObject
+                            end,
+                            inRefcon )
+            end
+            if Chocks_instance[2] == nil then
+                   --print("[Ground Equipment " .. version_text_SGES .. "] load_Chocks 3")
+                   XPLM.XPLMLoadObjectAsync(Chocks_92,
+                            function(inObject, inRefcon)
+                            Chocks_instance[2] = XPLM.XPLMCreateInstance(inObject, datarefs_addr)
+                            rampserviceref93 = inObject
+                            end,
+                            inRefcon )
+            end
+        end
 	end
 
 	function load_Deice()
@@ -9202,9 +9298,12 @@ function SGES_script()
 		elseif BeltLoaderFwdPosition >= ULDthresholdx and PLANE_ICAO ~= "MD88" then
 			finalX = 25
 			finalY = 1*math.abs(targetDoorZ)
+        elseif PLANE_ICAO == "AT76"  then -- ATR 72-600
+			finalX = 15
+			finalY = -12 -- boarding at the rear
 		elseif string.match(PLANE_ICAO,"AT4") or (string.match(PLANE_ICAO,"AT7") or SGES_Author == "ATGCAB (Alfredo Torrado & Juan Alcon)") then -- ATR42 and ATR 72 rear boarding door
 			finalX = 16
-			finalY = -5 -- boarding at the rear
+			finalY = -8 -- boarding at the rear
 		elseif math.abs(BeltLoaderFwdPosition) < 4.5 then -- general aviation, helicopters :
 			finalX = 16
 			finalY = -3
@@ -14286,6 +14385,33 @@ function SGES_script()
 			--~ imgui.PopStyleColor(2)
 		  elseif string.match(PLANE_AUTHOR,"Thranda") and XPLMFindDataRef("thranda/electrical/ExtPwrGPUAvailable") ~= nil then
 				l_changed, l_newval = imgui.Checkbox(" GPU (Thranda)", show_GPU)
+
+          elseif PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/ground/services/gpu/cable/dc") ~= nil then
+            --~ if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/ground/services/gpu/cable/dc") ~= nil then
+                --~ command_once("DWSim/ATR_Series/commands/misc/extPwr/dc/cover/toggle")
+                --~ set("DWSim/ATR_Series/datarefs/ground/services/gpu/cable/dc",1)
+                --~ set("DWSim/ATR_Series/datarefs/ground/services/gpu/groundOffset",1)
+                local atr_cable_dc = get("DWSim/ATR_Series/datarefs/ground/services/gpu/cable/dc")
+                if atr_cable_dc == 1 then show_GPU = true else show_GPU = false end
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+				_, _ = imgui.Checkbox(" Ext Pwr", show_GPU)
+                imgui.PopStyleColor()
+				if imgui.IsItemActive() then
+					-- Click & hold tooltip
+					imgui.BeginTooltip()
+					-- This function configures the wrapping inside the toolbox and thereby its width
+					imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+					imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+					imgui.TextUnformatted("The DeltaWings Simulation ATR-76 requires the EFB to connect the ground power unit.")
+					imgui.PopStyleColor()
+					-- Reset the wrapping, this must always be done if you used PushTextWrapPos
+					imgui.PopTextWrapPos()
+					imgui.EndTooltip()
+				end
+                imgui.SameLine()
+                if  imgui.Button("GPU",34,20)  then
+                    command_once("DWSim/Screens/Popup/EFB")
+                end
 		  else
 				l_changed, l_newval = imgui.Checkbox(" GPU (visual)", show_GPU)
 		  end
@@ -14362,7 +14488,7 @@ function SGES_script()
 				end
 				--~ --$--imgui.SetWindowFontScale(1)
 				imgui.PopStyleColor(2)
-				if imgui.IsItemHovered() then
+				if imgui.IsItemActive() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
@@ -14378,11 +14504,32 @@ function SGES_script()
 
 
         
-        imgui.SameLine() -- comment that when Colmuns are in use
+        --~ imgui.SameLine() -- comment that when Colmuns are in use
+
+        if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/ground/equipment/engineCovers/rightExhaust/installed") ~= nil then
+			  imgui.SameLine()
+              local show_RBF = get("DWSim/ATR_Series/datarefs/ground/equipment/engineCovers/rightExhaust/installed")
+              if show_RBF ~= 0 then
+                l_changed, l_newval = imgui.Checkbox(" ATR-72 RBF", true)
+            else
+				if imgui.Button("ATR-72 RBF") then
+					l_changed = true
+				end
+                --~ l_changed, l_newval = imgui.Checkbox(" ATR-72 RBF", false)
+            end
+			  if l_changed then
+				if show_RBF == 0 then
+                    command_once("DWSim/ATR_Series/commands/ground/equipment/rbf/fitAll")
+				else
+                    command_once("DWSim/ATR_Series/commands/ground/equipment/rbf/removeAll")
+				end
+			  end
+        end
+                
 
 		if PLANE_ICAO == "B742" and string.find(AIRCRAFT_FILENAME,"Felis") then
-				imgui.NextColumn()
-			  --~ imgui.SameLine()
+				--~ imgui.NextColumn()
+			  imgui.SameLine()
 			  l_changed, l_newval = imgui.Checkbox(" B747 ACU", show_ASU)
 			  if l_changed then
 				show_ASU = l_newval
@@ -14394,8 +14541,8 @@ function SGES_script()
 				end
 			  end
 		  elseif show_ASU or (IsToLiSs == false and SGES_BushMode == false and PLANE_ICAO ~= "F104" and math.abs(BeltLoaderFwdPosition) > 4) then
-				imgui.NextColumn()
-			  --~ imgui.SameLine()
+				--~ imgui.NextColumn()
+			  imgui.SameLine()
 			  l_changed, l_newval = imgui.Checkbox(" ASU", show_ASU)
 			  if l_changed then
 				show_ASU = l_newval
@@ -14413,7 +14560,7 @@ function SGES_script()
 					ZIBOToggleASU()
 				end
 				imgui.PopStyleColor(2)
-				if imgui.IsItemHovered() then
+				if imgui.IsItemActive() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
 					-- This function configures the wrapping inside the toolbox and thereby its width
@@ -14525,7 +14672,7 @@ function SGES_script()
 					AAR_chg = true
 				end
 			end
-			if (not show_AAR and sges_big_airport and math.abs(BeltLoaderFwdPosition) > 4.5 and IsXPlane12) or show_Pump then
+			if (not show_AAR and sges_big_airport and (math.abs(BeltLoaderFwdPosition) > 4.5 or PLANE_ICAO == "AT76") and IsXPlane12) or show_Pump then
 
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
 				--~ imgui.SameLine()
@@ -15696,7 +15843,7 @@ function SGES_script()
 			else
 				l_changed, l_newval = imgui.Checkbox(" Catering", show_Catering)
 
-				if PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "DH8D" then
+				if PLANE_ICAO == "E170" or PLANE_ICAO == "E175" or PLANE_ICAO == "DH8D" or PLANE_ICAO == "AT76"  then
 					imgui.SameLine()
 
 					imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 12)
@@ -15709,7 +15856,7 @@ function SGES_script()
 						-- This function configures the wrapping inside the toolbox and thereby its width
 						imgui.PushTextWrapPos(imgui.GetFontSize() * 14)
 						imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
-						imgui.TextUnformatted("Variant of the catering service.")
+						imgui.TextUnformatted("Normal catering van. Uncheck for a variant of the catering service.")
 						imgui.PopStyleColor()
 						-- Reset the wrapping, this must always be done if you used PushTextWrapPos
 						imgui.PopTextWrapPos()
@@ -15736,8 +15883,14 @@ function SGES_script()
 			show_TargetMarker = false -- we cancel the nose wheel position marker upon chocks selection
 			TargetMarker_chg = true
 		  end
+          
 
-
+            if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/ground/equipment/engineCovers/rightExhaust/installed") ~= nil then
+                imgui.SameLine()
+                if imgui.SmallButton("Cones") then
+                    command_once("DWSim/ATR_Series/commands/ground/equipment/cones/set")
+                end
+            end
 
 
 
@@ -16300,6 +16453,7 @@ function SGES_script()
 								set("sim/flightmodel/position/local_x",g_shifted_x)
 								set("sim/flightmodel/position/local_z",g_shifted_z)
 					  end
+                    imgui.TextUnformatted("")
 						 if imgui.IsItemActive() then
 							-- Click & hold tooltip
 							imgui.BeginTooltip()
@@ -16702,7 +16856,7 @@ function SGES_script()
 			FireVehicle_chg = true
 			if string.match(PLANE_ICAO,"CRJ") then command_once("crj700/tablet/menu/settings/hot_external_power_command")
 			elseif not SGES_BushMode then
-				if not string.find(AIRCRAFT_FILENAME,"Felis")  then
+				if not string.find(AIRCRAFT_FILENAME,"Felis") and not (PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis")) then
 					show_GPU = l_newval
 					GPU_chg = true
 				end
@@ -18249,9 +18403,11 @@ function SGES_script()
 
 			if IsToLiSs and sges_gs_gnd_spd[0] < 10 and not show_ArrestorSystem then -- clean a little the interface at higher speeds
 				imgui.SameLine()
+                imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
 				if  imgui.Button("ISCS",38,20)  then -- toliss command menu
 					command_once("toliss_airbus/iscs_open")
 				end
+                imgui.PopStyleVar()
 
 				if imgui.IsItemActive() then
 					-- Click & hold tooltip
@@ -18266,6 +18422,7 @@ function SGES_script()
 					imgui.EndTooltip()
 				end
 			end
+
 
 
 			if PLANE_ICAO == "UH60M" and string.find(SGES_Author,"melbo") and not show_ArrestorSystem then
@@ -18479,14 +18636,16 @@ function SGES_script()
 			end
 
 
-			if PLANE_ICAO == "DH8D" and sges_gs_gnd_spd[0] < 10 and not show_ArrestorSystem then -- clean a little the interface at higher speeds
+			if PLANE_ICAO == "DH8D" and AIRCRAFT_FILENAME == "Q4XP.acf" and sges_gs_gnd_spd[0] < 160 and not show_ArrestorSystem then -- clean a little the interface at higher speeds
 				--~ imgui.SameLine()
 				--~ imgui.TextUnformatted("Q4XP")
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
 				imgui.SameLine()
+                imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
 				if  imgui.Button("JPAD",38,20)  then -- FlyJSim command menu
 					command_once("FJS/Q4XP/JPad/Toggle_Popup")
 				end
+                imgui.PopStyleVar()
 				if imgui.IsItemActive() then
 					-- Click & hold tooltip
 					imgui.BeginTooltip()
@@ -18501,15 +18660,56 @@ function SGES_script()
 				end
 
 				imgui.SameLine()
-				if  imgui.Button("NWS",40,20)  then -- FlyJSim command menu
+				if  imgui.Button("NWS",30,20)  then -- FlyJSim command menu
 					command_once("FJS/Q4XP/Switches/steering")
 				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Nose Wheel steering switch toggle, captain side. Forward means NWS is ON.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+
 
 				imgui.PopStyleColor()
+                ----------------------------------------------------------------
 				imgui.SameLine()
-				imgui.TextUnformatted("gpws:CB1A")
+                if Breakers_Anim  ~= nil then
+                    if Breakers_Anim[64] == 1 then
+                        imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF7D7D7D)
+                        l_changed, _ = imgui.Checkbox(" EGPWS", false)
+                        if l_changed then
+                            Breakers_Anim[64] = 0 -- active the EGPWS
+                        end
+                        imgui.PopStyleColor()
+                    elseif Breakers_Anim[64] == 0 then
+                        imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
+                        l_changed, _ = imgui.Checkbox(" EGPWS", true)
+                        if l_changed then
+                            Breakers_Anim[64] = 1 -- trip out the annoying EGPWS
+                        end
+                        imgui.PopStyleColor()
+                    end
+                    if imgui.IsItemActive() then
+                        -- Click & hold tooltip
+                        imgui.BeginTooltip()
+                        -- This function configures the wrapping inside the toolbox and thereby its width
+                        imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+                        imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                        imgui.TextUnformatted("Disable the Q400 EGPWS completely by poping out the circuit breaker 1A.")
+                        imgui.PopStyleColor()
+                        -- Reset the wrapping, this must always be done if you used PushTextWrapPos
+                        imgui.PopTextWrapPos()
+                        imgui.EndTooltip()
+                    end
+                end
+                ----------------------------------------------------------------
 
 				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
+                
 				if  imgui.Button("MFD1",35,20)  then -- FlyJSim command menu
 					command_once("FJS/Q4XP/popout/MFD1")
 				end
@@ -18521,6 +18721,15 @@ function SGES_script()
 				if  imgui.Button("Key",30,20)  then -- FlyJSim command menu
 					command_once("FJS/Q4XP/JPad/Toggle_FMS1_keyboard_input")
 				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Activate the FMS1 input by the physical keyboard.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
 				imgui.SameLine()
 				if  imgui.Button("Y",16,20)  then -- FlyJSim command menu
 					command_once("sim/operation/toggle_yoke")
@@ -18529,11 +18738,30 @@ function SGES_script()
 				if  imgui.Button("1L D.",40,20)  then -- FlyJSim command menu
 					command_once("FJS/Q4XP/Animation/Toggle_Main_Cabin_Door")
 				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Toggle Main Cabin Door.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
 				imgui.SameLine()
 				if  imgui.Button("Doors",40,20)  then -- FlyJSim command menu
 					command_once("FJS/Q4XP/Animation/Toggle_Main_Cargo_Door")
 					command_once("FJS/Q4XP/Animation/Toggle_Fwd_Right_Cabin_Door")
 				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Toggle Main Cargo Door.\nToggle Fwd Right Cabin Door")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+
 				if SGES_parkbrake > 0 then
 					if get("sim/cockpit/engine/APU_switch") == 1 and get("sim/cockpit/engine/APU_running") == 0 then
 						if  imgui.Button("Force APU on",90,15)  then -- FlyJSim command menu
@@ -18545,6 +18773,182 @@ function SGES_script()
 				end
 				imgui.PopStyleColor()
 			end
+
+            if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then
+                imgui.SameLine()
+                imgui.PushStyleVar(imgui.constant.StyleVar.FrameRounding, 8)
+                imgui.PushStyleColor(imgui.constant.Col.Button,  imgui.ColorConvertFloat4ToU32(0.5, 0.5, 0.5, 1.0))
+                if  imgui.Button("EFB",38,20)  then
+                    command_once("DWSim/Screens/Popup/EFB")
+                end
+				imgui.SameLine()
+				if  imgui.Button("Lock EFB",16,20)  then -- FlyJSim command menu
+					command_once("DWSim/ATR_Series/commands/efb/lockToggle")
+				end
+                imgui.PopStyleColor()
+                imgui.PopStyleVar()
+            end
+            if PLANE_ICAO == "AT76" and string.match(SGES_Author,"Koronakis") and sges_gs_gnd_spd[0] < 160 and not show_ArrestorSystem and XPLMFindDataRef("DWSim/ATR_Series/datarefs/misc/cabin/doors/catering/door") ~= nil then -- clean a little the interface at higher speeds
+
+                if nwSteeringAtrSges ~= nil then
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
+                    imgui.SameLine()
+                    if  imgui.Button("NWS",30,20) then
+                    
+                        if  nwSteeringAtrSges[0] == 1 then -- when NWS is engage
+                            if CvSteeringAtrSges[0] == 0 then -- when the cover is in normal position
+                                command_once("DWSim/ATR_Series/commands/nwSteering/cover/toggle") -- open this cover
+                            end
+                            command_begin("DWSim/ATR_Series/commands/nwSteering/switch/toggle") -- disengage the NWS
+                        else -- when the NWS is disengaged
+                            command_once("DWSim/ATR_Series/commands/nwSteering/switch/toggle") -- reengage it
+                            command_once("DWSim/ATR_Series/commands/nwSteering/cover/toggle") -- and close the cover
+                        end
+                    end    
+                    if imgui.IsItemHovered() then
+                         -- prepare the Nose Wheel steering switch by already opening the switch cover :
+                        if CvSteeringAtrSges[0] == 0 and nwSteeringAtrSges[0] == 1 then -- when the cover is in normal position
+                            command_once("DWSim/ATR_Series/commands/nwSteering/cover/toggle") -- open this cover
+                        end  
+                    end
+                    if imgui.IsItemActive() then
+                        imgui.BeginTooltip()
+                        imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                        imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                        imgui.TextUnformatted("Nose Wheel steering switch toggle, captain side, side panel. Garded means ON.")
+                        imgui.PopStyleColor()
+                        imgui.PopTextWrapPos()
+                        imgui.EndTooltip()
+                    end
+
+
+                    imgui.PopStyleColor()
+                end
+                ----------------------------------------------------------------
+				imgui.SameLine()
+				if  imgui.Button("EGPWS",45,20)  then 
+                    command_once("DWSim/ATR_Series/commands/CBs/A20") -- CB A21 TAWS
+                    command_once("DWSim/ATR_Series/commands/CBs/A21") -- CB A21 TAWS
+                end
+                if imgui.IsItemActive() then
+                    -- Click & hold tooltip
+                    imgui.BeginTooltip()
+                    -- This function configures the wrapping inside the toolbox and thereby its width
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 12)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Disable the ATR-76 TAWS completely by poping out the circuit breaker A21.")
+                    imgui.PopStyleColor()
+                    -- Reset the wrapping, this must always be done if you used PushTextWrapPos
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+                ----------------------------------------------------------------
+
+                
+
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
+                
+				if  imgui.Button("DU1",33,20)  then 
+					command_once("DWSim/Screens/Popup/DU1")
+				end
+				imgui.SameLine()
+				if  imgui.Button("DU2",33,20)  then 
+					command_once("DWSim/Screens/Popup/DU2")
+				end
+				imgui.SameLine()
+				if  imgui.Button("Key",30,20)  then 
+				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Click the MCDU scratchpad to type with the computer physical keyboard.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+				imgui.SameLine()
+				if  imgui.Button("Y",16,20)  then -- FlyJSim command menu
+					command_once("sim/operation/toggle_yoke")
+				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Toggle the yoke visibility or click the screw circled in red on the glareshield panel next to the WARN and CAUT lights.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+				imgui.SameLine()
+				if  imgui.Button("H",16,20)  then -- FlyJSim command menu
+					command_once("DWSim/ATR_Series/commands/efgcp/helper/left/toggle")
+					command_once("DWSim/ATR_Series/commands/efgcp/helper/right/toggle")
+				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Some of the controls for the PFD and MFD are far from the display units. The EFGCP helper is a repeat panel, placed above the PFD and MFD.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+				imgui.SameLine()
+				if  imgui.Button("Pax",32,20)  then
+                    --~ if door_status == nil then door_status = index_to_open_the_door end
+                    --~ door_status = math.abs(door_status-1)
+                    --~ set("DWSim/ATR_Series/datarefs/misc/cabin/doors/passenger/door",door_status)
+                    command_once("DWSim/ATR_Series/commands/misc/cabin/doors/passenger/door/toggle")
+				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Toggle Main Cabin Door.")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+				imgui.SameLine()
+				if  imgui.Button("Doors",40,20)  then -- FlyJSim command menu
+                    command_once("DWSim/ATR_Series/commands/misc/cabin/doors/catering/door/toggle")
+                    if get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") == 0 then
+                        command_end("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/right")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/movement/toggle")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/cargoLight/toggle")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/unlock")
+                        command_begin("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/left")
+                        set("DWSim/ATR_Series/datarefs/misc/tailStrike/prop/toggle",1)
+                    elseif get("DWSim/ATR_Series/datarefs/misc/cargo/door/movement") > 1 then
+                        command_end("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/left")
+                        command_begin("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/doorOpener/right")
+                        command_once("DWSim/ATR_Series/commands/misc/cargo/door/controlPanel/cargoLight/toggle")
+                        set("DWSim/ATR_Series/datarefs/misc/tailStrike/prop/toggle",0)
+                    end
+				end
+                if imgui.IsItemActive() then
+                    imgui.BeginTooltip()
+                    imgui.PushTextWrapPos(imgui.GetFontSize() * 17)
+                    imgui.PushStyleColor(imgui.constant.Col.Text,  0xFF01CCDD)
+                    imgui.TextUnformatted("Toggle Main Cargo Door.\nToggle Right Cabin Door")
+                    imgui.PopStyleColor()
+                    imgui.PopTextWrapPos()
+                    imgui.EndTooltip()
+                end
+
+				if SGES_parkbrake > 0 then
+					if get("sim/cockpit/engine/APU_switch") == 1 and get("sim/cockpit/engine/APU_running") == 0 then
+						if  imgui.Button("Force APU on",90,15)  then -- FlyJSim command menu
+							set("sim/cockpit/engine/APU_running",1)
+						end
+						imgui.SameLine()
+						imgui.TextUnformatted("for debug.")
+					end
+				end
+				imgui.PopStyleColor()
+			end
+
 
 			if PLANE_ICAO == "F104" and PLANE_AUTHOR == "COLIMATA" and sges_gs_gnd_spd[0] < 10 and not show_ArrestorSystem then -- clean a little the interface at higher speeds
 				--~ imgui.SameLine()
@@ -19795,11 +20199,14 @@ function SGES_script()
 			if  imgui.Button("Close the options",230,25)  then
 				config_options = false
 			end
-			--~ if  imgui.Button("Check for SGES updates",230,25)  then
-				--~ open_that_sges_url("https://forums.x-plane.org/index.php?/files/file/62296-simple-ground-equipment-services-low-tech-services")
-			--~ end
 
-            if imgui.Button("Check update (stable version)") then
+			imgui.Separator()
+			imgui.Spacing()
+			imgui.TextUnformatted("SGES UPDATES")
+			if  imgui.Button("Open the SGES website",200,19)  then
+				open_that_sges_url("https://forums.x-plane.org/index.php?/files/file/62296-simple-ground-equipment-services-low-tech-services")
+			end
+            if imgui.Button("Check the stable version",230,25) then
                 if not SGESUpdater then
                     dofile(
                         SCRIPT_DIRECTORY ..
@@ -19808,7 +20215,7 @@ function SGES_script()
                 end
                 SGESUpdater.CheckForUpdates("https://raw.githubusercontent.com/GitHubJavelin/sges-updates/main")
             end    
-            if imgui.Button("Check update (work-in-progress)") then
+            if imgui.Button("Check the beta version",230,25) then
                 if not SGESUpdater then
                     dofile(
                         SCRIPT_DIRECTORY ..
@@ -19818,14 +20225,20 @@ function SGES_script()
                 SGESUpdater.CheckForUpdates("https://raw.githubusercontent.com/GitHubJavelin/sges-updates-beta/main")
             end
             if  SGESUpdater ~= nil and SGESUpdater and SGESUpdater.UpdateAvailable ~= nil and  SGESUpdater.UpdateAvailable and SGESUpdater.FilesToUpdate ~= nil then
-                local button_update_string = "Download the " .. tostring(#SGESUpdater.FilesToUpdate) .. " available files !"
-                if #SGESUpdater.FilesToUpdate == 1 then button_update_string = "Download the available file !" end
-                if imgui.Button(button_update_string) then
-                    --~ SGESUpdater.CheckForUpdates("https://raw.githubusercontent.com/")
-                    SGESUpdater.InstallUpdates()
+                local button_update_string = tostring(#SGESUpdater.FilesToUpdate) .. " files"
+                if #SGESUpdater.FilesToUpdate == 1 then button_update_string = " file" end
+				imgui.PushStyleColor(imgui.constant.Col.Text,  0xFFCAFFCC)
+                imgui.TextUnformatted(button_update_string .. " available for update.")
+				imgui.PopStyleColor()
+                l_changed, l_newval = imgui.Checkbox(" Backup before install", Update_backup)
+				if l_changed then
+                    Update_backup = l_newval
+                end
+                if imgui.Button("Download and install the " .. button_update_string) then
+                    SGESUpdater.InstallUpdates(Update_backup)
                 end
             elseif SGESUpdater ~= nil and SGESUpdater and SGESUpdater.UpdateAvailable ~= nil and  not SGESUpdater.UpdateAvailable  then
-                imgui.TextUnformatted("Nothing to update today !")
+                imgui.TextUnformatted("All good !")
             end
 			imgui.Spacing()
 			imgui.Separator()
