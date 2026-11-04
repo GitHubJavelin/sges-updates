@@ -2144,6 +2144,8 @@ function SGES_script()
 					PaxDoor1Left = target_to_open_the_door
 				end
 			end
+        else
+            print("[Ground Equipment " .. version_text_SGES .. "] Skip startup options (engine starter is on, or aircraft is in flight or engine is running, or is a glider.")
 		end
 
 		if sges_airport_ID == nil then sges_airport_ID = "ZZZZ" end
