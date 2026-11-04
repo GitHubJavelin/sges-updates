@@ -554,6 +554,11 @@ function load_PB()
 						elseif  (LATITUDE > 24 and LATITUDE < 44) and (LONGITUDE > -84 and LONGITUDE < -69) then
 							Prefilled_PushBackObject = 	XPlane_Ramp_Equipment_directory   .. "towbar_15ft_1.obj" -- White -- -- East Coast USA towbar
 						end
+
+                        -- I decide, for fun, to change the color of the bar for the ATR-76-600 only.
+                        if PLANE_ICAO == "AT76" then
+							Prefilled_PushBackObject = 	XPlane_Ramp_Equipment_directory   .. "towbar_15ft_3.obj" -- Blue towbar
+                        end
 						-- else default towbar selection started at session starts applies.
 						-- You can safely load it
 						-- I will simply patch that by adding again the 777v2 test :

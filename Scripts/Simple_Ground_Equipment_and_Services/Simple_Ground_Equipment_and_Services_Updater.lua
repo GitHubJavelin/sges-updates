@@ -317,7 +317,7 @@ end
 -- INSTALL UPDATES
 --------------------------------------------------
 
-function SGESUpdater.InstallUpdates()
+function SGESUpdater.InstallUpdates(Update_backup)
 
 
     print("[SGES Updater] installing updates")
@@ -326,7 +326,9 @@ function SGESUpdater.InstallUpdates()
 
         SGESUpdater.MakePath(f.localfile)
 
-        SGESUpdater.BackupFile(f.localfile)
+        if Update_backup then
+            SGESUpdater.BackupFile(f.localfile)
+        end
 
         local url =
             SGESUpdater.BaseURL ..

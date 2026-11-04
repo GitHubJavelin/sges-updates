@@ -301,9 +301,25 @@ if IsXPlane12 and AIRCRAFT_FILENAME == "Q4XP.acf" then
 	print("[Ground Equipment " .. version_text_SGES .. "] Applying " .. PLANE_AUTHOR .. " " .. AIRCRAFT_FILENAME .. " startup specifics.")
 	set_array("FJS/Q4XP/Manips/CockpitDoor_Anim",0,0)
 	--~ set_array("FJS/Q4XP/Manips/JumpSeat_Anim",0,0)
+    if Breakers_Anim  == nil then
+        Breakers_Anim = dataref_table("FJS/Q4XP/Manips/Breakers_Anim")
+    end
+    Breakers_Anim[64] = 1 -- trip out the annoying EGPWS
 end
 -- /////////////////////////////////////////// --
 
+-- /////////////////////////////////////////// --
+-- ATR Series DeltaWing Simulation
+if IsXPlane12 and AIRCRAFT_FILENAME == "DWSim_ATR_72_600.acf" then
+	print("[Ground Equipment " .. version_text_SGES .. "] Applying " .. PLANE_AUTHOR .. " " .. AIRCRAFT_FILENAME .. " startup specifics.")
+	--~ set_array("FJS/Q4XP/Manips/JumpSeat_Anim",0,0)
+    if nwSteeringAtrSges  == nil then
+        nwSteeringAtrSges = dataref_table("DWSim/ATR_Series/datarefs/nwSteering/switch")
+        CvSteeringAtrSges = dataref_table("DWSim/ATR_Series/datarefs/nwSteering/cover")
+    end
+
+end
+-- /////////////////////////////////////////// --
 
 
 
